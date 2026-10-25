@@ -1,7 +1,7 @@
 // Campaigns and hand-picked products, edited from /admin.
 // Stored as one JSON file on a persistent disk (a Railway volume in
 // production); seeded from content/*.json the first time.
-import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rename, readdir } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -69,7 +69,41 @@ export function normalizeContent(doc) {
     const ids = new Set();
     c.sections = c.sections.filter((s) => !ids.has(s.id) && ids.add(s.id));
   }
-  return { campaigns };
+  const appliedSeeds = [...new Set((Array.isArray(doc?.appliedSeeds) ? doc.appliedSeeds : []).map((s) => str(s, 80)).filter(Boolean))];
+  return { campaigns, appliedSeeds };
+}
+
+// One-time campaign imports: each content/seeds/<id>.json adds its campaign
+// the first time the site starts with it, then is recorded in appliedSeeds,
+// so deleting the campaign in /admin doesn't bring it back.
+async function applySeeds(doc) {
+  const dir = path.join(APP_ROOT, 'content', 'seeds');
+  const files = (await readdir(dir).catch(() => [])).filter((f) => f.endsWith('.json')).sort();
+  let changed = false;
+  for (const file of files) {
+    const id = file.replace(/\.json$/, '');
+    if (doc.appliedSeeds.includes(id)) continue;
+    try {
+      const { campaign } = JSON.parse(await readFile(path.join(dir, file), 'utf8'));
+      const clean = normalizeCampaign(campaign);
+      const existing = doc.campaigns.find((c) => c.id === clean.id);
+      if (!existing) {
+        doc.campaigns.push(clean);
+      } else {
+        // Campaign already made by hand: add the imported products to its first
+        // section, skipping any it already has (matched by title).
+        const have = new Set(existing.sections.flatMap((s) => s.picks).map((p) => p.title.toLowerCase()));
+        const add = clean.sections.flatMap((s) => s.picks).filter((p) => !have.has(p.title.toLowerCase()));
+        existing.sections[0].picks.push(...add);
+      }
+      doc.appliedSeeds.push(id);
+      changed = true;
+      console.log(`Imported campaign "${clean.title}" from content/seeds/${file}`);
+    } catch (err) {
+      console.error(`Could not import content/seeds/${file}:`, err.message);
+    }
+  }
+  return changed;
 }
 
 async function seed() {
@@ -88,6 +122,10 @@ async function seed() {
 
 let cache = null;
 
+async function readStored() {
+  try { return normalizeContent(JSON.parse(await readFile(FILE, 'utf8'))); } catch { return null; }
+}
+
 export async function getContent() {
   if (cache) return cache;
   try {
@@ -96,11 +134,14 @@ export async function getContent() {
     if (err.code !== 'ENOENT') console.error(`Could not read ${FILE}, starting from defaults:`, err.message);
     cache = await seed();
   }
+  if (await applySeeds(cache)) await saveContent(cache);
   return cache;
 }
 
 export async function saveContent(doc) {
-  const clean = normalizeContent(doc);
+  // The admin page sends only campaigns; keep the record of applied imports.
+  const prior = cache ?? await readStored();
+  const clean = normalizeContent({ ...doc, appliedSeeds: [...(doc.appliedSeeds ?? []), ...(prior?.appliedSeeds ?? [])] });
   await mkdir(DATA_DIR, { recursive: true });
   // Write to a temp file first so a crash mid-write can't corrupt the data.
   const tmp = `${FILE}.tmp`;

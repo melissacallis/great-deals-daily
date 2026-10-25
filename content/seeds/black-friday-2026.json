@@ -1,0 +1,79 @@
+{
+  "_help": "One-time import: adds the Black Friday Watchlist campaign the first time the site starts with this file. Edit it in /admin afterwards.",
+  "campaign": {
+    "id": "black-friday",
+    "title": "Black Friday Watchlist",
+    "emoji": "🛍️",
+    "nav": true,
+    "intro": "The products I’m watching for real Black Friday markdowns. Check today’s price on Amazon before you buy, since deals can end anytime.",
+    "sections": [
+      {
+        "id": "main",
+        "title": "",
+        "search": "black friday deals",
+        "picks": [
+          {
+            "title": "Fire TV Stick 4K",
+            "emoji": "📺",
+            "why": "Turns any TV into a smart TV in a few minutes. An easy gift for parents or a dorm room.",
+            "url": "https://www.amazon.com/s?k=Fire+TV+Stick+4K"
+          },
+          {
+            "title": "Kindle Paperwhite",
+            "emoji": "📖",
+            "why": "Glare-free screen, weeks of battery and waterproof. The one I’d pick for anyone who reads in bed.",
+            "url": "https://www.amazon.com/s?k=Kindle+Paperwhite"
+          },
+          {
+            "title": "Echo Dot",
+            "emoji": "🔊",
+            "why": "Small smart speaker for music, timers and reminders. Works well as a kitchen or bedroom add-on.",
+            "url": "https://www.amazon.com/s?k=Echo+Dot"
+          },
+          {
+            "title": "Ring Video Doorbell",
+            "emoji": "🔔",
+            "why": "See who’s at the door from your phone. Practical for anyone who gets a lot of packages.",
+            "url": "https://www.amazon.com/s?k=Ring+Video+Doorbell"
+          },
+          {
+            "title": "Apple AirPods Pro 2",
+            "emoji": "🎧",
+            "why": "Noise cancelling that works on commutes and flights. Worth it if they use an iPhone; skip it for Android.",
+            "url": "https://www.amazon.com/s?k=Apple+AirPods+Pro+2"
+          },
+          {
+            "title": "Sony WH-1000XM5 headphones",
+            "emoji": "🎧",
+            "why": "Over-ear noise cancelling with long battery life. Great for travel or working from home.",
+            "url": "https://www.amazon.com/s?k=Sony+WH-1000XM5+headphones"
+          },
+          {
+            "title": "Robot vacuum (iRobot Roomba or Shark)",
+            "emoji": "🤖",
+            "why": "Keeps floors under control between real cleans. Best for homes with pets or busy schedules.",
+            "url": "https://www.amazon.com/s?k=Robot+vacuum"
+          },
+          {
+            "title": "Ninja air fryer",
+            "emoji": "🍟",
+            "why": "Crispy food without heating the whole oven. A gift people actually use every week.",
+            "url": "https://www.amazon.com/s?k=Ninja+air+fryer"
+          },
+          {
+            "title": "Instant Pot",
+            "emoji": "🍲",
+            "why": "Pressure cooker, slow cooker and rice cooker in one. Saves counter space and weeknight time.",
+            "url": "https://www.amazon.com/s?k=Instant+Pot"
+          },
+          {
+            "title": "LEGO Botanicals flower set",
+            "emoji": "🌸",
+            "why": "A relaxing build that ends up as decor. A fun gift for adults, not just kids.",
+            "url": "https://www.amazon.com/s?k=LEGO+Botanicals+flower+set"
+          }
+        ]
+      }
+    ]
+  }
+}
