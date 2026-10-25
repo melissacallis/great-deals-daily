@@ -1,15 +1,63 @@
 {
-  "_help": "The Holiday Gift Guide page. Each section can hold picks (same format as picks.json). Sections with no picks show a 'Browse on Amazon' button that searches Amazon for search, tagged with your affiliate ID.",
+  "_help": "Starting content for the Holiday Gift Guide, used only the first time the site runs with an empty data volume. After that, edit it at /admin.",
   "title": "Holiday Gift Guide 2026",
   "intro": "Gift ideas for everyone on your list, picked for value. Black Friday and Cyber Monday bring the year's deepest discounts, so check back often.",
   "sections": [
-    { "id": "her",      "emoji": "💝", "title": "Gifts for Her",         "search": "gifts for women",        "picks": [] },
-    { "id": "him",      "emoji": "🎩", "title": "Gifts for Him",         "search": "gifts for men",          "picks": [] },
-    { "id": "kids",     "emoji": "🧸", "title": "Gifts for Kids",        "search": "gifts for kids",         "picks": [] },
-    { "id": "teens",    "emoji": "🎧", "title": "Gifts for Teens",       "search": "gifts for teens",        "picks": [] },
-    { "id": "home",     "emoji": "🏡", "title": "For the Home & Kitchen","search": "kitchen gifts",          "picks": [] },
-    { "id": "tech",     "emoji": "📱", "title": "Tech Lovers",           "search": "tech gadget gifts",      "picks": [] },
-    { "id": "pets",     "emoji": "🐾", "title": "Pet Lovers",            "search": "gifts for pet lovers",   "picks": [] },
-    { "id": "stocking", "emoji": "🧦", "title": "Stocking Stuffers",     "search": "stocking stuffers",      "picks": [] }
+    {
+      "id": "her",
+      "emoji": "💝",
+      "title": "Gifts for Her",
+      "search": "gifts for women",
+      "picks": []
+    },
+    {
+      "id": "him",
+      "emoji": "🎩",
+      "title": "Gifts for Him",
+      "search": "gifts for men",
+      "picks": []
+    },
+    {
+      "id": "kids",
+      "emoji": "🧸",
+      "title": "Gifts for Kids",
+      "search": "gifts for kids",
+      "picks": []
+    },
+    {
+      "id": "teens",
+      "emoji": "🎧",
+      "title": "Gifts for Teens",
+      "search": "gifts for teens",
+      "picks": []
+    },
+    {
+      "id": "home",
+      "emoji": "🏡",
+      "title": "For the Home & Kitchen",
+      "search": "kitchen gifts",
+      "picks": []
+    },
+    {
+      "id": "tech",
+      "emoji": "📱",
+      "title": "Tech Lovers",
+      "search": "tech gadget gifts",
+      "picks": []
+    },
+    {
+      "id": "pets",
+      "emoji": "🐾",
+      "title": "Pet Lovers",
+      "search": "gifts for pet lovers",
+      "picks": []
+    },
+    {
+      "id": "stocking",
+      "emoji": "🧦",
+      "title": "Stocking Stuffers",
+      "search": "stocking stuffers",
+      "picks": []
+    }
   ]
 }

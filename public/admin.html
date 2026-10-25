@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin | Great Deals Daily</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏷️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/admin.css">
+</head>
+<body class="admin">
+  <header class="site-header">
+    <div class="wrap header-row">
+      <a class="logo" href="/" target="_blank"><span class="logo-mark">🏷️</span><span>Admin</span></a>
+      <span class="save-status" id="save-status" aria-live="polite"></span>
+      <button class="link-btn" id="logout" hidden>Log out</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <form class="panel login" id="login" hidden>
+      <h1>Sign in</h1>
+      <p class="muted">Enter the admin password you set in Railway (the <code>ADMIN_PASSWORD</code> variable).</p>
+      <input type="password" id="password" placeholder="Password" autocomplete="current-password" required>
+      <button class="btn primary" type="submit">Sign in</button>
+      <p class="error" id="login-error" hidden></p>
+    </form>
+
+    <div id="app" hidden>
+      <div class="warning" id="storage-warning" hidden>
+        ⚠️ Saving to temporary storage. Changes will be lost when the site redeploys. Attach a Railway volume to keep them.
+      </div>
+      <div class="admin-layout">
+        <aside class="panel campaigns">
+          <h2>Campaigns</h2>
+          <div id="campaign-list"></div>
+          <form id="new-campaign" class="new-campaign">
+            <input id="new-campaign-title" placeholder="New campaign, e.g. Black Friday" maxlength="100" required>
+            <button class="btn" type="submit">+ Add</button>
+          </form>
+        </aside>
+        <section id="editor"></section>
+      </div>
+    </div>
+  </main>
+
+  <script src="/admin.js" type="module"></script>
+</body>
+</html>

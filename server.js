@@ -1,10 +1,12 @@
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
+import { timingSafeEqual, createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CreatorsApi } from './src/amazon.js';
 import { CATEGORIES, POOL_SEARCHES, TOP } from './src/categories.js';
 import { demoDeals } from './src/demo.js';
+import { getContent, saveContent, storageInfo, HOME_CAMPAIGN } from './src/content.js';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public');
 const PORT = Number(process.env.PORT ?? 3000);
@@ -35,12 +37,10 @@ function amazonLink(pathname, params = {}) {
   if (PARTNER_TAG) url.searchParams.set('tag', PARTNER_TAG);
   return url.toString();
 }
-// Hand-picked content lives in content/*.json, edited on GitHub. Links must
-// point to Amazon; plain amazon.com links get the affiliate tag added.
-const CONTENT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'content');
-
+// Hand-picked products come from the /admin page. Links must point to
+// Amazon; plain amazon.com links get the affiliate tag added.
 function cleanPick(p) {
-  if (!p || p.example || !p.title || !p.url) return null;
+  if (!p || !p.title || !p.url) return null;
   let url;
   try { url = new URL(p.url); } catch { return null; }
   const host = url.hostname.toLowerCase();
@@ -54,13 +54,55 @@ function cleanPick(p) {
   return { title: String(p.title), why: p.why ? String(p.why) : '', emoji: p.emoji ? String(p.emoji) : '⭐', url: url.toString() };
 }
 
-async function loadContent(file) {
-  try {
-    return JSON.parse(await readFile(path.join(CONTENT, file), 'utf8'));
-  } catch (err) {
-    console.error(`Could not read content/${file}:`, err.message);
-    return null;
+function publicCampaign(c) {
+  return {
+    id: c.id,
+    title: c.title,
+    emoji: c.emoji,
+    intro: c.intro,
+    sections: c.sections.map((s) => ({
+      id: s.id,
+      emoji: s.emoji,
+      title: s.title,
+      search: s.search || s.title,
+      browseUrl: s.search || s.title ? amazonLink('/s', { k: s.search || s.title }) : null,
+      picks: s.picks.map(cleanPick).filter(Boolean),
+    })),
+  };
+}
+
+// The admin page is protected by ADMIN_PASSWORD (set in Railway, never in code).
+// The browser sends it as a Bearer token on each admin request.
+const ADMIN_PASSWORD = env.ADMIN_PASSWORD ?? '';
+const failedLogins = new Map(); // ip -> { count, since }
+
+function checkAdmin(req) {
+  if (!ADMIN_PASSWORD) return { ok: false, status: 503, error: 'Admin is turned off. Set ADMIN_PASSWORD in Railway to turn it on.' };
+  const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() ?? req.socket.remoteAddress;
+  const record = failedLogins.get(ip);
+  if (record && record.count >= 10 && Date.now() - record.since < 15 * 60_000) {
+    return { ok: false, status: 429, error: 'Too many wrong passwords. Try again in 15 minutes.' };
   }
+  const given = (req.headers.authorization ?? '').replace(/^Bearer /, '');
+  const hash = (s) => createHash('sha256').update(s).digest();
+  if (timingSafeEqual(hash(given), hash(ADMIN_PASSWORD))) {
+    failedLogins.delete(ip);
+    return { ok: true };
+  }
+  const fresh = !record || Date.now() - record.since > 15 * 60_000;
+  failedLogins.set(ip, fresh ? { count: 1, since: Date.now() } : { ...record, count: record.count + 1 });
+  return { ok: false, status: 401, error: 'Wrong password.' };
+}
+
+async function readJsonBody(req, limit = 1_000_000) {
+  let size = 0;
+  const chunks = [];
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > limit) throw Object.assign(new Error('Too large'), { status: 413 });
+    chunks.push(chunk);
+  }
+  return JSON.parse(Buffer.concat(chunks).toString('utf8'));
 }
 
 const fallbackFor = (cat) => cat.id === TOP.id
@@ -174,26 +216,41 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { category: cat.id, ranked: cat.id === TOP.id, updatedAt: store.at, demo: !api, items });
     }
     if (url.pathname === '/api/picks') {
-      const data = await loadContent('picks.json');
-      return sendJson(res, 200, { picks: (data?.picks ?? []).map(cleanPick).filter(Boolean) });
+      const { campaigns } = await getContent();
+      const home = campaigns.find((c) => c.id === HOME_CAMPAIGN);
+      return sendJson(res, 200, { picks: home.sections.flatMap((s) => s.picks).map(cleanPick).filter(Boolean) });
     }
-    if (url.pathname === '/api/gift-guide') {
-      const data = await loadContent('gift-guide.json');
-      if (!data) return sendJson(res, 500, { error: 'Gift guide is unavailable right now.' });
+    if (url.pathname === '/api/campaigns') {
+      const { campaigns } = await getContent();
       return sendJson(res, 200, {
-        title: data.title,
-        intro: data.intro,
-        sections: (data.sections ?? []).map((s) => ({
-          id: s.id,
-          emoji: s.emoji,
-          title: s.title,
-          search: s.search || s.title,
-          browseUrl: amazonLink('/s', { k: s.search || s.title }),
-          picks: (s.picks ?? []).map(cleanPick).filter(Boolean),
-        })),
+        campaigns: campaigns.filter((c) => c.nav && c.id !== HOME_CAMPAIGN).map(({ id, title, emoji }) => ({ id, title, emoji })),
       });
     }
-    if (url.pathname === '/gift-guide') return serveStatic(res, '/gift-guide.html');
+    const campaignApi = url.pathname.match(/^\/api\/campaign\/([\w-]+)$/);
+    if (campaignApi) {
+      const { campaigns } = await getContent();
+      const c = campaigns.find((x) => x.id === campaignApi[1] && x.id !== HOME_CAMPAIGN);
+      if (!c) return sendJson(res, 404, { error: 'This page doesn’t exist (yet).' });
+      return sendJson(res, 200, publicCampaign(c));
+    }
+    // Campaign pages: /gift-guide (kept for old links) and /c/<campaign-id>.
+    if (url.pathname === '/gift-guide' || /^\/c\/[\w-]+\/?$/.test(url.pathname)) return serveStatic(res, '/campaign.html');
+    if (url.pathname === '/admin') return serveStatic(res, '/admin.html');
+    if (url.pathname.startsWith('/api/admin/')) {
+      const auth = checkAdmin(req);
+      if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+      if (url.pathname === '/api/admin/content' && req.method === 'GET') {
+        return sendJson(res, 200, { ...(await getContent()), storage: storageInfo(), partnerTag: PARTNER_TAG, marketplace: MARKETPLACE });
+      }
+      if (url.pathname === '/api/admin/content' && req.method === 'PUT') {
+        let body;
+        try { body = await readJsonBody(req); } catch (err) {
+          return sendJson(res, err.status ?? 400, { error: err.status === 413 ? 'Too much data in one save.' : 'Invalid data.' });
+        }
+        return sendJson(res, 200, await saveContent(body));
+      }
+      return sendJson(res, 404, { error: 'Not found' });
+    }
     if (url.pathname === '/api/search') {
       const q = (url.searchParams.get('q') ?? '').trim().slice(0, 100);
       if (!q) return sendJson(res, 400, { error: 'Missing search query' });

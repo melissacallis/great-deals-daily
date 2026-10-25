@@ -13,3 +13,17 @@ export function pickCard(pick) {
   if (pick.why) why.textContent = pick.why; else why.remove();
   return a;
 }
+
+// Header menu: campaigns marked "Show in menu" in /admin.
+export async function renderNav() {
+  const nav = document.querySelector('#nav');
+  if (!nav) return;
+  try {
+    const { campaigns } = await fetch('/api/campaigns').then((r) => r.json());
+    nav.replaceChildren(...campaigns.map((c) => Object.assign(document.createElement('a'), {
+      className: 'nav-link',
+      href: c.id === 'gift-guide' ? '/gift-guide' : `/c/${c.id}`,
+      textContent: `${c.emoji} ${c.title}`.trim(),
+    })));
+  } catch {}
+}

@@ -43,27 +43,30 @@ access opens.
 Coupons: the Creators API does not return coupon data, so savings shown are the
 price discount only.
 
-## Add your own picks (no API needed)
+## Admin page: add products to campaigns (no API needed)
 
-Two files hold hand-picked products. Edit them on GitHub (open the file, click
-the pencil icon, then **Commit changes**). Railway redeploys in about a minute.
+Go to `/admin` and sign in with the password you set as `ADMIN_PASSWORD` in
+Railway. From there you can:
 
-- `content/picks.json`: **Today's Picks** on the front page
-- `content/gift-guide.json`: the **Holiday Gift Guide** at `/gift-guide`
+- Pick a **campaign** (Today's Picks on the front page, the Holiday Gift Guide,
+  or any you create, such as "Black Friday") and **add products** to it
+- Edit, reorder, move or remove products; add, rename or reorder sections
+- Create new campaigns. Each gets its own page at `/c/<campaign-name>` and can
+  be shown in the site's top menu
 
-Each pick looks like this:
+Changes save automatically. For each product:
 
-```json
-{ "title": "Cozy Sherpa Throw Blanket", "why": "Soft, washable, and marked down for the season.", "url": "https://amzn.to/xxxxxx", "emoji": "🛋️" }
-```
+- Paste the link from Amazon's **SiteStripe** bar (**Get Link**). Plain
+  amazon.com links get your tag added automatically; non-Amazon links are
+  rejected.
+- Write why it's a good deal in your own words. Don't add prices or Amazon's
+  product photos: Associates rules only allow those through the API.
+- Sections with a search term show a **Browse on Amazon** button that searches
+  Amazon for it, with your tag.
 
-- Get `url` from the **SiteStripe** bar on any Amazon page (**Get Link**). Plain
-  amazon.com links get your tag added automatically; other sites are ignored.
-- Write `why` in your own words. Don't add prices or Amazon's product photos:
-  Associates rules only allow those through the API.
-- Entries with `"example": true` are hidden, so you can keep them as templates.
-- Gift guide sections with no picks show a **Browse on Amazon** button that
-  searches Amazon for the section's `search` text, with your tag.
+**Storage:** products are saved to `content.json` in the Railway volume
+(`RAILWAY_VOLUME_MOUNT_PATH`), or `DATA_DIR`, or `./data` locally. The files in
+`content/` are only the starting content for a brand-new, empty volume.
 
 ## Customise
 

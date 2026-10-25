@@ -1,4 +1,4 @@
-{"picks":[{"title":"Example","url":"https://www.amazon.com/deals","example":true},
-{"title":"Cozy Sherpa Throw Blanket","why":"Super soft and machine washable. Perfect gift, and it's been marked down for the season.","url":"https://www.amazon.com/dp/B000TEST01","emoji":"🛋️"},
-{"title":"Short link pick","why":"Uses a SiteStripe short link.","url":"https://amzn.to/abc123","emoji":"🎧"},
-{"title":"Bad link","url":"https://evil.example.com/x"}]}
+{
+  "_help": "Starting products for Today's Picks, used only the first time the site runs with an empty data volume. After that, add and edit products at /admin.",
+  "picks": []
+}

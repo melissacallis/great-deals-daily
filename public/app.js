@@ -1,4 +1,4 @@
-import { pickCard } from '/picks.js';
+import { pickCard, renderNav } from '/shared.js';
 
 const $ = (sel) => document.querySelector(sel);
 const grid = $('#grid');
@@ -165,6 +165,7 @@ async function loadPicks() {
 async function init() {
   startCountdown();
   loadPicks();
+  renderNav();
   const config = await fetch('/api/config').then((r) => r.json());
   state.categories = config.categories;
   $('#site-name').textContent = config.siteName;
