@@ -9,6 +9,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
+  <!-- Pinterest Tag -->
+  <script>
+  !function(e){if(!window.pintrk){window.pintrk = function () {
+  window.pintrk.queue.push(Array.prototype.slice.call(arguments))};var n=window.pintrk;n.queue=[],n.version="3.0";var t=document.createElement("script");t.async=!0,t.src=e;var r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");
+  pintrk('load', '2613911035706');
+  pintrk('page');
+  // Count taps on Amazon links as a custom event, so Pinterest can show which pins lead to shopping.
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (a && /(^|\.)(amazon\.com|amzn\.to)$/.test(a.hostname)) pintrk('track', 'custom', { event_id: 'amazon-' + Date.now() });
+  }, true);
+  </script>
+  <noscript><img height="1" width="1" style="display:none;" alt="" src="https://ct.pinterest.com/v3/?event=init&tid=2613911035706&noscript=1"></noscript>
+  <!-- end Pinterest Tag -->
 </head>
 <body>
   <header class="site-header">
@@ -44,6 +58,7 @@
       <p><strong>Affiliate disclosure:</strong> As an Amazon Associate I earn from qualifying purchases. When you buy through links on this site, we may earn a commission at no extra cost to you.</p>
       <p>Product prices and availability are accurate as of the date/time indicated and are subject to change. Any price and availability information displayed on Amazon at the time of purchase will apply to the purchase of this product.</p>
       <p>Amazon and the Amazon logo are trademarks of Amazon.com, Inc. or its affiliates. This site is not run by Amazon.</p>
+      <p>This site uses the Pinterest tag (a cookie) to measure visits from Pinterest. We don’t collect your email or sell your data.</p>
     </div>
   </footer>
 

@@ -11,6 +11,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/swipe.css">
+  <!-- Pinterest Tag -->
+  <script>
+  !function(e){if(!window.pintrk){window.pintrk = function () {
+  window.pintrk.queue.push(Array.prototype.slice.call(arguments))};var n=window.pintrk;n.queue=[],n.version="3.0";var t=document.createElement("script");t.async=!0,t.src=e;var r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");
+  pintrk('load', '2613911035706');
+  pintrk('page');
+  // Count taps on Amazon links as a custom event, so Pinterest can show which pins lead to shopping.
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (a && /(^|\.)(amazon\.com|amzn\.to)$/.test(a.hostname)) pintrk('track', 'custom', { event_id: 'amazon-' + Date.now() });
+  }, true);
+  </script>
+  <noscript><img height="1" width="1" style="display:none;" alt="" src="https://ct.pinterest.com/v3/?event=init&tid=2613911035706&noscript=1"></noscript>
+  <!-- end Pinterest Tag -->
 </head>
 <body class="swipe">
   <header class="swipe-header">
@@ -24,7 +38,7 @@
 
   <footer class="swipe-foot">
     <a href="/">See all of today’s deals →</a>
-    <p>As an Amazon Associate I earn from qualifying purchases. Prices and availability change; check Amazon for the current price.</p>
+    <p>As an Amazon Associate I earn from qualifying purchases. Prices and availability change; check Amazon for the current price. This site uses the Pinterest tag (a cookie) to measure visits from Pinterest. We don’t collect your email or sell your data.</p>
   </footer>
 
   <!-- Full-size product viewer: swipe left/right through one campaign. -->
