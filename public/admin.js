@@ -1,4 +1,5 @@
 import { openStudio } from '/studio.js';
+import { brandBackdrop } from '/backdrop.js';
 
 // Admin page: pick a campaign, add products to it, edit or reorder them.
 // Every change is saved automatically to /api/admin/content.
@@ -117,15 +118,29 @@ function imageField(value, onChange) {
     if (f.size > 5_000_000) { hint.textContent = 'That photo is over 5 MB. Try a smaller one.'; hint.className = 'bad'; return; }
     hint.textContent = 'Uploading…'; hint.className = '';
     try {
-      const res = await fetch('/api/admin/upload', { method: 'POST', headers: { Authorization: `Bearer ${state.password}`, 'Content-Type': f.type }, body: f });
+      let body = f, type = f.type, note = '';
+      if (bgSelect.value === 'gradient') {
+        hint.textContent = 'Adding your gradient background…';
+        const out = await brandBackdrop(f);
+        body = out.blob; type = 'image/jpeg';
+        note = out.cutout ? ' Cut-out placed on your gradient.' : ' Framed on your gradient. For a cut-out look, lift the product out of the photo on your phone first.';
+      }
+      const res = await fetch('/api/admin/upload', { method: 'POST', headers: { Authorization: `Bearer ${state.password}`, 'Content-Type': type }, body });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       set(data.image);
+      if (note) hint.textContent += note;
     } catch (err) {
       hint.textContent = err.message || 'Upload failed.'; hint.className = 'bad';
     }
     e.target.value = '';
   } });
+  // Remembered between uploads: most product photos get the same treatment.
+  let savedBg = 'gradient';
+  try { savedBg = localStorage.getItem('photo-bg') || 'gradient'; } catch {}
+  const bgSelect = h('select', { className: 'btn small bg-select', title: 'Background for uploaded photos', onchange: (e) => { try { localStorage.setItem('photo-bg', e.target.value); } catch {} } },
+    h('option', { value: 'gradient', selected: savedBg === 'gradient' }, '🌈 My gradient background'),
+    h('option', { value: 'original', selected: savedBg === 'original' }, 'Keep original background'));
   function set(image) {
     value = image;
     preview.hidden = !image;
@@ -143,7 +158,7 @@ function imageField(value, onChange) {
   return h('div', { className: 'field full' }, 'Photo',
     h('div', { className: 'image-field' }, preview,
       h('div', { className: 'image-inputs' },
-        h('label', { className: 'btn small upload-btn' }, '📷 Upload photo', file), paste, remove)),
+        h('label', { className: 'btn small upload-btn' }, '📷 Upload photo', file), bgSelect, paste, remove)),
     hint);
 }
 

@@ -91,3 +91,4 @@ body.studio-open { overflow: hidden; }
 .studio-card canvas { width: 100%; height: auto; display: block; border-radius: 10px; }
 .studio-card figcaption { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 8px; font-size: 13px; font-weight: 600; color: var(--muted); text-transform: capitalize; }
 .studio-caption { font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.5; min-height: 260px; }
+.bg-select { width: auto; }

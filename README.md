@@ -66,6 +66,11 @@ Changes save automatically. For each product:
   Amazon-hosted image link). Images copied to other hosts are rejected, since
   re-hosting Amazon's product photos isn't allowed. Without a photo the emoji
   is shown.
+- **Gradient background:** with **🌈 My gradient background** selected (the
+  default), uploads are placed on the brand's purple/peach/pink gradient. A
+  cut-out photo (transparent PNG, e.g. iPhone Photos → press and hold the
+  product → Share → Save Image) is centred with a soft shadow; a regular photo
+  is framed on the gradient. Choose **Keep original background** to upload as is.
 - Sections with a search term show a **Browse on Amazon** button that searches
   Amazon for it, with your tag.
 
