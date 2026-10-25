@@ -1,0 +1,149 @@
+const $ = (sel) => document.querySelector(sel);
+const grid = $('#grid');
+const tpl = $('#card-tpl');
+
+const state = { categories: [], category: 'top', query: '', items: [], sort: 'discount' };
+
+const SORTERS = {
+  discount: (a, b) => b.savingsPct - a.savingsPct,
+  'price-asc': (a, b) => a.priceAmount - b.priceAmount,
+  'price-desc': (a, b) => b.priceAmount - a.priceAmount,
+  rating: (a, b) => (b.rating ?? 0) - (a.rating ?? 0) || (b.reviewCount ?? 0) - (a.reviewCount ?? 0),
+};
+
+function stars(value) {
+  const full = Math.round(value);
+  return '★'.repeat(full) + '☆'.repeat(5 - full);
+}
+
+function timeLeft(iso) {
+  const ms = new Date(iso) - Date.now();
+  if (ms <= 0) return null;
+  const h = Math.floor(ms / 3600_000);
+  const m = Math.floor((ms % 3600_000) / 60_000);
+  return h > 0 ? `Ends in ${h}h ${m}m` : `Ends in ${m}m`;
+}
+
+function renderCard(item) {
+  const node = tpl.content.cloneNode(true);
+  const link = node.querySelector('.card-link');
+  link.href = item.url;
+  if (item.url === '#demo') { link.removeAttribute('target'); link.addEventListener('click', (e) => e.preventDefault()); }
+
+  const img = node.querySelector('img');
+  if (item.image) { img.src = item.image; img.alt = item.title; } else img.remove();
+
+  const off = node.querySelector('.badge-off');
+  if (item.savingsPct > 0) off.textContent = `-${item.savingsPct}%`; else off.remove();
+
+  if (item.dealBadge) { const b = node.querySelector('.deal-badge'); b.textContent = item.dealBadge; b.hidden = false; }
+  node.querySelector('.title').textContent = item.title;
+
+  if (item.rating) {
+    const r = node.querySelector('.rating');
+    r.hidden = false;
+    r.querySelector('.stars').textContent = stars(item.rating);
+    r.querySelector('.count').textContent = `${item.rating.toFixed(1)}${item.reviewCount ? ` (${item.reviewCount.toLocaleString()})` : ''}`;
+  }
+
+  node.querySelector('.price').textContent = item.price;
+  const list = node.querySelector('.list');
+  if (item.listPrice) list.textContent = `${item.listPriceLabel}: ${item.listPrice}`; else list.remove();
+
+  const left = item.dealEndsAt && timeLeft(item.dealEndsAt);
+  if (left) { const e = node.querySelector('.ends'); e.textContent = left; e.hidden = false; }
+  return node;
+}
+
+function render() {
+  grid.replaceChildren();
+  const items = [...state.items].sort(SORTERS[state.sort]);
+  if (!items.length) {
+    grid.innerHTML = '<p class="empty">No deals found right now. Try another category or search.</p>';
+    return;
+  }
+  items.forEach((it) => grid.appendChild(renderCard(it)));
+}
+
+function showSkeletons() {
+  grid.replaceChildren(...Array.from({ length: 8 }, () => Object.assign(document.createElement('div'), { className: 'skeleton' })));
+}
+
+async function load() {
+  showSkeletons();
+  $('#updated').textContent = '';
+  const url = state.query
+    ? `/api/search?q=${encodeURIComponent(state.query)}`
+    : `/api/deals?category=${state.category}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    state.items = data.items;
+    render();
+    $('#updated').textContent = `Prices last updated ${new Date(data.updatedAt).toLocaleString()}.`;
+  } catch (err) {
+    grid.innerHTML = `<p class="empty">${err.message || 'Something went wrong loading deals.'}</p>`;
+  }
+}
+
+function renderCategories() {
+  const nav = $('#categories');
+  nav.replaceChildren(...state.categories.map((c) => {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.textContent = `${c.icon} ${c.label}`;
+    b.setAttribute('aria-pressed', String(!state.query && c.id === state.category));
+    b.addEventListener('click', () => {
+      state.category = c.id;
+      state.query = '';
+      $('#search-input').value = '';
+      $('#results-title').textContent = c.label;
+      history.replaceState(null, '', c.id === 'top' ? '/' : `/?category=${c.id}`);
+      renderCategories();
+      load();
+    });
+    return b;
+  }));
+}
+
+function startCountdown() {
+  const tick = () => {
+    const now = new Date();
+    const midnight = new Date(now); midnight.setHours(24, 0, 0, 0);
+    const s = Math.floor((midnight - now) / 1000);
+    const pad = (n) => String(n).padStart(2, '0');
+    $('#countdown').textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`;
+  };
+  tick();
+  setInterval(tick, 1000);
+}
+
+$('#search-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const q = $('#search-input').value.trim();
+  if (!q) return;
+  state.query = q;
+  $('#results-title').textContent = `Results for “${q}”`;
+  renderCategories();
+  load();
+});
+
+$('#sort').addEventListener('change', (e) => { state.sort = e.target.value; render(); });
+
+async function init() {
+  startCountdown();
+  const config = await fetch('/api/config').then((r) => r.json());
+  state.categories = config.categories;
+  $('#site-name').textContent = config.siteName;
+  $('#demo-banner').hidden = !config.demo;
+
+  const param = new URLSearchParams(location.search).get('category');
+  const initial = state.categories.find((c) => c.id === param) ?? state.categories[0];
+  state.category = initial.id;
+  $('#results-title').textContent = initial.label;
+  renderCategories();
+  load();
+}
+
+init();

@@ -1,0 +1,58 @@
+# Great Deals Daily
+
+An Amazon affiliate deals website. It pulls discounted products from the
+**Amazon Creators API** (the replacement for PA-API 5, which Amazon retired in
+2026) and links to them with your Associates tracking tag, so you earn a
+commission on qualifying purchases.
+
+- Daily deals by category (Top, Electronics, Home, Fashion, Beauty, Toys, Outdoors)
+- Product search
+- Discount %, list price, star rating, deal badges and countdowns
+- Sorting by discount, price or rating
+- Works on phones
+- Affiliate and price disclosures that the Associates rules require are already in the footer
+- No dependencies: plain Node.js 22+
+
+## Run it
+
+```bash
+cp .env.example .env     # then fill in your keys (see below)
+npm start                # http://localhost:3000
+```
+
+If `.env` has no keys, the site runs in **demo mode** with sample products, so
+you can preview the design.
+
+## Get your Amazon keys
+
+1. Join Amazon Associates at https://affiliate-program.amazon.com and get approved.
+   Your tracking ID (e.g. `yourname-20`) is your `AMAZON_PARTNER_TAG`.
+2. In Associates Central go to **Tools → Creators API** and create a credential.
+   Copy the **Credential ID**, **Credential Secret** and **Version** into `.env`.
+3. Set `AMAZON_MARKETPLACE` to your store (e.g. `www.amazon.com`).
+
+Amazon may only grant API access once your account has made some qualifying
+sales. Check the current requirement in Associates Central.
+
+## Customise
+
+- **Categories and searches:** `src/categories.js`. Each entry is a search with
+  keywords, a search index and a minimum discount %.
+- **Look:** `public/styles.css` (colours are at the top).
+- **Site name:** `SITE_NAME` in `.env`.
+- **Refresh rate:** `CACHE_MINUTES` in `.env` (default 60). Results are cached to
+  stay within Amazon's rate limit. Don't set it above 1440 (24 hours), because
+  Amazon requires prices to be kept fresh.
+
+## Deploy
+
+Any host that runs Node 22+ will work, for example Render, Railway, Fly.io or a
+small VPS. Set the same environment variables as in `.env` on the host and use
+`npm start` as the start command.
+
+## Rules to follow (Amazon Associates)
+
+- Keep the affiliate disclosure visible (it's in the footer).
+- Show prices with their "last updated" time (the site does this).
+- Don't use Amazon's logo or make the site look like Amazon itself.
+- Don't put affiliate links in emails or offline material.
