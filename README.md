@@ -5,7 +5,9 @@ An Amazon affiliate deals website. It pulls discounted products from the
 2026) and links to them with your Associates tracking tag, so you earn a
 commission on qualifying purchases.
 
-- Daily deals by category (Top, Electronics, Home, Fashion, Beauty, Toys, Outdoors)
+- **Top 50 Deals** on the front page: the biggest discounts across every category,
+  ranked by % off (then by dollars saved)
+- Daily deals by category (Electronics, Home, Fashion, Beauty, Toys, Outdoors)
 - Product search
 - Discount %, list price, star rating, deal badges and countdowns
 - Sorting by discount, price or rating
@@ -31,13 +33,21 @@ you can preview the design.
    Copy the **Credential ID**, **Credential Secret** and **Version** into `.env`.
 3. Set `AMAZON_MARKETPLACE` to your store (e.g. `www.amazon.com`).
 
-Amazon may only grant API access once your account has made some qualifying
-sales. Check the current requirement in Associates Central.
+Amazon only grants API access once your account has made some qualifying
+sales. Until then the API answers `AssociateNotEligible`, and the site shows a
+"Browse deals on Amazon" button instead, linking to Amazon's own deals and search
+pages with your tag. Sales through those links count toward eligibility. The
+site retries the API every 10 minutes and switches to live deals by itself once
+access opens.
+
+Coupons: the Creators API does not return coupon data, so savings shown are the
+price discount only.
 
 ## Customise
 
 - **Categories and searches:** `src/categories.js`. Each entry is a search with
-  keywords, a search index and a minimum discount %.
+  keywords, a search index and a minimum discount %. `POOL_SEARCHES` adds extra
+  searches that only feed the Top 50.
 - **Look:** `public/styles.css` (colours are at the top).
 - **Site name:** `SITE_NAME` in `.env`.
 - **Refresh rate:** `CACHE_MINUTES` in `.env` (default 60). Results are cached to

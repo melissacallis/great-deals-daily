@@ -79,7 +79,12 @@ export class CreatorsApi {
       body: JSON.stringify({ partnerTag: this.partnerTag, resources: RESOURCES, ...payload }),
     });
     const text = await res.text();
-    if (!res.ok) throw new Error(`${operation} failed (${res.status}): ${text}`);
+    if (!res.ok) {
+      const err = new Error(`${operation} failed (${res.status}): ${text}`);
+      err.status = res.status;
+      try { err.reason = JSON.parse(text).reason; } catch {}
+      throw err;
+    }
     return JSON.parse(text);
   }
 
@@ -107,6 +112,8 @@ export function normalizeItem(item) {
   const list = price.savingBasis?.money;
   const savingsPct = price.savings?.percentage
     ?? (list?.amount ? Math.round((1 - price.money.amount / list.amount) * 100) : 0);
+  const savingsAmount = price.savings?.money?.amount
+    ?? (list?.amount ? Math.round((list.amount - price.money.amount) * 100) / 100 : 0);
 
   return {
     asin: item.asin,
@@ -120,6 +127,8 @@ export function normalizeItem(item) {
     listPrice: list?.displayAmount ?? null,
     listPriceLabel: price.savingBasis?.savingBasisTypeLabel ?? 'List',
     savingsPct,
+    savingsAmount,
+    savingsDisplay: price.savings?.money?.displayAmount ?? null,
     dealBadge: listing.dealDetails?.badge ?? null,
     dealEndsAt: listing.dealDetails?.endTime ?? null,
     rating: item.customerReviews?.starRating?.value ?? null,

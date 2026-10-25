@@ -33,6 +33,8 @@ function build(categoryId, [emoji, title, price, list], i) {
     listPrice: `$${list.toFixed(2)}`,
     listPriceLabel: 'List',
     savingsPct: pct,
+    savingsAmount: Math.round((list - price) * 100) / 100,
+    savingsDisplay: `$${(list - price).toFixed(2)}`,
     dealBadge: pct >= 50 ? 'Limited time deal' : null,
     dealEndsAt: pct >= 50 ? new Date(Date.now() + (3 + i) * 3600_000).toISOString() : null,
     rating: Math.round((3.9 + ((i * 7) % 11) / 10) * 10) / 10,

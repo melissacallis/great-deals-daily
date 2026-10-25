@@ -33,6 +33,9 @@ function renderCard(item) {
   const img = node.querySelector('img');
   if (item.image) { img.src = item.image; img.alt = item.title; } else img.remove();
 
+  const rank = node.querySelector('.rank');
+  if (item.rank) rank.textContent = `#${item.rank}`; else rank.remove();
+
   const off = node.querySelector('.badge-off');
   if (item.savingsPct > 0) off.textContent = `-${item.savingsPct}%`; else off.remove();
 
@@ -49,6 +52,8 @@ function renderCard(item) {
   node.querySelector('.price').textContent = item.price;
   const list = node.querySelector('.list');
   if (item.listPrice) list.textContent = `${item.listPriceLabel}: ${item.listPrice}`; else list.remove();
+  const save = node.querySelector('.save');
+  if (item.savingsAmount > 0) save.textContent = `You save ${item.savingsDisplay ?? `$${item.savingsAmount.toFixed(2)}`}`; else save.remove();
 
   const left = item.dealEndsAt && timeLeft(item.dealEndsAt);
   if (left) { const e = node.querySelector('.ends'); e.textContent = left; e.hidden = false; }
@@ -56,6 +61,7 @@ function renderCard(item) {
 }
 
 function render() {
+  $('.sort').hidden = false;
   grid.replaceChildren();
   const items = [...state.items].sort(SORTERS[state.sort]);
   if (!items.length) {
@@ -63,6 +69,19 @@ function render() {
     return;
   }
   items.forEach((it) => grid.appendChild(renderCard(it)));
+}
+
+// Shown while the Amazon account is not yet approved for API access: send
+// visitors to Amazon's own deals pages with the affiliate tag instead.
+function renderFallback(url) {
+  $('.sort').hidden = true;
+  grid.innerHTML = `
+    <div class="fallback">
+      <h3>Today's deals are live on Amazon</h3>
+      <p>We're getting our hand-picked list ready. In the meantime, browse the latest discounts straight on Amazon.</p>
+      <a class="cta" target="_blank" rel="nofollow sponsored noopener">Browse deals on Amazon →</a>
+    </div>`;
+  grid.querySelector('a').href = url;
 }
 
 function showSkeletons() {
@@ -79,7 +98,8 @@ async function load() {
     const res = await fetch(url);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
-    state.items = data.items;
+    if (data.notEligible) return renderFallback(data.fallbackUrl);
+    state.items = data.items.map((it, i) => (data.ranked ? { ...it, rank: i + 1 } : it));
     render();
     $('#updated').textContent = `Prices last updated ${new Date(data.updatedAt).toLocaleString()}.`;
   } catch (err) {
