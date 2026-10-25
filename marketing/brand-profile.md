@@ -1,5 +1,5 @@
 # Brand Profile — Great Deals Daily
-<!-- version: 1.1 · last updated: 2026-10-25 · review: quarterly or on rebrand/pivot/new offer
+<!-- version: 1.2 · last updated: 2026-10-25 · review: quarterly or on rebrand/pivot/new offer
      · type: ecommerce (Amazon affiliate / deals publisher) -->
 
 ## Identity
@@ -59,7 +59,7 @@
 ## Channels
 - **Active platforms:** Instagram, TikTok, Pinterest.
 - **Posting cadence:** TBD in content-calendar (suggest 4–5×/week IG, daily stories).
-- **Handles / links:** Instagram @datadarling33 · TikTok @datadarling · Pinterest @datadarling · display name "Great Deals Daily | Data Darling" · link in bio: great-deals-daily-production.up.railway.app/swipe.
+- **Handles / links:** Instagram @datadarling33 · TikTok @datadarling · Pinterest @datadarling · display name "Data Darling | Amazon Deals" on Instagram and TikTok (30-character limit; the brand name is in the bio), "Great Deals Daily | Amazon Gift Ideas & Deals" on Pinterest · profile copy: `marketing/profile-launch-kit.md` · link in bio: great-deals-daily-production.up.railway.app/swipe.
 - **Languages / markets:** English, US.
 
 ## Operational defaults (tool skills read these)
