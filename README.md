@@ -43,6 +43,28 @@ access opens.
 Coupons: the Creators API does not return coupon data, so savings shown are the
 price discount only.
 
+## Add your own picks (no API needed)
+
+Two files hold hand-picked products. Edit them on GitHub (open the file, click
+the pencil icon, then **Commit changes**). Railway redeploys in about a minute.
+
+- `content/picks.json`: **Today's Picks** on the front page
+- `content/gift-guide.json`: the **Holiday Gift Guide** at `/gift-guide`
+
+Each pick looks like this:
+
+```json
+{ "title": "Cozy Sherpa Throw Blanket", "why": "Soft, washable, and marked down for the season.", "url": "https://amzn.to/xxxxxx", "emoji": "🛋️" }
+```
+
+- Get `url` from the **SiteStripe** bar on any Amazon page (**Get Link**). Plain
+  amazon.com links get your tag added automatically; other sites are ignored.
+- Write `why` in your own words. Don't add prices or Amazon's product photos:
+  Associates rules only allow those through the API.
+- Entries with `"example": true` are hidden, so you can keep them as templates.
+- Gift guide sections with no picks show a **Browse on Amazon** button that
+  searches Amazon for the section's `search` text, with your tag.
+
 ## Customise
 
 - **Categories and searches:** `src/categories.js`. Each entry is a search with

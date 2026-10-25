@@ -1,3 +1,5 @@
+import { pickCard } from '/picks.js';
+
 const $ = (sel) => document.querySelector(sel);
 const grid = $('#grid');
 const tpl = $('#card-tpl');
@@ -151,8 +153,18 @@ $('#search-form').addEventListener('submit', (e) => {
 
 $('#sort').addEventListener('change', (e) => { state.sort = e.target.value; render(); });
 
+async function loadPicks() {
+  try {
+    const { picks } = await fetch('/api/picks').then((r) => r.json());
+    if (!picks.length) return;
+    $('#picks').replaceChildren(...picks.map(pickCard));
+    $('#picks-section').hidden = false;
+  } catch {}
+}
+
 async function init() {
   startCountdown();
+  loadPicks();
   const config = await fetch('/api/config').then((r) => r.json());
   state.categories = config.categories;
   $('#site-name').textContent = config.siteName;
@@ -162,6 +174,12 @@ async function init() {
   const initial = state.categories.find((c) => c.id === param) ?? state.categories[0];
   state.category = initial.id;
   $('#results-title').textContent = initial.label;
+  const q = new URLSearchParams(location.search).get('q');
+  if (q) {
+    state.query = q;
+    $('#search-input').value = q;
+    $('#results-title').textContent = `Results for “${q}”`;
+  }
   renderCategories();
   load();
 }

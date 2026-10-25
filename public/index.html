@@ -18,6 +18,7 @@
         <input id="search-input" type="search" placeholder="Search deals, e.g. air fryer" aria-label="Search deals">
         <button type="submit">Search</button>
       </form>
+      <a class="nav-link" href="/gift-guide">🎁 Gift Guide</a>
     </div>
   </header>
 
@@ -40,6 +41,12 @@
   </section>
 
   <main class="wrap">
+    <section class="picks-section" id="picks-section" hidden>
+      <h2>⭐ Today's Picks</h2>
+      <p class="section-sub">Hand-picked by us. Prices change fast, so check the current price on Amazon.</p>
+      <div class="picks-grid" id="picks"></div>
+    </section>
+
     <nav class="chips" id="categories" aria-label="Categories"></nav>
 
     <div class="toolbar">

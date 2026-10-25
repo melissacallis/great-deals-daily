@@ -35,6 +35,34 @@ function amazonLink(pathname, params = {}) {
   if (PARTNER_TAG) url.searchParams.set('tag', PARTNER_TAG);
   return url.toString();
 }
+// Hand-picked content lives in content/*.json, edited on GitHub. Links must
+// point to Amazon; plain amazon.com links get the affiliate tag added.
+const CONTENT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'content');
+
+function cleanPick(p) {
+  if (!p || p.example || !p.title || !p.url) return null;
+  let url;
+  try { url = new URL(p.url); } catch { return null; }
+  const host = url.hostname.toLowerCase();
+  if (host === 'amzn.to') {
+    // SiteStripe short links already carry the tag.
+  } else if (host === MARKETPLACE || host.endsWith('.amazon.com') || host === 'amazon.com') {
+    if (PARTNER_TAG && !url.searchParams.has('tag')) url.searchParams.set('tag', PARTNER_TAG);
+  } else {
+    return null;
+  }
+  return { title: String(p.title), why: p.why ? String(p.why) : '', emoji: p.emoji ? String(p.emoji) : '⭐', url: url.toString() };
+}
+
+async function loadContent(file) {
+  try {
+    return JSON.parse(await readFile(path.join(CONTENT, file), 'utf8'));
+  } catch (err) {
+    console.error(`Could not read content/${file}:`, err.message);
+    return null;
+  }
+}
+
 const fallbackFor = (cat) => cat.id === TOP.id
   ? amazonLink('/deals')
   : amazonLink('/s', { k: `${cat.keywords.split(' ')[0]} deals` });
@@ -145,6 +173,27 @@ const server = http.createServer(async (req, res) => {
       if (!items.length && store.error) throw new Error(store.error);
       return sendJson(res, 200, { category: cat.id, ranked: cat.id === TOP.id, updatedAt: store.at, demo: !api, items });
     }
+    if (url.pathname === '/api/picks') {
+      const data = await loadContent('picks.json');
+      return sendJson(res, 200, { picks: (data?.picks ?? []).map(cleanPick).filter(Boolean) });
+    }
+    if (url.pathname === '/api/gift-guide') {
+      const data = await loadContent('gift-guide.json');
+      if (!data) return sendJson(res, 500, { error: 'Gift guide is unavailable right now.' });
+      return sendJson(res, 200, {
+        title: data.title,
+        intro: data.intro,
+        sections: (data.sections ?? []).map((s) => ({
+          id: s.id,
+          emoji: s.emoji,
+          title: s.title,
+          search: s.search || s.title,
+          browseUrl: amazonLink('/s', { k: s.search || s.title }),
+          picks: (s.picks ?? []).map(cleanPick).filter(Boolean),
+        })),
+      });
+    }
+    if (url.pathname === '/gift-guide') return serveStatic(res, '/gift-guide.html');
     if (url.pathname === '/api/search') {
       const q = (url.searchParams.get('q') ?? '').trim().slice(0, 100);
       if (!q) return sendJson(res, 400, { error: 'Missing search query' });
