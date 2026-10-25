@@ -1,5 +1,5 @@
 # Brand Profile — Great Deals Daily
-<!-- version: 1.0 · last updated: 2026-10-25 · review: quarterly or on rebrand/pivot/new offer
+<!-- version: 1.1 · last updated: 2026-10-25 · review: quarterly or on rebrand/pivot/new offer
      · type: ecommerce (Amazon affiliate / deals publisher) -->
 
 ## Identity
@@ -63,7 +63,8 @@
 - **Languages / markets:** English, US.
 
 ## Operational defaults (tool skills read these)
-- **AI & synthetic media policy:** Faceless-ish account: real hands and the owner's own voice on camera, no AI avatars and no voice clones. AI-generated imagery only for backgrounds or graphics, never to depict a real product; label AI-assisted media where platforms require it.
+- **On-camera policy:** The owner's real face is the profile photo on Instagram, TikTok and Pinterest (same photo everywhere) and may appear in stories (e.g. a quick hello or a reaction). Feed videos (Reels/TikToks) are hands-only with the owner's own voiceover. Never show family members or the home address/exterior.
+- **AI & synthetic media policy:** Real hands and the owner's own voice on camera, no AI avatars and no voice clones. AI-generated imagery only for backgrounds or graphics, never to depict a real product; label AI-assisted media where platforms require it.
 - **Accessibility defaults:** Alt text on every image (describe the product plainly); captions always on for video; high-contrast text on graphics.
 - **Visual identity:** Hot pink & coral palette, Poppins + Inter, tag logo. See `public/styles.css` and `public/img/` (the site is the brand kit). Post Studio in /admin makes on-brand slides.
 
