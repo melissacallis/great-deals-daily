@@ -336,4 +336,5 @@ server.listen(PORT, () => {
   console.log(`${SITE_NAME} running at http://localhost:${PORT}`);
   console.log(api ? `Using Amazon Creators API (${MARKETPLACE})` : 'No Amazon credentials found: showing DEMO data. See README.md.');
   ensureFresh();
+  getContent().catch((err) => console.error('Could not load content:', err)); // also runs one-time imports
 });
