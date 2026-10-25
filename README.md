@@ -69,6 +69,21 @@ Changes save automatically. For each product:
 - Sections with a search term show a **Browse on Amazon** button that searches
   Amazon for it, with your tag.
 
+## Post Studio (Instagram posts)
+
+In `/admin`, open a campaign and click **🎨 Make Instagram posts**. It draws
+on-brand images from the campaign's products, in your browser:
+
+- **Carousel post** (1080×1350): a cover, one slide per product, and a
+  "tap the link in our bio" closing slide with the `#ad` disclosure
+- **Story** (1080×1920): the same slides in story size
+- A ready **caption** listing the products, with hashtags and the Associates
+  disclosure, plus a copy button
+
+Download one slide or all of them, then post from your phone. Only photos you
+uploaded yourself are used; Amazon's product photos aren't allowed in social
+posts, so products without your own photo show their emoji.
+
 ## TikTok swipe page
 
 `/swipe` is a page for your TikTok (or Instagram) link in bio. Scrolling down

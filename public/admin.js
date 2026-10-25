@@ -1,3 +1,5 @@
+import { openStudio } from '/studio.js';
+
 // Admin page: pick a campaign, add products to it, edit or reorder them.
 // Every change is saved automatically to /api/admin/content.
 const $ = (sel) => document.querySelector(sel);
@@ -280,7 +282,9 @@ function render() {
   $('#editor').replaceChildren(
     h('div', { className: 'editor-head' },
       h('h1', { id: 'editor-title' }, c.title),
-      h('a', { href: publicUrl(c), target: '_blank' }, 'View on site ↗')),
+      h('div', { className: 'actions', style: 'margin:0' },
+        h('button', { className: 'btn primary', type: 'button', onclick: () => openStudio(c) }, '🎨 Make Instagram posts'),
+        h('a', { href: publicUrl(c), target: '_blank' }, 'View on site ↗'))),
     addProductCard(c),
     settingsCard(c),
     ...c.sections.map((s) => sectionCard(c, s)));

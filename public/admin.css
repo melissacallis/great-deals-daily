@@ -76,3 +76,18 @@ input:focus, textarea:focus, select:focus { outline: 3px solid rgba(255, 61, 127
 .upload-btn { position: relative; overflow: hidden; }
 .file-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .pick-row .thumb { width: 32px; height: 32px; object-fit: contain; border-radius: 4px; background: #fff; display: block; }
+
+/* Post Studio */
+body.studio-open { overflow: hidden; }
+.studio { position: fixed; inset: 0; z-index: 50; background: var(--bg); overflow-y: auto; }
+.studio-inner { max-width: 1240px; margin: 0 auto; padding: 24px 16px 60px; display: flex; flex-direction: column; gap: 16px; }
+.studio-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.studio-head h1 { margin: 0 0 4px; font-size: 26px; }
+.studio-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.studio-bar .btn.primary { margin-left: auto; }
+.studio-notice { background: #fff3c4; color: #7a4b00; border: 1px solid #ffe08a; border-radius: 12px; padding: 10px 14px; font-size: 14px; margin: 0; }
+.studio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.studio-card { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 10px; box-shadow: var(--shadow); }
+.studio-card canvas { width: 100%; height: auto; display: block; border-radius: 10px; }
+.studio-card figcaption { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 8px; font-size: 13px; font-weight: 600; color: var(--muted); text-transform: capitalize; }
+.studio-caption { font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.5; min-height: 260px; }
