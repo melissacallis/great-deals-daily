@@ -1,11 +1,8 @@
-// Story-style campaign browser for TikTok: one slide per campaign, swiped
-// sideways; the tab bar mirrors the slide in view. /swipe#<campaign-id>
-// opens straight on that campaign.
+// TikTok "link in bio" page. Each campaign is a row of product cards that
+// swipes sideways; tapping a card opens a full-size viewer where visitors
+// swipe through that campaign's products one at a time.
+// /swipe#<campaign-id> scrolls straight to that campaign.
 const $ = (sel) => document.querySelector(sel);
-const track = $('#track');
-const tabs = $('#tabs');
-
-const DISCLOSURE = 'As an Amazon Associate I earn from qualifying purchases. Prices and availability change; check Amazon for the current price.';
 
 function el(tag, props = {}, ...children) {
   const node = Object.assign(document.createElement(tag), props);
@@ -13,115 +10,200 @@ function el(tag, props = {}, ...children) {
   return node;
 }
 
-function productCard(pick) {
-  const media = el('div', { className: 'product-media' });
-  const emoji = el('span', { className: 'big-emoji', textContent: pick.emoji });
-  if (pick.image) {
-    const img = el('img', { src: pick.image, alt: pick.title, loading: 'lazy' });
-    img.onerror = () => { img.replaceWith(emoji); media.classList.add('no-img'); };
-    media.append(img);
+// A photo with an emoji fallback if it's missing or fails to load.
+function media(className, item) {
+  const box = el('div', { className });
+  const emoji = el('span', { className: 'emoji', textContent: item.emoji || '🛍️' });
+  if (item.image) {
+    const img = el('img', { src: item.image, alt: item.title, loading: 'lazy' });
+    img.onerror = () => { img.replaceWith(emoji); box.classList.add('no-img'); };
+    box.append(img);
   } else {
-    media.append(emoji);
-    media.classList.add('no-img');
+    box.append(emoji);
+    box.classList.add('no-img');
   }
-  return el('a', { className: 'product', href: pick.url, target: '_blank', rel: 'nofollow sponsored noopener' },
-    media,
-    el('div', { className: 'product-body' },
-      el('strong', { textContent: pick.title }),
-      pick.why ? el('p', { textContent: pick.why }) : null,
-      el('span', { className: 'cta', textContent: 'Shop on Amazon →' })));
+  return box;
 }
 
-function browseBox(section) {
-  if (!section.browseUrl) return null;
-  return el('div', { className: 'browse' },
-    el('p', { textContent: `${section.picks.length ? 'More ideas' : 'Find ideas'}: shop “${section.search}” on Amazon` }),
-    el('a', { className: 'cta', href: section.browseUrl, target: '_blank', rel: 'nofollow sponsored noopener', textContent: 'Browse on Amazon →' }));
-}
-
-function slideFor(campaign, i, all) {
-  const body = [];
-  const hasPicks = campaign.sections.some((s) => s.picks.length);
+// Flatten a campaign into one list: its products, then a "browse on Amazon"
+// card for each section that has a search.
+function itemsFor(campaign) {
+  const items = [];
   for (const s of campaign.sections) {
-    if (!s.picks.length && !s.browseUrl) continue;
-    if (s.title) body.push(el('h2', { textContent: `${s.emoji} ${s.title}`.trim() }));
-    body.push(...s.picks.map(productCard));
-    body.push(browseBox(s));
+    const label = s.title ? `${s.emoji} ${s.title}`.trim() : '';
+    for (const p of s.picks) items.push({ kind: 'pick', section: label, ...p });
   }
-  if (!hasPicks && !body.some(Boolean)) body.push(el('div', { className: 'slide-empty', textContent: 'New picks coming soon. Swipe for more deals →' }));
-
-  const next = all[i + 1];
-  return el('section', { className: 'slide', id: `slide-${campaign.id}`, ariaLabel: campaign.title },
-    el('div', { className: 'slide-inner' },
-      el('div', { className: 'slide-head' },
-        el('h1', { textContent: `${campaign.emoji} ${campaign.title}`.trim() }),
-        campaign.intro ? el('p', { textContent: campaign.intro }) : null),
-      ...body,
-      next ? el('button', { className: 'next-up', type: 'button', textContent: `Next: ${next.emoji} ${next.title} →`, onclick: () => go(i + 1) }) : null,
-      el('div', { className: 'slide-foot' },
-        el('a', { href: '/', textContent: 'See all of today’s deals →' }),
-        el('div', { textContent: DISCLOSURE }))));
+  for (const s of campaign.sections) {
+    if (s.browseUrl) items.push({ kind: 'browse', section: s.title ? `${s.emoji} ${s.title}`.trim() : '', emoji: s.emoji || '🔎', title: s.picks.length ? `More ${s.title || 'ideas'}` : (s.title || 'Find ideas'), search: s.search, url: s.browseUrl });
+  }
+  return items;
 }
 
-let slides = [];
-let current = 0;
+const external = { target: '_blank', rel: 'nofollow sponsored noopener' };
 
-function go(i, smooth = true) {
-  i = Math.max(0, Math.min(slides.length - 1, i));
-  track.scrollTo({ left: i * track.clientWidth, behavior: smooth ? 'smooth' : 'instant' });
+function tile(item, onOpen) {
+  if (item.kind === 'browse') {
+    return el('a', { className: 'tile browse-tile', href: item.url, ...external },
+      el('span', { className: 'emoji', textContent: item.emoji }),
+      el('strong', { textContent: item.title }),
+      el('span', { textContent: `Shop “${item.search}” on Amazon →` }));
+  }
+  return el('button', { className: 'tile', type: 'button', onclick: onOpen, ariaLabel: `${item.title}, open` },
+    media('tile-media', item),
+    el('div', { className: 'tile-body' },
+      item.section ? el('span', { className: 'tile-section', textContent: item.section }) : null,
+      el('span', { className: 'tile-title', textContent: item.title }),
+      el('span', { className: 'tile-tap', textContent: 'Tap to see more →' })));
 }
 
-function setCurrent(i) {
-  if (i === current && tabs.children[i]?.ariaCurrent === 'true') return;
-  current = i;
-  [...tabs.children].forEach((t, j) => { t.ariaCurrent = String(j === i); });
-  tabs.children[i]?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
-  $('#count').textContent = `${i + 1} / ${slides.length}`;
+function viewerSlide(item) {
+  if (item.kind === 'browse') {
+    return el('section', { className: 'viewer-slide' },
+      el('div', { className: 'viewer-card' },
+        el('div', { className: 'viewer-media no-img' }, el('span', { className: 'emoji', textContent: item.emoji })),
+        item.section ? el('span', { className: 'viewer-section', textContent: item.section }) : null,
+        el('h3', { textContent: item.title }),
+        el('p', { textContent: `See popular picks for “${item.search}” on Amazon.` }),
+        el('a', { className: 'cta', href: item.url, ...external, textContent: 'Browse on Amazon →' })));
+  }
+  return el('section', { className: 'viewer-slide' },
+    el('div', { className: 'viewer-card' },
+      media('viewer-media', item),
+      item.section ? el('span', { className: 'viewer-section', textContent: item.section }) : null,
+      el('h3', { textContent: item.title }),
+      item.why ? el('p', { textContent: item.why }) : null,
+      el('a', { className: 'cta', href: item.url, ...external, textContent: 'Shop on Amazon →' })));
+}
+
+// --- Full-size viewer ---------------------------------------------------
+
+const viewer = { items: [], index: 0, observer: null };
+const track = $('#viewer-track');
+
+function showViewerIndex(i) {
+  viewer.index = i;
+  $('#viewer-count').textContent = `${i + 1} of ${viewer.items.length}`;
+  [...$('#viewer-dots').children].forEach((d, j) => d.classList.toggle('on', j === i));
   $('#prev').disabled = i === 0;
-  $('#next').disabled = i === slides.length - 1;
-  history.replaceState(null, '', `#${slides[i].id}`);
+  $('#next').disabled = i === viewer.items.length - 1;
   if (i > 0) hideHint();
 }
 
+function goViewer(i, smooth = true) {
+  i = Math.max(0, Math.min(viewer.items.length - 1, i));
+  track.scrollTo({ left: i * track.clientWidth, behavior: smooth ? 'smooth' : 'instant' });
+}
+
+function openViewer(campaign, items, start) {
+  viewer.items = items;
+  $('#viewer-title').textContent = `${campaign.emoji} ${campaign.title}`.trim();
+  track.replaceChildren(...items.map(viewerSlide));
+  $('#viewer-dots').replaceChildren(...(items.length <= 20 ? items.map(() => el('i')) : []));
+  $('#viewer').hidden = false;
+  document.body.classList.add('viewer-open');
+
+  viewer.observer?.disconnect();
+  viewer.observer = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) showViewerIndex([...track.children].indexOf(e.target));
+  }, { root: track, threshold: 0.6 });
+  [...track.children].forEach((s) => viewer.observer.observe(s));
+
+  showViewerIndex(start);
+  requestAnimationFrame(() => goViewer(start, false));
+  $('#viewer-close').focus();
+
+  // So the phone's Back button closes the viewer instead of leaving the page.
+  history.pushState({ viewer: true }, '');
+
+  let seen = false;
+  try { seen = localStorage.getItem('viewer-hint-seen') === '1'; } catch {}
+  if (!seen && items.length > 1) {
+    $('#hint').hidden = false;
+    setTimeout(hideHint, 5000);
+  }
+}
+
+function closeViewer() {
+  if ($('#viewer').hidden) return;
+  $('#viewer').hidden = true;
+  document.body.classList.remove('viewer-open');
+  viewer.observer?.disconnect();
+  track.replaceChildren();
+  hideHint();
+}
+
 function hideHint() {
+  if ($('#hint').hidden) return;
   $('#hint').hidden = true;
-  try { localStorage.setItem('swipe-hint-seen', '1'); } catch {}
+  try { localStorage.setItem('viewer-hint-seen', '1'); } catch {}
+}
+
+$('#viewer-close').addEventListener('click', () => history.back());
+window.addEventListener('popstate', closeViewer);
+$('#prev').addEventListener('click', () => goViewer(viewer.index - 1));
+$('#next').addEventListener('click', () => goViewer(viewer.index + 1));
+document.addEventListener('keydown', (e) => {
+  if ($('#viewer').hidden) return;
+  if (e.key === 'Escape') history.back();
+  if (e.key === 'ArrowRight') goViewer(viewer.index + 1);
+  if (e.key === 'ArrowLeft') goViewer(viewer.index - 1);
+});
+window.addEventListener('resize', () => { if (!$('#viewer').hidden) goViewer(viewer.index, false); });
+
+// --- Campaign rows ------------------------------------------------------
+
+function row(campaign) {
+  const items = itemsFor(campaign);
+  const picks = items.filter((i) => i.kind === 'pick');
+  return el('section', { className: 'row', id: campaign.id, ariaLabel: campaign.title },
+    el('div', { className: 'row-head' },
+      el('h2', { textContent: `${campaign.emoji} ${campaign.title}`.trim() }),
+      picks.length ? el('span', { className: 'row-count', textContent: `${picks.length} pick${picks.length === 1 ? '' : 's'} · swipe →` }) : null),
+    campaign.intro ? el('p', { className: 'row-intro', textContent: campaign.intro }) : null,
+    el('div', { className: 'strip' }, ...items.map((item, i) => tile(item, () => openViewer(campaign, items, i)))));
+}
+
+function highlightTab(id) {
+  [...$('#tabs').children].forEach((t) => {
+    const on = t.dataset.id === id;
+    t.ariaCurrent = String(on);
+    if (on) t.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+  });
 }
 
 async function init() {
-  const { slides: data } = await fetch('/api/swipe').then((r) => r.json());
-  slides = data;
-  track.replaceChildren(...slides.map(slideFor));
-  tabs.replaceChildren(...slides.map((c, i) => el('button', {
-    className: 'tab', type: 'button', textContent: `${c.emoji} ${c.title}`.trim(), onclick: () => go(i),
-  })));
-
-  // Track which slide is in view as the visitor swipes.
-  const observer = new IntersectionObserver((entries) => {
-    for (const e of entries) {
-      if (e.isIntersecting) setCurrent([...track.children].indexOf(e.target));
-    }
-  }, { root: track, threshold: 0.6 });
-  [...track.children].forEach((s) => observer.observe(s));
-
-  $('#prev').addEventListener('click', () => go(current - 1));
-  $('#next').addEventListener('click', () => go(current + 1));
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight') go(current + 1);
-    if (e.key === 'ArrowLeft') go(current - 1);
-  });
-  window.addEventListener('resize', () => go(current, false));
-
-  const start = Math.max(0, slides.findIndex((s) => s.id === location.hash.slice(1)));
-  setCurrent(start);
-  requestAnimationFrame(() => go(start, false));
-
-  let seen = false;
-  try { seen = localStorage.getItem('swipe-hint-seen') === '1'; } catch {}
-  if (!seen && slides.length > 1) {
-    $('#hint').hidden = false;
-    setTimeout(hideHint, 6000);
+  const { slides } = await fetch('/api/swipe').then((r) => r.json());
+  // Skip campaigns with nothing to show.
+  const campaigns = slides.filter((c) => itemsFor(c).length);
+  if (!campaigns.length) {
+    $('#rows').replaceChildren(el('p', { className: 'empty-rows', textContent: 'New picks are coming soon. Check back shortly!' }));
+    return;
   }
+  $('#rows').replaceChildren(...campaigns.map(row));
+  $('#tabs').replaceChildren(...campaigns.map((c) => el('button', {
+    className: 'tab', type: 'button', textContent: `${c.emoji} ${c.title}`.trim(),
+    onclick: () => {
+      document.getElementById(c.id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(history.state, '', `#${c.id}`);
+    },
+  })));
+  [...$('#tabs').children].forEach((t, i) => { t.dataset.id = campaigns[i].id; });
+
+  // Highlight the campaign sitting just under the menu bar as the visitor scrolls.
+  const rows = [...document.querySelectorAll('.row')];
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const line = $('.swipe-header').offsetHeight + 40;
+    const atBottom = innerHeight + scrollY >= document.documentElement.scrollHeight - 4;
+    const current = atBottom ? rows.at(-1) : rows.filter((r) => r.getBoundingClientRect().top <= line).at(-1) ?? rows[0];
+    highlightTab(current.id);
+  };
+  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+
+  const start = location.hash.slice(1);
+  if (start && document.getElementById(start)) document.getElementById(start).scrollIntoView({ block: 'start' });
+  requestAnimationFrame(update);
 }
 
 init();

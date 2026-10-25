@@ -16,16 +16,32 @@
   <header class="swipe-header">
     <div class="swipe-top">
       <a class="logo" href="/"><span class="logo-mark">🏷️</span><span>Great Deals Daily</span></a>
-      <span class="swipe-count" id="count" aria-live="polite"></span>
     </div>
     <nav class="tabs" id="tabs" aria-label="Campaigns"></nav>
   </header>
 
-  <main class="track" id="track" aria-label="Campaigns, swipe left or right"></main>
+  <main class="rows" id="rows"></main>
 
-  <button class="arrow prev" id="prev" type="button" aria-label="Previous campaign">‹</button>
-  <button class="arrow next" id="next" type="button" aria-label="Next campaign">›</button>
-  <div class="swipe-hint" id="hint" hidden>Swipe for more <span>→</span></div>
+  <footer class="swipe-foot">
+    <a href="/">See all of today’s deals →</a>
+    <p>As an Amazon Associate I earn from qualifying purchases. Prices and availability change; check Amazon for the current price.</p>
+  </footer>
+
+  <!-- Full-size product viewer: swipe left/right through one campaign. -->
+  <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-labelledby="viewer-title" hidden>
+    <div class="viewer-bar">
+      <div class="viewer-heading">
+        <strong id="viewer-title"></strong>
+        <span id="viewer-count" aria-live="polite"></span>
+      </div>
+      <button class="viewer-close" id="viewer-close" type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="viewer-track" id="viewer-track"></div>
+    <div class="viewer-dots" id="viewer-dots" aria-hidden="true"></div>
+    <button class="arrow prev" id="prev" type="button" aria-label="Previous product">‹</button>
+    <button class="arrow next" id="next" type="button" aria-label="Next product">›</button>
+    <div class="swipe-hint" id="hint" hidden>Swipe for the next one <span>→</span></div>
+  </div>
 
   <script src="/swipe.js" type="module"></script>
 </body>
