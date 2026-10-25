@@ -59,7 +59,7 @@
 ## Channels
 - **Active platforms:** Instagram, TikTok, Pinterest.
 - **Posting cadence:** TBD in content-calendar (suggest 4–5×/week IG, daily stories).
-- **Handles / links:** Instagram @datadarling · TikTok @datadarling · Pinterest @datadarling · display name "Great Deals Daily | Data Darling" · link in bio: great-deals-daily-production.up.railway.app/swipe.
+- **Handles / links:** Instagram @datadarling33 · TikTok @datadarling · Pinterest @datadarling · display name "Great Deals Daily | Data Darling" · link in bio: great-deals-daily-production.up.railway.app/swipe.
 - **Languages / markets:** English, US.
 
 ## Operational defaults (tool skills read these)
