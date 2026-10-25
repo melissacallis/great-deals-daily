@@ -265,6 +265,12 @@ const server = http.createServer(async (req, res) => {
         campaigns: campaigns.filter((c) => c.nav && c.id !== HOME_CAMPAIGN).map(({ id, title, emoji }) => ({ id, title, emoji })),
       });
     }
+    // The TikTok swipe page: Today's Picks first, then every campaign shown in the menu.
+    if (url.pathname === '/api/swipe') {
+      const { campaigns } = await getContent();
+      const slides = campaigns.filter((c) => c.id === HOME_CAMPAIGN || c.nav).map(publicCampaign);
+      return sendJson(res, 200, { slides });
+    }
     const campaignApi = url.pathname.match(/^\/api\/campaign\/([\w-]+)$/);
     if (campaignApi) {
       const { campaigns } = await getContent();
@@ -275,6 +281,7 @@ const server = http.createServer(async (req, res) => {
     // Campaign pages: /gift-guide (kept for old links) and /c/<campaign-id>.
     if (url.pathname === '/gift-guide' || /^\/c\/[\w-]+\/?$/.test(url.pathname)) return serveStatic(res, '/campaign.html');
     if (url.pathname === '/admin') return serveStatic(res, '/admin.html');
+    if (url.pathname === '/swipe') return serveStatic(res, '/swipe.html');
     if (UPLOAD_NAME.test(url.pathname)) return serveUpload(res, url.pathname);
     if (url.pathname.startsWith('/api/admin/')) {
       const auth = checkAdmin(req);

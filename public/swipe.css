@@ -1,0 +1,53 @@
+/* Full-screen, story-style page for TikTok "link in bio" traffic:
+   swipe sideways between campaigns, scroll down through products. */
+html, body.swipe { height: 100%; }
+body.swipe { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; background: var(--bg); }
+
+.swipe-header { background: var(--navy); color: #fff; padding-top: env(safe-area-inset-top); flex-shrink: 0; z-index: 2; }
+.swipe-top { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px 4px; }
+.swipe-top .logo { font-size: 17px; }
+.swipe-count { font-size: 13px; color: #cfe3da; font-variant-numeric: tabular-nums; }
+
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding: 6px 16px 10px; scrollbar-width: none; scroll-behavior: smooth; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex-shrink: 0; border: 1px solid rgba(255,255,255,.25); background: transparent; color: #fff; font: inherit; font-weight: 600; font-size: 14px; padding: 7px 14px; border-radius: 999px; cursor: pointer; }
+.tab[aria-current="true"] { background: var(--accent); border-color: var(--accent); color: var(--ink); }
+
+.track { flex: 1; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+.track::-webkit-scrollbar { display: none; }
+.slide { flex: 0 0 100%; width: 100%; overflow-y: auto; scroll-snap-align: start; scroll-snap-stop: always; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
+.slide-inner { max-width: 560px; margin: 0 auto; padding: 18px 16px calc(28px + env(safe-area-inset-bottom)); }
+
+.slide-head h1 { font-size: 26px; line-height: 1.15; margin: 4px 0 6px; letter-spacing: -.01em; }
+.slide-head p { color: var(--muted); margin: 0 0 6px; line-height: 1.5; font-size: 15px; }
+.slide h2 { font-size: 18px; margin: 22px 0 10px; }
+
+.product { display: block; background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin-top: 14px; color: inherit; text-decoration: none; box-shadow: 0 4px 14px rgba(11,61,46,.06); }
+.product:active { transform: scale(.99); }
+.product-media { position: relative; overflow: hidden; background: #fff; height: min(44vh, 340px); display: grid; place-items: center; border-bottom: 1px solid var(--line); }
+.product-media.no-img { height: 120px; background: linear-gradient(135deg, #fff8e1, #eef6f2); }
+.product-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 12px; }
+.product-media .big-emoji { font-size: 64px; line-height: 1; }
+.product-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+.product-body strong { font-size: 18px; line-height: 1.3; }
+.product-body p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
+.product .cta { margin-top: 4px; font-size: 15px; padding: 12px; }
+
+.slide .browse { margin-top: 14px; }
+.slide-empty { background: var(--card); border: 1px dashed #c9d8d0; border-radius: 16px; padding: 28px 18px; text-align: center; color: var(--muted); margin-top: 14px; }
+
+.slide-foot { margin-top: 26px; font-size: 12px; color: var(--muted); line-height: 1.5; text-align: center; }
+.slide-foot a { color: var(--navy); font-weight: 700; font-size: 14px; display: inline-block; margin-bottom: 10px; }
+.next-up { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 22px; padding: 14px; border-radius: 12px; border: 0; background: var(--navy); color: #fff; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; }
+
+/* Arrows for desktop; touch users swipe. */
+.arrow { position: fixed; top: 55%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--ink); font-size: 26px; line-height: 1; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,.12); z-index: 3; }
+.arrow.prev { left: 16px; }
+.arrow.next { right: 16px; }
+.arrow:disabled { opacity: 0; pointer-events: none; }
+@media (hover: none), (max-width: 720px) { .arrow { display: none; } }
+
+.swipe-hint { position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: rgba(16,35,28,.92); color: #fff; font-weight: 700; font-size: 14px; padding: 10px 18px; border-radius: 999px; z-index: 3; pointer-events: none; box-shadow: 0 6px 18px rgba(0,0,0,.2); }
+.swipe-hint span { display: inline-block; animation: nudge 1.2s ease-in-out infinite; }
+@keyframes nudge { 50% { transform: translateX(6px); } }
+@media (prefers-reduced-motion: reduce) { .swipe-hint span { animation: none; } .tabs { scroll-behavior: auto; } }

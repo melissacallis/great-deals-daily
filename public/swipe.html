@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b3d2e">
+  <title>Great Deals Daily | Swipe the Deals</title>
+  <meta name="description" content="Swipe through hand-picked Amazon finds and gift ideas from Great Deals Daily.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏷️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/swipe.css">
+</head>
+<body class="swipe">
+  <header class="swipe-header">
+    <div class="swipe-top">
+      <a class="logo" href="/"><span class="logo-mark">🏷️</span><span>Great Deals Daily</span></a>
+      <span class="swipe-count" id="count" aria-live="polite"></span>
+    </div>
+    <nav class="tabs" id="tabs" aria-label="Campaigns"></nav>
+  </header>
+
+  <main class="track" id="track" aria-label="Campaigns, swipe left or right"></main>
+
+  <button class="arrow prev" id="prev" type="button" aria-label="Previous campaign">‹</button>
+  <button class="arrow next" id="next" type="button" aria-label="Next campaign">›</button>
+  <div class="swipe-hint" id="hint" hidden>Swipe for more <span>→</span></div>
+
+  <script src="/swipe.js" type="module"></script>
+</body>
+</html>

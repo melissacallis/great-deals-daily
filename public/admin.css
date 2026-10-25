@@ -3,6 +3,7 @@
 .save-status { margin-left: auto; color: #cfe3da; font-size: 14px; font-weight: 600; }
 .save-status.error { color: #ffb4c0; }
 .link-btn { background: none; border: 0; color: #fff; font: inherit; font-weight: 600; cursor: pointer; padding: 8px 10px; border-radius: 8px; }
+.admin a.link-btn { text-decoration: none; font-size: 14px; }
 .link-btn:hover { background: rgba(255,255,255,.1); }
 
 .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }

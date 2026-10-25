@@ -69,6 +69,19 @@ Changes save automatically. For each product:
 - Sections with a search term show a **Browse on Amazon** button that searches
   Amazon for it, with your tag.
 
+## TikTok swipe page
+
+`/swipe` is a full-screen page for your TikTok (or Instagram) link in bio.
+Visitors swipe left and right between campaigns, story-style, and scroll down
+through each campaign's products. The menu bar at the top lists every campaign
+and highlights the one in view; tapping a name jumps to it.
+
+- It shows **Today's Picks** first, then every campaign with **Show this
+  campaign in the site's top menu** ticked, in the order of the admin list.
+- Link straight to one campaign with `/swipe#<campaign-id>`, e.g.
+  `/swipe#black-friday`. The address updates as visitors swipe, so a copied link
+  opens on the same campaign.
+
 **Storage:** products are saved to `content.json` in the Railway volume
 (`RAILWAY_VOLUME_MOUNT_PATH`), or `DATA_DIR`, or `./data` locally. The files in
 `content/` are only the starting content for a brand-new, empty volume.
