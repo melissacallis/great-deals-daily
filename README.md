@@ -95,7 +95,7 @@ at the top lists every campaign and jumps to its row.
 - **Categories and searches:** `src/categories.js`. Each entry is a search with
   keywords, a search index and a minimum discount %. `POOL_SEARCHES` adds extra
   searches that only feed the Top 50.
-- **Look:** `public/styles.css` (colours are at the top).
+- **Look:** `public/styles.css` (colours are at the top). Graphics are SVG files in `public/img/`.
 - **Site name:** `SITE_NAME` in `.env`.
 - **Refresh rate:** `CACHE_MINUTES` in `.env` (default 60). Results are cached to
   stay within Amazon's rate limit. Don't set it above 1440 (24 hours), because

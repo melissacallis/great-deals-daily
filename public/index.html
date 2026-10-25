@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Great Deals Daily | Today's Best Amazon Deals</title>
   <meta name="description" content="Hand-picked Amazon deals with real discounts, refreshed every day.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏷️</text></svg>">
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -28,15 +28,16 @@
 
   <section class="hero">
     <div class="wrap hero-inner">
-      <div>
-        <p class="eyebrow">Updated every day</p>
-        <h1>Today's best deals on Amazon</h1>
+      <div class="hero-copy">
+        <p class="eyebrow">✨ Updated every day</p>
+        <h1>Today's best deals <span class="hl">on Amazon</span></h1>
         <p class="lede">Real discounts only. We list products marked down from their usual price, so you don't have to dig.</p>
+        <div class="countdown" aria-live="polite">
+          <span class="countdown-label">⏰ New deals in</span>
+          <span class="countdown-time" id="countdown">--:--:--</span>
+        </div>
       </div>
-      <div class="countdown" aria-live="polite">
-        <span class="countdown-label">New deals in</span>
-        <span class="countdown-time" id="countdown">--:--:--</span>
-      </div>
+      <img class="hero-art" src="/img/hero-art.svg" alt="" width="520" height="360">
     </div>
   </section>
 

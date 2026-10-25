@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 360">
+  <defs>
+    <linearGradient id="bag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#ffe3ec"/></linearGradient>
+    <linearGradient id="bag2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd23f"/><stop offset="1" stop-color="#ffb02e"/></linearGradient>
+  </defs>
+  <circle cx="380" cy="70" r="120" fill="#fff" opacity=".10"/>
+  <circle cx="470" cy="300" r="70" fill="#fff" opacity=".10"/>
+  <circle cx="250" cy="320" r="40" fill="#ffd23f" opacity=".35"/>
+  <!-- back bag -->
+  <g transform="rotate(10 400 200)">
+    <path d="M370 120c0-26 16-42 38-42s38 16 38 42" fill="none" stroke="#3b0f3a" stroke-width="9" stroke-linecap="round"/>
+    <rect x="335" y="120" width="146" height="170" rx="18" fill="url(#bag2)"/>
+    <rect x="335" y="120" width="146" height="26" rx="13" fill="#000" opacity=".06"/>
+  </g>
+  <!-- front bag -->
+  <g transform="rotate(-8 300 210)">
+    <path d="M268 132c0-30 18-48 42-48s42 18 42 48" fill="none" stroke="#3b0f3a" stroke-width="10" stroke-linecap="round"/>
+    <rect x="226" y="130" width="168" height="190" rx="20" fill="url(#bag)"/>
+    <circle cx="310" cy="222" r="46" fill="#ff3d7f"/>
+    <text x="310" y="240" font-family="Poppins, Arial, sans-serif" font-weight="800" font-size="46" fill="#fff" text-anchor="middle">%</text>
+  </g>
+  <!-- tag -->
+  <g transform="rotate(-24 170 120)">
+    <path d="M140 80h56a10 10 0 0 1 10 10v56a10 10 0 0 1-10 10h-56l-26-38z" fill="#3b0f3a"/>
+    <circle cx="190" cy="96" r="6" fill="#ffd23f"/>
+    <text x="164" y="138" font-family="Poppins, Arial, sans-serif" font-weight="800" font-size="26" fill="#ffd23f" text-anchor="middle">SALE</text>
+  </g>
+  <!-- sparkles -->
+  <g fill="#fff">
+    <path d="M110 230l5 14 14 5-14 5-5 14-5-14-14-5 14-5z"/>
+    <path d="M470 150l4 10 10 4-10 4-4 10-4-10-10-4 10-4z"/>
+    <path d="M250 40l6 16 16 6-16 6-6 16-6-16-16-6 16-6z"/>
+  </g>
+  <g fill="#ffd23f">
+    <path d="M60 120l3 8 8 3-8 3-3 8-3-8-8-3 8-3z"/>
+    <path d="M500 40l3 8 8 3-8 3-3 8-3-8-8-3 8-3z"/>
+  </g>
+  <circle cx="200" cy="270" r="6" fill="#fff" opacity=".7"/>
+  <circle cx="440" cy="330" r="5" fill="#fff" opacity=".7"/>
+  <circle cx="80" cy="60" r="4" fill="#fff" opacity=".7"/>
+</svg>

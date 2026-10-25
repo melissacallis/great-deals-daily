@@ -6,7 +6,7 @@ export function pickCard(pick) {
   a.href = pick.url;
   a.target = '_blank';
   a.rel = 'nofollow sponsored noopener';
-  a.innerHTML = '<span class="pick-emoji"></span><span class="pick-body"><strong class="pick-title"></strong><span class="pick-why"></span><span class="pick-cta">Check today\'s price on Amazon →</span></span>';
+  a.innerHTML = '<span class="pick-emoji"></span><span class="pick-body"><strong class="pick-title"></strong><span class="pick-why"></span><span class="pick-cta">See it on Amazon →</span></span>';
   const emoji = a.querySelector('.pick-emoji');
   if (pick.image) {
     const img = Object.assign(document.createElement('img'), { className: 'pick-img', src: pick.image, alt: pick.title, loading: 'lazy' });
