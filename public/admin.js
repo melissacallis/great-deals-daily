@@ -85,6 +85,66 @@ function linkField(value, onInput) {
   return h('label', { className: 'field full' }, 'Amazon link', input, hint);
 }
 
+// Photo: upload your own, or paste the SiteStripe "Image" code / an Amazon image link.
+const AMAZON_IMAGE_HOSTS = /(^|\.)(amazon-adsystem\.com|media-amazon\.com|ssl-images-amazon\.com|images-amazon\.com)$/;
+
+function parseImage(text) {
+  const raw = text.trim();
+  if (!raw) return { image: '' };
+  const src = raw.includes('<img') ? (raw.match(/<img[^>]+src=["']([^"']+)["']/i) ?? [])[1] : raw;
+  if (!src) return { error: 'Couldn’t find a picture in that code. Copy the whole SiteStripe Image code.' };
+  try {
+    const url = new URL(src.startsWith('//') ? `https:${src}` : src);
+    if (AMAZON_IMAGE_HOSTS.test(url.hostname)) return { image: url.toString().replace(/^http:/, 'https:') };
+  } catch {}
+  return { error: 'Only Amazon-hosted images (from SiteStripe) or your own uploaded photos are allowed.' };
+}
+
+function imageField(value, onChange) {
+  const preview = h('img', { className: 'img-preview', alt: '' });
+  const hint = h('small');
+  const remove = h('button', { className: 'btn small danger', type: 'button', onclick: () => set('') }, 'Remove photo');
+  const paste = h('input', { placeholder: 'Or paste SiteStripe Image code / Amazon image link', oninput: (e) => {
+    const r = parseImage(e.target.value);
+    if (r.error) { hint.textContent = r.error; hint.className = 'bad'; return; }
+    set(r.image);
+  } });
+  const file = h('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp,image/gif', className: 'file-input', onchange: async (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (f.size > 5_000_000) { hint.textContent = 'That photo is over 5 MB. Try a smaller one.'; hint.className = 'bad'; return; }
+    hint.textContent = 'Uploading…'; hint.className = '';
+    try {
+      const res = await fetch('/api/admin/upload', { method: 'POST', headers: { Authorization: `Bearer ${state.password}`, 'Content-Type': f.type }, body: f });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      set(data.image);
+    } catch (err) {
+      hint.textContent = err.message || 'Upload failed.'; hint.className = 'bad';
+    }
+    e.target.value = '';
+  } });
+  function set(image) {
+    value = image;
+    preview.hidden = !image;
+    if (image) preview.src = image;
+    remove.hidden = !image;
+    if (!image) paste.value = '';
+    hint.textContent = image ? '✓ Photo added.' : 'Optional. Use your own photo or Amazon’s SiteStripe image, not a copied Amazon photo.';
+    hint.className = '';
+    onChange(image);
+  }
+  preview.hidden = !value;
+  if (value) preview.src = value;
+  remove.hidden = !value;
+  hint.textContent = value ? '' : 'Optional. Use your own photo or Amazon’s SiteStripe image, not a copied Amazon photo.';
+  return h('div', { className: 'field full' }, 'Photo',
+    h('div', { className: 'image-field' }, preview,
+      h('div', { className: 'image-inputs' },
+        h('label', { className: 'btn small upload-btn' }, '📷 Upload photo', file), paste, remove)),
+    hint);
+}
+
 const textField = (label, value, onInput, opts = {}) => h('label', { className: `field${opts.full ? ' full' : ''}` }, label,
   h(opts.multiline ? 'textarea' : 'input', { value, placeholder: opts.placeholder ?? '', maxLength: opts.max ?? 200, oninput: (e) => onInput(e.target.value) }),
   opts.hint ? h('small', {}, opts.hint) : null);
@@ -101,7 +161,7 @@ function renderCampaignList() {
 }
 
 function addProductCard(c) {
-  const draft = { title: '', why: '', url: '', emoji: '' };
+  const draft = { title: '', why: '', url: '', emoji: '', image: '' };
   const sectionSelect = h('select', {}, ...c.sections.map((s, i) => h('option', { value: s.id, selected: i === 0 }, s.title ? `${s.emoji} ${s.title}`.trim() : 'Main list')));
   const error = h('p', { className: 'error', hidden: true });
   const form = h('form', { className: 'panel add-product', onsubmit: (e) => {
@@ -109,7 +169,7 @@ function addProductCard(c) {
     if (!draft.title.trim() || !draft.url) { error.textContent = 'Add at least a title and an Amazon link.'; error.hidden = false; return; }
     if (checkLink(draft.url).level === 'bad') { error.textContent = checkLink(draft.url).text; error.hidden = false; return; }
     const section = c.sections.find((s) => s.id === sectionSelect.value) ?? c.sections[0];
-    section.picks.unshift({ id: crypto.randomUUID(), title: draft.title.trim(), why: draft.why.trim(), url: draft.url, emoji: draft.emoji.trim() || '⭐' });
+    section.picks.unshift({ id: crypto.randomUUID(), title: draft.title.trim(), why: draft.why.trim(), url: draft.url, emoji: draft.emoji.trim() || '⭐', image: draft.image });
     save();
     render();
     status('Product added. Saving…');
@@ -120,6 +180,7 @@ function addProductCard(c) {
       textField('Product name', '', (v) => { draft.title = v; }, { placeholder: 'e.g. Cozy Sherpa Throw Blanket', max: 140 }),
       c.sections.length > 1 ? h('label', { className: 'field' }, 'Section', sectionSelect) : textField('Emoji', '', (v) => { draft.emoji = v; }, { placeholder: '🛋️', max: 8, hint: 'Shown instead of a photo.' }),
       textField('Why it’s a good deal', '', (v) => { draft.why = v; }, { full: true, multiline: true, max: 600, placeholder: 'In your own words. Don’t include prices: they change and Amazon’s rules don’t allow copied prices.' }),
+      imageField('', (v) => { draft.image = v; }),
       c.sections.length > 1 ? textField('Emoji', '', (v) => { draft.emoji = v; }, { placeholder: '🛋️', max: 8, hint: 'Shown instead of a photo.' }) : null,
     ),
     error,
@@ -162,7 +223,9 @@ function move(list, item, delta) {
 
 function pickRow(c, section, pick) {
   const name = h('span', { className: 'pick-name' }, pick.title);
-  const emoji = h('span', { className: 'emoji' }, pick.emoji);
+  const emoji = h('span', { className: 'emoji' });
+  const thumb = () => emoji.replaceChildren(pick.image ? h('img', { className: 'thumb', src: pick.image, alt: '' }) : pick.emoji);
+  thumb();
   const otherSections = c.sections.filter((s) => s !== section);
   return h('details', { className: 'pick-row' },
     h('summary', {}, emoji, name,
@@ -172,8 +235,9 @@ function pickRow(c, section, pick) {
       h('div', { className: 'fields' },
         linkField(pick.url, (v) => { pick.url = v; save(); }),
         textField('Product name', pick.title, (v) => { pick.title = v; name.textContent = v; save(); }, { max: 140 }),
-        textField('Emoji', pick.emoji, (v) => { pick.emoji = v; emoji.textContent = v; save(); }, { max: 8 }),
-        textField('Why it’s a good deal', pick.why, (v) => { pick.why = v; save(); }, { full: true, multiline: true, max: 600 })),
+        textField('Emoji', pick.emoji, (v) => { pick.emoji = v; thumb(); save(); }, { max: 8, hint: 'Shown when there’s no photo.' }),
+        textField('Why it’s a good deal', pick.why, (v) => { pick.why = v; save(); }, { full: true, multiline: true, max: 600 }),
+        imageField(pick.image ?? '', (v) => { pick.image = v; thumb(); save(); })),
       h('div', { className: 'actions' },
         otherSections.length ? h('select', { className: 'btn small', style: 'width:auto', onchange: (e) => {
           const target = c.sections.find((s) => s.id === e.target.value);

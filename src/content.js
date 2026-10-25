@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 const APP_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DATA_DIR = process.env.DATA_DIR ?? process.env.RAILWAY_VOLUME_MOUNT_PATH ?? path.join(APP_ROOT, 'data');
 const FILE = path.join(DATA_DIR, 'content.json');
+export const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
 
 // The front page's "Today's Picks". It always exists and can't be deleted.
 export const HOME_CAMPAIGN = 'todays-picks';
@@ -28,6 +29,7 @@ function normalizePick(p) {
     why: str(p.why, 600),
     url: str(p.url, 1000),
     emoji: str(p.emoji, 8) || '⭐',
+    image: str(p.image, 1000),
   };
 }
 

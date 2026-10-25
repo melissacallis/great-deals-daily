@@ -67,3 +67,11 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); ou
   .section-card .section-fields { grid-template-columns: 70px 1fr; }
   .section-card .section-fields .btn { grid-column: 1 / -1; justify-self: start; }
 }
+
+.image-field { display: flex; gap: 12px; align-items: flex-start; }
+.img-preview { width: 88px; height: 88px; object-fit: contain; border: 1px solid var(--line); border-radius: 8px; background: #fff; flex-shrink: 0; }
+.image-inputs { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex: 1; min-width: 0; }
+.image-inputs input:not([type=file]) { flex: 1; min-width: 200px; }
+.upload-btn { position: relative; overflow: hidden; }
+.file-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.pick-row .thumb { width: 32px; height: 32px; object-fit: contain; border-radius: 4px; background: #fff; display: block; }

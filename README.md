@@ -59,8 +59,13 @@ Changes save automatically. For each product:
 - Paste the link from Amazon's **SiteStripe** bar (**Get Link**). Plain
   amazon.com links get your tag added automatically; non-Amazon links are
   rejected.
-- Write why it's a good deal in your own words. Don't add prices or Amazon's
-  product photos: Associates rules only allow those through the API.
+- Write why it's a good deal in your own words. Don't add prices: Associates
+  rules only allow those through the API.
+- **Photo (optional):** upload your own photo (JPG, PNG, WebP or GIF, up to
+  5 MB), or paste the code from SiteStripe's **Get Link → Image** (or an
+  Amazon-hosted image link). Images copied to other hosts are rejected, since
+  re-hosting Amazon's product photos isn't allowed. Without a photo the emoji
+  is shown.
 - Sections with a search term show a **Browse on Amazon** button that searches
   Amazon for it, with your tag.
 

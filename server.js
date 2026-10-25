@@ -1,12 +1,12 @@
 import http from 'node:http';
-import { readFile } from 'node:fs/promises';
-import { timingSafeEqual, createHash } from 'node:crypto';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { timingSafeEqual, createHash, randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CreatorsApi } from './src/amazon.js';
 import { CATEGORIES, POOL_SEARCHES, TOP } from './src/categories.js';
 import { demoDeals } from './src/demo.js';
-import { getContent, saveContent, storageInfo, HOME_CAMPAIGN } from './src/content.js';
+import { getContent, saveContent, storageInfo, HOME_CAMPAIGN, UPLOADS_DIR } from './src/content.js';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public');
 const PORT = Number(process.env.PORT ?? 3000);
@@ -51,7 +51,53 @@ function cleanPick(p) {
   } else {
     return null;
   }
-  return { title: String(p.title), why: p.why ? String(p.why) : '', emoji: p.emoji ? String(p.emoji) : '⭐', url: url.toString() };
+  return { title: String(p.title), why: p.why ? String(p.why) : '', emoji: p.emoji ? String(p.emoji) : '⭐', image: cleanImage(p.image), url: url.toString() };
+}
+
+// Product photos: either uploaded from /admin (the owner's own photos), or an
+// Amazon-hosted image such as the SiteStripe "Image" link. Copying Amazon's
+// product photos to other hosts isn't allowed, so other sites are dropped.
+const UPLOAD_NAME = /^\/uploads\/[0-9a-f-]{36}\.(jpg|png|webp|gif)$/;
+const AMAZON_IMAGE_HOSTS = /(^|\.)(amazon-adsystem\.com|media-amazon\.com|ssl-images-amazon\.com|images-amazon\.com)$/;
+
+function cleanImage(image) {
+  if (!image) return null;
+  if (UPLOAD_NAME.test(image)) return image;
+  try {
+    const url = new URL(image.startsWith('//') ? `https:${image}` : image);
+    if (url.protocol === 'https:' && AMAZON_IMAGE_HOSTS.test(url.hostname)) return url.toString();
+  } catch {}
+  return null;
+}
+
+const IMAGE_TYPES = [
+  { ext: 'jpg', type: 'image/jpeg', test: (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
+  { ext: 'png', type: 'image/png', test: (b) => b.subarray(0, 4).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47])) },
+  { ext: 'gif', type: 'image/gif', test: (b) => b.subarray(0, 3).toString() === 'GIF' },
+  { ext: 'webp', type: 'image/webp', test: (b) => b.subarray(0, 4).toString() === 'RIFF' && b.subarray(8, 12).toString() === 'WEBP' },
+];
+
+async function readBody(req, limit) {
+  let size = 0;
+  const chunks = [];
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > limit) throw Object.assign(new Error('Too large'), { status: 413 });
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
+}
+
+async function serveUpload(res, name) {
+  const kind = IMAGE_TYPES.find((t) => name.endsWith(`.${t.ext}`));
+  try {
+    const data = await readFile(path.join(UPLOADS_DIR, path.basename(name)));
+    res.writeHead(200, { 'Content-Type': kind.type, 'Cache-Control': 'public, max-age=31536000, immutable' });
+    res.end(data);
+  } catch {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Not found');
+  }
 }
 
 function publicCampaign(c) {
@@ -95,14 +141,7 @@ function checkAdmin(req) {
 }
 
 async function readJsonBody(req, limit = 1_000_000) {
-  let size = 0;
-  const chunks = [];
-  for await (const chunk of req) {
-    size += chunk.length;
-    if (size > limit) throw Object.assign(new Error('Too large'), { status: 413 });
-    chunks.push(chunk);
-  }
-  return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  return JSON.parse((await readBody(req, limit)).toString('utf8'));
 }
 
 const fallbackFor = (cat) => cat.id === TOP.id
@@ -236,6 +275,7 @@ const server = http.createServer(async (req, res) => {
     // Campaign pages: /gift-guide (kept for old links) and /c/<campaign-id>.
     if (url.pathname === '/gift-guide' || /^\/c\/[\w-]+\/?$/.test(url.pathname)) return serveStatic(res, '/campaign.html');
     if (url.pathname === '/admin') return serveStatic(res, '/admin.html');
+    if (UPLOAD_NAME.test(url.pathname)) return serveUpload(res, url.pathname);
     if (url.pathname.startsWith('/api/admin/')) {
       const auth = checkAdmin(req);
       if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
@@ -248,6 +288,18 @@ const server = http.createServer(async (req, res) => {
           return sendJson(res, err.status ?? 400, { error: err.status === 413 ? 'Too much data in one save.' : 'Invalid data.' });
         }
         return sendJson(res, 200, await saveContent(body));
+      }
+      if (url.pathname === '/api/admin/upload' && req.method === 'POST') {
+        let data;
+        try { data = await readBody(req, 5_000_000); } catch (err) {
+          return sendJson(res, err.status ?? 400, { error: err.status === 413 ? 'That photo is over 5 MB. Try a smaller one.' : 'Upload failed.' });
+        }
+        const kind = IMAGE_TYPES.find((t) => t.test(data));
+        if (!kind) return sendJson(res, 415, { error: 'Use a JPG, PNG, WebP or GIF photo.' });
+        const name = `${randomUUID()}.${kind.ext}`;
+        await mkdir(UPLOADS_DIR, { recursive: true });
+        await writeFile(path.join(UPLOADS_DIR, name), data);
+        return sendJson(res, 200, { image: `/uploads/${name}` });
       }
       return sendJson(res, 404, { error: 'Not found' });
     }
