@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Top Deals | Great Deals Daily</title>
+  <meta name="description" content="Hand-picked Amazon deals with real discounts, refreshed every day.">
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-row">
+      <a class="logo" href="/"><img class="avatar" src="/img/headshot.jpg" alt="" width="44" height="44"><span class="logo-text"><span id="site-name">Great Deals Daily</span><small>by Data Darling</small></span></a>
+      <form class="search" id="search-form" role="search">
+        <input id="search-input" type="search" placeholder="Search deals, e.g. air fryer" aria-label="Search deals">
+        <button type="submit">Search</button>
+      </form>
+      <nav class="nav" id="nav" aria-label="Campaigns"></nav>
+    </div>
+  </header>
+
+  <div class="demo-banner" id="demo-banner" hidden>
+    Demo mode: these are sample products. Add your Amazon Creators API keys to <code>.env</code> to show live deals.
+  </div>
+
+  <section class="hero">
+    <div class="wrap hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">✨ Updated every day</p>
+        <h1>Today's best deals <span class="hl">on Amazon</span></h1>
+        <p class="lede">Real discounts only. We list products marked down from their usual price, so you don't have to dig.</p>
+        <div class="countdown" aria-live="polite">
+          <span class="countdown-label">⏰ New deals in</span>
+          <span class="countdown-time" id="countdown">--:--:--</span>
+        </div>
+      </div>
+      <img class="hero-art" src="/img/hero-art.svg" alt="" width="520" height="360">
+    </div>
+  </section>
+
+  <main class="wrap">
+    <section class="picks-section" id="picks-section" hidden>
+      <h2>⭐ Today's Picks</h2>
+      <p class="section-sub">Hand-picked by us. Prices change fast, so check the current price on Amazon.</p>
+      <div class="picks-grid" id="picks"></div>
+    </section>
+
+    <nav class="chips" id="categories" aria-label="Categories"></nav>
+
+    <div class="toolbar">
+      <h2 id="results-title">Top Deals</h2>
+      <label class="sort">Sort
+        <select id="sort">
+          <option value="discount">Biggest discount</option>
+          <option value="price-asc">Price: low to high</option>
+          <option value="price-desc">Price: high to low</option>
+          <option value="rating">Top rated</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="grid" id="grid" aria-live="polite"></div>
+    <p class="updated" id="updated"></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p><strong>Affiliate disclosure:</strong> As an Amazon Associate I earn from qualifying purchases. When you buy through links on this site, we may earn a commission at no extra cost to you.</p>
+      <p>Product prices and availability are accurate as of the date/time indicated and are subject to change. Any price and availability information displayed on Amazon at the time of purchase will apply to the purchase of this product.</p>
+      <p>Amazon and the Amazon logo are trademarks of Amazon.com, Inc. or its affiliates. This site is not run by Amazon.</p>
+    </div>
+  </footer>
+
+  <template id="card-tpl">
+    <article class="card">
+      <a class="card-link" target="_blank" rel="nofollow sponsored noopener">
+        <div class="card-img"><img loading="lazy" alt=""><span class="badge-off"></span><span class="rank"></span></div>
+        <div class="card-body">
+          <span class="deal-badge" hidden></span>
+          <h3 class="title"></h3>
+          <div class="rating" hidden><span class="stars"></span><span class="count"></span></div>
+          <div class="prices"><span class="price"></span><span class="list"></span></div>
+          <span class="save"></span>
+          <p class="ends" hidden></p>
+          <span class="cta">View deal on Amazon →</span>
+        </div>
+      </a>
+    </article>
+  </template>
+
+  <script src="/app.js" type="module"></script>
+</body>
+</html>

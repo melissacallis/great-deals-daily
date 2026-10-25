@@ -28,10 +28,13 @@ export async function renderNav() {
   if (!nav) return;
   try {
     const { campaigns } = await fetch('/api/campaigns').then((r) => r.json());
-    nav.replaceChildren(...campaigns.map((c) => Object.assign(document.createElement('a'), {
-      className: 'nav-link',
-      href: c.id === 'gift-guide' ? '/gift-guide' : `/c/${c.id}`,
-      textContent: `${c.emoji} ${c.title}`.trim(),
+    const links = [
+      ...campaigns.map((c) => ({ href: c.id === 'gift-guide' ? '/gift-guide' : `/c/${c.id}`, text: `${c.emoji} ${c.title}`.trim() })),
+      { href: '/deals', text: '🔥 Top Deals' },
+    ];
+    nav.replaceChildren(...links.map((l) => Object.assign(document.createElement('a'), {
+      className: 'nav-link', href: l.href, textContent: l.text,
+      ariaCurrent: location.pathname === l.href ? 'page' : null,
     })));
   } catch {}
 }

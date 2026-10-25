@@ -216,6 +216,14 @@ function settingsCard(c) {
       isHome ? null : h('label', { className: 'field check full' },
         h('input', { type: 'checkbox', checked: c.nav, onchange: (e) => { c.nav = e.target.checked; save(); } }),
         'Show this campaign in the site’s top menu'),
+      isHome ? null : h('label', { className: 'field check full' },
+        h('input', { type: 'checkbox', checked: c.featured || (!state.doc.campaigns.some((x) => x.featured) && c.id === 'black-friday'), onchange: (e) => {
+          // Only one campaign can be featured on the front page.
+          state.doc.campaigns.forEach((x) => { x.featured = false; });
+          c.featured = e.target.checked;
+          save();
+        } }),
+        '⭐ Feature this campaign on the front page'),
     ),
     isHome ? h('p', { className: 'muted', style: 'margin-top:12px' }, 'These products appear in “Today’s Picks” on the front page.') : h('div', { className: 'actions' },
       h('button', { className: 'btn', type: 'button', onclick: () => {

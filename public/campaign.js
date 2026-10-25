@@ -6,7 +6,7 @@ const $ = (sel) => document.querySelector(sel);
 $('#search-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const q = $('#search-input').value.trim();
-  if (q) location.href = `/?q=${encodeURIComponent(q)}`;
+  if (q) location.href = `/deals?q=${encodeURIComponent(q)}`;
 });
 
 function renderSection(s) {

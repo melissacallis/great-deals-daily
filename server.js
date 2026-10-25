@@ -219,7 +219,7 @@ function sendJson(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
-const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.txt': 'text/plain' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.png': 'image/png', '.ico': 'image/x-icon', '.txt': 'text/plain' };
 
 async function serveStatic(res, urlPath) {
   const file = path.normalize(path.join(ROOT, urlPath === '/' ? 'index.html' : urlPath));
@@ -281,6 +281,14 @@ const server = http.createServer(async (req, res) => {
     // Campaign pages: /gift-guide (kept for old links) and /c/<campaign-id>.
     if (url.pathname === '/gift-guide' || /^\/c\/[\w-]+\/?$/.test(url.pathname)) return serveStatic(res, '/campaign.html');
     if (url.pathname === '/admin') return serveStatic(res, '/admin.html');
+    if (url.pathname === '/deals') return serveStatic(res, '/deals.html');
+    // The campaign featured on the front page: the one ticked in /admin, else the Black Friday watchlist.
+    if (url.pathname === '/api/featured') {
+      const { campaigns } = await getContent();
+      const c = campaigns.find((x) => x.featured && x.id !== HOME_CAMPAIGN) ?? campaigns.find((x) => x.id === 'black-friday');
+      if (!c) return sendJson(res, 404, { error: 'No featured campaign yet.' });
+      return sendJson(res, 200, publicCampaign(c));
+    }
     if (url.pathname === '/swipe') return serveStatic(res, '/swipe.html');
     if (UPLOAD_NAME.test(url.pathname)) return serveUpload(res, url.pathname);
     if (url.pathname.startsWith('/api/admin/')) {

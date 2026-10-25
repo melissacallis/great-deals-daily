@@ -51,6 +51,7 @@ function normalizeCampaign(c) {
     emoji: str(c?.emoji, 8),
     intro: str(c?.intro, 600),
     nav: Boolean(c?.nav),
+    featured: Boolean(c?.featured),
     sections: sections.length ? sections : [normalizeSection({ id: 'main', title: '' }, 0)],
   };
 }
@@ -65,6 +66,8 @@ export function normalizeContent(doc) {
   if (!seen.has(HOME_CAMPAIGN)) {
     campaigns.unshift(normalizeCampaign({ id: HOME_CAMPAIGN, title: "Today's Picks", emoji: '⭐' }));
   }
+  const firstFeatured = campaigns.find((c) => c.featured);
+  for (const c of campaigns) c.featured = c === firstFeatured;
   for (const c of campaigns) {
     const ids = new Set();
     c.sections = c.sections.filter((s) => !ids.has(s.id) && ids.add(s.id));

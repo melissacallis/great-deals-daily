@@ -5,8 +5,11 @@ An Amazon affiliate deals website. It pulls discounted products from the
 2026) and links to them with your Associates tracking tag, so you earn a
 commission on qualifying purchases.
 
-- **Top 50 Deals** on the front page: the biggest discounts across every category,
-  ranked by % off (then by dollars saved)
+- **Front page:** the featured campaign (tick **Feature this campaign on the front
+  page** in /admin; the Black Friday Watchlist by default), with a Black Friday
+  countdown and the owner's headshot in the header
+- **Top 50 Deals** at `/deals`: the biggest discounts across every category,
+  ranked by % off (then by dollars saved), plus Today's Picks
 - Daily deals by category (Electronics, Home, Fashion, Beauty, Toys, Outdoors)
 - Product search
 - Discount %, list price, star rating, deal badges and countdowns

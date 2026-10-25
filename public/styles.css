@@ -189,3 +189,43 @@ code { background: rgba(59, 15, 58, .08); padding: 1px 5px; border-radius: 4px; 
   .cta { font-size: 13px; padding: 10px 8px; }
   .pick-img { width: 84px; height: 84px; }
 }
+
+/* Header lockup: headshot + name */
+.logo .avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2.5px solid #fff; box-shadow: 0 4px 12px -4px rgba(59, 15, 58, .45); flex-shrink: 0; }
+.logo-text { display: flex; flex-direction: column; line-height: 1.05; }
+.logo-text small { font-family: Inter, system-ui, sans-serif; font-size: 12px; font-weight: 600; opacity: .9; letter-spacing: .02em; }
+.nav-link[aria-current="page"] { background: #fff; color: var(--brand-dark); }
+
+/* Front page: featured campaign */
+.featured { padding: 10px 0 20px; }
+.featured-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+.featured-head h2 { position: relative; display: inline-block; margin: 0; padding-bottom: 10px; font-size: 28px; }
+.featured-head h2::after { content: ""; position: absolute; left: 0; bottom: 0; width: 72px; height: 8px; background: url(/img/squiggle.svg) left center / contain no-repeat; }
+.featured-head p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+.watch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
+.watch-card { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; color: inherit; text-decoration: none; box-shadow: var(--shadow); transition: transform .18s, box-shadow .18s; }
+.watch-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+.watch-media { position: relative; aspect-ratio: 1; display: grid; place-items: center; background: linear-gradient(135deg, #fff1c9, #ffd9e6); }
+.watch-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.watch-media .emoji { font-size: 88px; }
+.watch-num { position: absolute; top: 12px; left: 12px; background: var(--plum); color: var(--sun); font-family: var(--display); font-weight: 800; font-size: 14px; padding: 5px 11px; border-radius: 999px; }
+.watch-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.watch-body h3 { margin: 0; font-size: 18px; line-height: 1.25; }
+.watch-body p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.watch-body .cta { margin-top: auto; }
+.more-band { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 34px 0 48px; }
+.more-card { display: flex; align-items: center; gap: 16px; padding: 20px 22px; border-radius: var(--radius); background: var(--grad-deep); color: #fff; text-decoration: none; box-shadow: var(--shadow); transition: transform .18s; }
+.more-card:hover { transform: translateY(-3px); }
+.more-card .emoji { font-size: 38px; }
+.more-card strong { display: block; font-family: var(--display); font-size: 19px; }
+.more-card span span { color: var(--sun); font-weight: 700; font-size: 14px; }
+.bf-countdown .countdown-time { min-width: 0; }
+@media (max-width: 720px) {
+  .logo .avatar { width: 40px; height: 40px; }
+  .watch-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .watch-body { padding: 10px 12px 12px; }
+  .watch-body h3 { font-size: 15px; }
+  .watch-body p { font-size: 13px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .watch-media .emoji { font-size: 60px; }
+}
+@media (max-width: 720px) { .home .hero-art { display: none; } .home .hero-inner { padding-top: 26px; } }

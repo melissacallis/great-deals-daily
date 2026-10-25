@@ -121,7 +121,7 @@ function renderCategories() {
       state.query = '';
       $('#search-input').value = '';
       $('#results-title').textContent = c.label;
-      history.replaceState(null, '', c.id === 'top' ? '/' : `/?category=${c.id}`);
+      history.replaceState(null, '', c.id === 'top' ? '/deals' : `/deals?category=${c.id}`);
       renderCategories();
       load();
     });
