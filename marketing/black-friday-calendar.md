@@ -126,7 +126,7 @@ Fill each with **5–8 products you'd actually recommend**, plus a one-line *why
 
 ---
 
-## Hashtag sets (pick 5–10 per post)
+## Hashtag sets (Instagram: 5 max including #ad; TikTok: 3–5)
 - **Deals:** #amazonfinds #amazondeals #blackfriday #blackfridaydeals #cybermonday #dealoftheday #savemoney #amazonmusthaves
 - **Gifts:** #giftideas #giftguide #holidaygifts #giftsforher #giftsforhim #stockingstuffers #christmasgifts
 - **Always:** #greatdealsdaily #ad #amazonaffiliate

@@ -16,9 +16,9 @@ Upload all 13 slides from `instagram/` in order (01 → 13).
 
 **Caption:**
 ```
-#ad Black Friday is Fri, Nov 27. Here are the 10 things I'm watching for a real price drop 👀
+10 Black Friday deals I'm watching for a real price drop on Fri, Nov 27 👀 #ad
 
-Not every "sale" is a deal, so I check each price against its usual price and only share the real markdowns.
+Not every "sale" is a deal. I check each price against its usual price and only share the real markdowns. Good gift ideas too, if you're starting your list.
 
 1. Fire TV Stick 4K
 2. Kindle Paperwhite
@@ -31,14 +31,11 @@ Not every "sale" is a deal, so I check each price against its usual price and on
 9. Instant Pot
 10. LEGO Botanicals
 
-💾 Save this so you're ready on the day, and send it to whoever's on your gift list.
-🔗 All 10 are in the Black Friday Watchlist: tap the link in my bio. Check today's price; deals can end anytime.
-
-Which one are you waiting on? Tell me in the comments 👇
+🔗 All 10 are in the Black Friday Watchlist, link in my bio. Check today's price there, since deals can end anytime.
 
 As an Amazon Associate I earn from qualifying purchases.
 
-#blackfriday #blackfridaydeals #amazonfinds #amazondeals #giftideas #holidaygifts #techgifts #greatdealsdaily #amazonaffiliate
+#blackfridaydeals #amazonfinds #giftideas #greatdealsdaily
 ```
 
 **Alt text** (Advanced settings → Accessibility, per slide):
@@ -62,8 +59,8 @@ As an Amazon Associate I earn from qualifying purchases.
 
 **Caption:**
 ```
-#ad Black Friday is Nov 27 — these are the 10 things I'm watching for a REAL price drop. Save this so you're ready 👀 Links: Black Friday Watchlist in my bio. Check today's price, deals can end anytime. I earn from qualifying purchases.
-#blackfriday #blackfridaydeals #amazonfinds #giftideas #amazondeals
+10 Black Friday deals I'm watching for a real price drop on Nov 27 👀 #ad Links: Black Friday Watchlist in my bio. Check today's price, deals can end anytime. I earn from qualifying purchases.
+#blackfridaydeals #amazonfinds #giftideas #amazondeals
 ```
 
 **After posting:**
@@ -100,6 +97,9 @@ Post this one **3–4 days after Pin 1**. Pinterest favours fresh pins, so don't
   ```
 
 ---
+
+## Hashtags
+Instagram counts only 5 hashtags per post, and `#ad` is one of them. Keep `#ad` in the first line: the FTC wants the disclosure visible before "... more".
 
 ## Keep it honest (from the brand profile)
 - No "lowest price ever" and no countdown numbers. The date is the countdown.

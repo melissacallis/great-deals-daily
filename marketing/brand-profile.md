@@ -39,7 +39,7 @@
 - **Words we use:** "deal", "pick", "marked down", "usual price", "worth it if…", "skip it if…", "check today's price".
 - **Words we ban:** "insane deal", "game-changer", "must-have" (unless explaining why), "lowest price ever", "you NEED this", "life-changing", "best on Amazon", "guaranteed".
 - **How we handle hard things:** If a price goes back up or a product disappoints, say so plainly and remove or replace the pick.
-- **Signature devices:** Open with the problem or the use, not the hype. One or two emojis max per caption, used as markers (🔗 🎁 💡), never strings of them. 5–10 targeted hashtags. "Link in bio" call to action. Always include the disclosure.
+- **Signature devices:** Open with the problem or the use, not the hype. One or two emojis max per caption, used as markers (🔗 🎁 💡), never strings of them. Up to 5 hashtags (Instagram's cap; `#ad` counts as one). "Link in bio" call to action. Always include the disclosure.
 - **Voice by platform:** Instagram: helpful mini-reviews. TikTok: same voice, faster, spoken. Pinterest: keyword-rich titles ("Gifts for Her Under $50").
 - **Pronunciation guide:** n/a.
 
