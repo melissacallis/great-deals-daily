@@ -1,0 +1,17 @@
+{
+  "episode": 1,
+  "product": "Fire TV Stick 4K (newest model)",
+  "badgeLabel": "Limited time deal",
+  "discount": "50%",
+  "checked": "Oct 25, 2026",
+  "historyTitle": "It really did sell at full price.",
+  "historyNote": "Redrawn from Amazon's own 30-day price history. Today is the lowest price in that time.",
+  "chart": { "days": 30, "from": "Sep 26", "to": "Oct 25", "today": -0.12,
+    "points": [[0, 1], [5, 0], [14, 1], [24, 0.06]] },
+  "catchTitle": "But it's already been on sale twice this month.",
+  "catchBody": "It dropped, went back to full price, then dropped again.<br><br>That means it could <b>drop again for Black Friday</b> on Nov 27. There's no rush.",
+  "skipTitle": "Read the reviews first.",
+  "skipBody": "It has <b>3.1 stars</b> from 454 ratings.<br><br>The page says this model <b>blocks apps from outside the Amazon Appstore</b>. Skip it if you use apps like that.",
+  "verdict": { "kind": "real", "label": "Real price drop", "title": "Real deal, but don't rush.",
+    "body": "Lowest price in 30 days, and the full price was real.<br><br>If it goes back up, <b>wait for Black Friday.</b>" }
+}
