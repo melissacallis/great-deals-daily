@@ -1,10 +1,15 @@
 # Builds the episode videos from the tall slides: slow zoom on each slide, slide-left transitions, a whoosh per change.
-# python3 make-video.py <episode folder>   (durations match the voiceover script's beats)
-import subprocess, sys, os
+# python3 make-video.py <episode folder>
+# If the folder has voiceover.wav + voice-durations.json, slides follow the owner's voice and the whooshes sit quietly under it.
+import subprocess, sys, os, json
 ep = sys.argv[1]
 here = os.path.dirname(os.path.abspath(__file__))
 slides = ['1-hook', '2-compared', '3-history', '4-catch', '5-skip', '6-verdict', '8-cta']
 durs = [3.3, 3.6, 4.7, 3.6, 3.3, 6.1, 3.4]
+voice = os.path.join(ep, 'voiceover.wav')
+has_voice = os.path.exists(voice)
+if has_voice:
+    durs = json.load(open(os.path.join(ep, 'voice-durations.json')))
 X = 0.35
 for folder, out in [('reel', 'video-reel.mp4'), ('tiktok', 'video-tiktok.mp4')]:
     args = ['ffmpeg', '-v', 'error', '-y']
@@ -27,8 +32,12 @@ for folder, out in [('reel', 'video-reel.mp4'), ('tiktok', 'video-tiktok.mp4')]:
     f.append(f"[{len(durs)}:a]asplit={k}" + ''.join(f'[s{j}]' for j in range(k)))
     for j, tt in enumerate(times):
         ms = int(tt * 1000); f.append(f"[s{j}]adelay={ms}|{ms}[w{j}]")
-    f.append(''.join(f'[w{j}]' for j in range(k)) + f"amix=inputs={k}:normalize=0:duration=longest,apad=whole_dur={total:.2f}[a]")
-    args += ['-i', os.path.join(here, 'whoosh.wav'), '-filter_complex', ';'.join(f), '-map', f'[{prev}]', '-map', '[a]', '-t', f'{total:.2f}',
+    if has_voice:
+        f.append(''.join(f'[w{j}]' for j in range(k)) + f"amix=inputs={k}:normalize=0:duration=longest,volume=0.3,apad=whole_dur={total:.2f}[fx]")
+        f.append(f"[{len(durs) + 1}:a]apad=whole_dur={total:.2f}[vo];[vo][fx]amix=inputs=2:normalize=0:duration=first[a]")
+    else:
+        f.append(''.join(f'[w{j}]' for j in range(k)) + f"amix=inputs={k}:normalize=0:duration=longest,apad=whole_dur={total:.2f}[a]")
+    args += ['-i', os.path.join(here, 'whoosh.wav')] + (['-i', voice] if has_voice else []) + ['-filter_complex', ';'.join(f), '-map', f'[{prev}]', '-map', '[a]', '-t', f'{total:.2f}',
              '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart',
              os.path.join(ep, out)]
     subprocess.run(args, check=True, timeout=500)

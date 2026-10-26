@@ -1,3 +1,4 @@
 node_modules/
 .env
 data/
+marketing/deal-check/*/voiceover.wav
