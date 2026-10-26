@@ -9,6 +9,8 @@ const [,, epFile, outDir, fontDir, headshot] = process.argv;
 const ep = JSON.parse(readFileSync(epFile, 'utf8'));
 const font = (w) => readFileSync(path.join(fontDir, `Poppins-${w}.ttf`)).toString('base64');
 const face = `data:image/png;base64,${readFileSync(headshot).toString('base64')}`;
+const shotDir = path.join(path.dirname(epFile), 'shots');
+const shot = (name, maxH) => ep.shots?.[name] ? `<img src="data:image/png;base64,${readFileSync(path.join(shotDir, ep.shots[name])).toString('base64')}" style="display:block; width:100%; max-height:${maxH}px; object-fit:contain; border-radius:18px; border:2px solid #f1e4ee; margin-bottom:28px">` : '';
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
 const formats = {
@@ -87,17 +89,17 @@ const slides = {
     <p class="lead">${esc(ep.product)}. Let's check →</p>${foot(f, 'Swipe →')}</div>`,
   compared: (f) => `<div class="slide"><div class="eyebrow">Step 1 · Compared to what?</div>
     <h2>${esc(ep.discount)} off the "List Price"</h2>
-    <div class="card">A "List Price" can be a price <b>nobody actually pays</b>.<br><br>So I tapped <b class="grad">Price history</b>, right next to the price, to see what it really sold for.</div>${foot(f, '1 / 6')}</div>`,
+    <div class="card">${shot('deal', 320)}A "List Price" can be a price <b>nobody actually pays</b>.<br><br>So I tapped <b class="grad">Price history</b>, right next to the price, to see what it really sold for.</div>${foot(f, '1 / 6')}</div>`,
   history: (f) => `<div class="slide"><div class="eyebrow">Step 2 · The last ${ep.chart.days} days</div>
     <h2>${esc(ep.historyTitle)}</h2>
-    <div class="card" style="padding:44px 54px">${chart(f)}</div>
+    <div class="card" style="padding:44px 54px">${ep.shots?.history ? shot('history', f.h > 1600 ? 760 : 560).replace('margin-bottom:28px', 'margin:0') : chart(f)}</div>
     <p class="lead" style="font-size:32px">${esc(ep.historyNote)}</p>${foot(f, '2 / 6')}</div>`,
   catch: (f) => `<div class="slide"><div class="eyebrow">Step 3 · The catch</div>
     <h2>${esc(ep.catchTitle)}</h2>
     <div class="card">${ep.catchBody}</div>${foot(f, '3 / 6')}</div>`,
   skip: (f) => `<div class="slide"><div class="eyebrow">Skip it if…</div>
     <h2>${esc(ep.skipTitle)}</h2>
-    <div class="card">${ep.skipBody}</div>${foot(f, '4 / 6')}</div>`,
+    <div class="card">${shot('reviews', f.h > 1600 ? 520 : 400)}${ep.skipBody}</div>${foot(f, '4 / 6')}</div>`,
   verdict: (f) => `<div class="slide"><div class="eyebrow">The verdict</div>
     <span class="pill" style="align-self:flex-start; background:#fff; color:${verdictColour}; font-size:40px; padding:16px 34px">${esc(ep.verdict.label)}</span>
     <h2>${esc(ep.verdict.title)}</h2>

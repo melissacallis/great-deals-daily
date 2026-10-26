@@ -11,7 +11,7 @@
 
 **Verdict:** real deal, but don't rush.
 
-> The owner's screenshots aren't used in the post: they show the delivery name and ZIP code, Amazon's product photos and prices. The chart is redrawn without dollar amounts.
+> Screenshots in `shots/` are cropped so the delivery name, address and product photo are cut out, with every dollar amount blurred. Never post the original screenshots: they show the delivery address. To make the videos again: `python3 ../make-video.py 01-fire-tv-stick-4k`.
 
 ## Files
 - `instagram/`: carousel, 8 slides (1080×1350)
