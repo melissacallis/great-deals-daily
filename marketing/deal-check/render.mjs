@@ -10,7 +10,14 @@ const ep = JSON.parse(readFileSync(epFile, 'utf8'));
 const font = (w) => readFileSync(path.join(fontDir, `Poppins-${w}.ttf`)).toString('base64');
 const face = `data:image/png;base64,${readFileSync(headshot).toString('base64')}`;
 const shotDir = path.join(path.dirname(epFile), 'shots');
-const shot = (name, maxH) => ep.shots?.[name] ? `<img src="data:image/png;base64,${readFileSync(path.join(shotDir, ep.shots[name])).toString('base64')}" style="display:block; width:100%; max-height:${maxH}px; object-fit:contain; border-radius:18px; border:2px solid #f1e4ee; margin-bottom:28px">` : '';
+const shot = (name, maxH, dd = '') => {
+  if (!ep.shots?.[name]) return '';
+  const buf = readFileSync(path.join(shotDir, ep.shots[name])), w = buf.readUInt32BE(16), h = buf.readUInt32BE(20); // PNG size
+  // full card width, but never taller than maxH, keeping the screenshot's shape so doodle targets line up
+  return `<img ${dd} src="data:image/png;base64,${buf.toString('base64')}" style="display:block; width:min(100%, ${Math.round(maxH * w / h)}px); height:auto; border-radius:18px; border:2px solid #f1e4ee; margin-bottom:28px">`;
+};
+const dd = (kind, colour, box) => `data-dd="${kind}" data-dd-colour="${colour}"${box ? ` data-dd-box="${box}"` : ''}`;
+const SUN = '#ffd23f', PINK = '#ff3d7f', WHITE = '#ffffff';
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
 const formats = {
@@ -84,42 +91,72 @@ function chart(f) {
 const verdictColour = { real: '#1fa971', decent: '#f0a020', skip: '#e0344f' }[ep.verdict.kind];
 const slides = {
   hook: (f) => `<div class="slide">${me(f)}
-    <div class="badge"><small>${esc(ep.badgeLabel)}</small><b class="grad">-${esc(ep.discount)}</b></div>
-    <h1>Is this deal actually real?</h1>
+    <div class="badge" ${dd('circle sparkles', SUN)}><small>${esc(ep.badgeLabel)}</small><b class="grad">-${esc(ep.discount)}</b></div>
+    <h1>Is this deal actually <span ${dd('underline', SUN)}>real?</span></h1>
     <p class="lead">${esc(ep.product)}. Let's check →</p>${foot(f, 'Swipe →')}</div>`,
   compared: (f) => `<div class="slide"><div class="eyebrow">Step 1 · Compared to what?</div>
     <h2>${esc(ep.discount)} off the "List Price"</h2>
-    <div class="card">${shot('deal', 320)}A "List Price" can be a price <b>nobody actually pays</b>.<br><br>So I tapped <b class="grad">Price history</b>, right next to the price, to see what it really sold for.</div>${foot(f, '1 / 6')}</div>`,
+    <div class="card">${shot('deal', 320, dd('circle', PINK, ep.ddBoxes?.priceHistoryButton))}A "List Price" can be a price <b ${dd('underline', PINK)}>nobody actually pays</b>.<br><br>So I tapped <b class="grad">Price history</b>, right next to the price, to see what it really sold for.</div>${foot(f, '1 / 6')}</div>`,
   history: (f) => `<div class="slide"><div class="eyebrow">Step 2 · The last ${ep.chart.days} days</div>
-    <h2>${esc(ep.historyTitle)}</h2>
-    <div class="card" style="padding:44px 54px">${ep.shots?.history ? shot('history', f.h > 1600 ? 760 : 560).replace('margin-bottom:28px', 'margin:0') : chart(f)}</div>
+    <h2 ${dd('sparkles', SUN)}>${esc(ep.historyTitle)}</h2>
+    <div class="card" style="padding:44px 54px">${ep.shots?.history ? shot('history', f.h > 1600 ? 760 : 560, dd('circle', PINK, ep.ddBoxes?.today)).replace('margin-bottom:28px', 'margin:0') : chart(f)}</div>
     <p class="lead" style="font-size:32px">${esc(ep.historyNote)}</p>${foot(f, '2 / 6')}</div>`,
   catch: (f) => `<div class="slide"><div class="eyebrow">Step 3 · The catch</div>
-    <h2>${esc(ep.catchTitle)}</h2>
-    <div class="card">${ep.catchBody}</div>${foot(f, '3 / 6')}</div>`,
+    <h2><span ${dd('burst', SUN)}>${esc(ep.catchTitle)}</span></h2>
+    <div class="card">${ep.catchBody.replace('<b>', `<b ${dd('underline', PINK)}>`)}</div>${foot(f, '3 / 6')}</div>`,
   skip: (f) => `<div class="slide"><div class="eyebrow">Skip it if…</div>
     <h2>${esc(ep.skipTitle)}</h2>
-    <div class="card">${shot('reviews', f.h > 1600 ? 520 : 400)}${ep.skipBody}</div>${foot(f, '4 / 6')}</div>`,
+    <div class="card">${shot('reviews', f.h > 1600 ? 520 : 400, dd('circle', PINK, ep.ddBoxes?.stars))}${ep.skipBody.replace(/<b>(?!3\.1)/, `<b ${dd('underline', PINK)}>`)}</div>${foot(f, '4 / 6')}</div>`,
   verdict: (f) => `<div class="slide"><div class="eyebrow">The verdict</div>
-    <span class="pill" style="align-self:flex-start; background:#fff; color:${verdictColour}; font-size:40px; padding:16px 34px">${esc(ep.verdict.label)}</span>
-    <h2>${esc(ep.verdict.title)}</h2>
-    <div class="card">${ep.verdict.body}</div>
+    <span class="pill" ${dd('check', WHITE)} style="align-self:flex-start; background:#fff; color:${verdictColour}; font-size:40px; padding:16px 34px">${esc(ep.verdict.label)}</span>
+    <h2 ${dd('sparkles', SUN)}>${esc(ep.verdict.title)}</h2>
+    <div class="card">${ep.verdict.body.replace('<b>', `<b ${dd('underline', PINK)}>`)}</div>
     <p class="lead" style="font-size:30px">Checked ${esc(ep.checked)}. Prices change, so check today's price.</p>${foot(f, '5 / 6')}</div>`,
   howto: (f) => `<div class="slide"><div class="eyebrow">Check any deal yourself</div>
     <h2>Save this for Black Friday</h2>
     <div class="card steps">
-      <div class="step"><i>1</i><span>Tap <b>Price history</b> next to the price.</span></div>
+      <div class="step"><i>1</i><span>Tap <b ${dd('underline', PINK)}>Price history</b> next to the price.</span></div>
       <div class="step"><i>2</i><span>Did it really sell at the <b>full price</b>?</span></div>
       <div class="step"><i>3</i><span>Is today the <b>lowest</b> point?</span></div>
       <div class="step"><i>4</i><span>Has it <b>bounced</b> on and off sale? It may drop again.</span></div>
     </div>${foot(f, '6 / 6')}</div>`,
   cta: (f) => `<div class="slide">${me(f)}
-    <h2>Comment a product and I'll check it next.</h2>
-    <div class="card"><b>Black Friday is Fri, Nov 27.</b><br>My watchlist is in my bio.</div>
+    <h2 ${dd('sparkles', SUN)}>Comment a product and I'll check it next.</h2>
+    <div class="card" ${dd('hearts', PINK)}><b>Black Friday is Fri, Nov 27.</b><br>My watchlist is in my bio.</div>
     <p class="lead" style="font-size:30px">#ad · As an Amazon Associate I earn from qualifying purchases.</p>${foot(f, '')}</div>`,
 };
 
+const stillDoodleJs = readFileSync(new URL('./doodles.js', import.meta.url), 'utf8');
 const browser = await chromium.launch();
+// ANIM=1: write animation frames for the videos instead of still slides.
+// Per slide: in-00..13 (rise in, then doodles draw on) and boil-1..3 (finished doodles, redrawn three ways).
+const ANIM_SLIDES = ['hook', 'compared', 'history', 'catch', 'skip', 'verdict', 'cta'];
+if (process.env.ANIM) {
+  const doodleJs = readFileSync(new URL('./doodles.js', import.meta.url), 'utf8');
+  const browser = await chromium.launch();
+  for (const name of ['reel', 'tiktok']) {
+    const f = formats[name];
+    const page = await browser.newPage({ viewport: { width: f.w, height: f.h } });
+    for (const [i, key] of ANIM_SLIDES.entries()) {
+      const dir = path.join(outDir, 'anim', name, String(i)); mkdirSync(dir, { recursive: true });
+      await page.setContent(`<style>${css(f)}</style>${slides[key](f)}`);
+      await page.evaluate(() => document.fonts.ready);
+      await page.addScriptTag({ content: doodleJs });
+      for (let k = 0; k < 14; k++) {
+        await page.evaluate(([t, p]) => { window.enter(1); window.drawDoodles(1, p); window.enter(t); }, [Math.min(1, k / 8), Math.max(0, (k - 6) / 8)]);
+        await page.screenshot({ path: path.join(dir, `in-${String(k).padStart(2, '0')}.jpg`), type: 'jpeg', quality: 88 });
+      }
+      for (let b = 1; b <= 3; b++) {
+        await page.evaluate((seed) => { window.enter(1); window.drawDoodles(seed, 1); }, b);
+        await page.screenshot({ path: path.join(dir, `boil-${b}.jpg`), type: 'jpeg', quality: 88 });
+      }
+    }
+    await page.close();
+  }
+  await browser.close();
+  process.exit(0);
+}
+
 for (const [name, f] of Object.entries(formats)) {
   const dir = path.join(outDir, name); mkdirSync(dir, { recursive: true });
   const page = await browser.newPage({ viewport: { width: f.w, height: f.h } });
@@ -127,6 +164,8 @@ for (const [name, f] of Object.entries(formats)) {
   for (const [file, fn] of list) {
     await page.setContent(`<style>${css(f)}</style>${fn(f)}`);
     await page.evaluate(() => document.fonts.ready);
+    await page.addScriptTag({ content: stillDoodleJs });
+    await page.evaluate(() => window.drawDoodles(1, 1));
     await page.screenshot({ path: path.join(dir, `${file}.jpg`), type: 'jpeg', quality: 92 });
   }
   await page.close();

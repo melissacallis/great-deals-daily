@@ -44,5 +44,10 @@
     "deal": "page-deal.png",
     "history": "history.png",
     "reviews": "page-reviews.png"
+  },
+  "ddBoxes": {
+    "priceHistoryButton": "0.57,0.38,0.96,0.67",
+    "today": "0.92,0.68,0.995,0.76",
+    "stars": "0,0,0.21,0.17"
   }
 }
