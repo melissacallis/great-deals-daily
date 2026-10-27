@@ -1,0 +1,29 @@
+{
+  "_help": "One-time import: adds the Amazon Haul Finds campaign, hidden from the menu. Each product links to the Haul store until you swap in the exact listing (Get Link) in /admin, then tick 'Show in menu'.",
+  "campaign": {
+    "id": "amazon-haul",
+    "title": "Amazon Haul Finds: Keep or Skip?",
+    "emoji": "🛒",
+    "nav": false,
+    "intro": "Amazon Haul is Amazon's budget store. These are the small, cheap finds worth trying, with an honest keep-or-skip for each. Haul orders usually ship slower than Prime, so order early for gifts.",
+    "sections": [
+      {
+        "id": "main",
+        "title": "",
+        "search": "",
+        "picks": [
+          { "emoji": "🧊", "title": "Reusable silicone food storage bags", "url": "https://www.amazon.com/haul", "why": "Cuts down on plastic bags for leftovers and freezer meals. Keep if they seal tight with water inside; skip if the zip feels flimsy." },
+          { "emoji": "📱", "title": "Foldable phone stand", "url": "https://www.amazon.com/haul", "why": "Hands-free recipes, video calls and TikTok scrolling at your desk. Keep if it holds your phone without tipping." },
+          { "emoji": "🔌", "title": "Cable clips and cord organizers", "url": "https://www.amazon.com/haul", "why": "Stops chargers sliding behind the nightstand. One of the easiest cheap upgrades for a desk or car." },
+          { "emoji": "💄", "title": "Clear stackable drawer organizers", "url": "https://www.amazon.com/haul", "why": "Sorts makeup, junk drawers and bathroom clutter. Measure your drawer first; skip if the plastic is thin and cloudy." },
+          { "emoji": "💇", "title": "Claw clips (multi-pack)", "url": "https://www.amazon.com/haul", "why": "A multi-pack means one for the car, the purse and the bathroom. Keep if the teeth close evenly and the spring isn't loose." },
+          { "emoji": "🧤", "title": "Touchscreen winter gloves", "url": "https://www.amazon.com/haul", "why": "Answer your phone without taking them off. A cheap stocking stuffer; check the fingertips actually work before gifting." },
+          { "emoji": "💡", "title": "Rechargeable motion-sensor closet lights", "url": "https://www.amazon.com/haul", "why": "Stick-on lights for closets, stairs and under cabinets, no wiring. Keep if the sensor turns them on every time." },
+          { "emoji": "🎀", "title": "Gift bags, bows and tissue paper sets", "url": "https://www.amazon.com/haul", "why": "Holiday wrapping for a lot less than the party store. Order now: Haul shipping is slower than Prime." },
+          { "emoji": "🫒", "title": "Oil sprayer bottle for cooking", "url": "https://www.amazon.com/haul", "why": "Light, even oil for the air fryer and salads. Skip it if it squirts instead of misting." },
+          { "emoji": "🧦", "title": "Fuzzy socks (multi-pack)", "url": "https://www.amazon.com/haul", "why": "The classic stocking stuffer. A multi-pack covers several people at once; check the sizing in the reviews." }
+        ]
+      }
+    ]
+  }
+}
