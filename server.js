@@ -291,6 +291,12 @@ const server = http.createServer(async (req, res) => {
       if (!c) return sendJson(res, 404, { error: 'No featured campaign yet.' });
       return sendJson(res, 200, publicCampaign(c));
     }
+    if (url.pathname === '/api/home-sections') {
+      // Campaigns ticked "Also show on the front page", in admin order, below the featured one.
+      const { campaigns } = await getContent();
+      const list = campaigns.filter((x) => x.home && !x.featured && x.id !== HOME_CAMPAIGN && x.sections.some((s) => s.picks.length));
+      return sendJson(res, 200, list.map(publicCampaign));
+    }
     if (url.pathname === '/swipe') return serveStatic(res, '/swipe.html');
     if (UPLOAD_NAME.test(url.pathname)) return serveUpload(res, url.pathname);
     if (url.pathname.startsWith('/api/admin/')) {

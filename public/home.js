@@ -67,4 +67,20 @@ async function init() {
     : [el('p', { className: 'empty', textContent: 'New picks are coming soon. Check back shortly!' })]));
 }
 
+// More campaigns ticked "Also show on the front page" in /admin, e.g. the Amazon Haul finds.
+async function homeSections() {
+  const res = await fetch('/api/home-sections');
+  if (!res.ok) return;
+  const list = await res.json();
+  $('#home-sections').replaceChildren(...list.map((c) => {
+    const picks = c.sections.flatMap((s) => s.picks);
+    return el('section', { className: 'featured home-extra', id: c.id },
+      el('div', { className: 'featured-head' }, el('div', {},
+        el('h2', { textContent: `${c.emoji ? `${c.emoji} ` : ''}${smart(c.title)}` }),
+        c.intro ? el('p', { textContent: smart(c.intro) }) : null)),
+      el('div', { className: 'watch-grid' }, ...picks.map(card)));
+  }));
+}
+
 init();
+homeSections();

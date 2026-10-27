@@ -198,6 +198,7 @@ code { background: rgba(59, 15, 58, .08); padding: 1px 5px; border-radius: 4px; 
 
 /* Front page: featured campaign */
 .featured { padding: 10px 0 20px; }
+.home-extra { margin-top: 26px; }
 .featured-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
 .featured-head h2 { position: relative; display: inline-block; margin: 0; padding-bottom: 10px; font-size: 28px; }
 .featured-head h2::after { content: ""; position: absolute; left: 0; bottom: 0; width: 72px; height: 8px; background: url(/img/squiggle.svg) left center / contain no-repeat; }

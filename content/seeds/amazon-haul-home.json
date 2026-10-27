@@ -1,0 +1,4 @@
+{
+  "_help": "One-time change: shows the Amazon Haul Finds campaign on the front page, below the Black Friday Watchlist. Untick it in /admin to remove it.",
+  "patch": { "id": "amazon-haul", "home": true }
+}

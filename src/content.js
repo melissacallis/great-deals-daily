@@ -52,6 +52,7 @@ function normalizeCampaign(c) {
     intro: str(c?.intro, 600),
     nav: Boolean(c?.nav),
     featured: Boolean(c?.featured),
+    home: Boolean(c?.home), // also shown on the front page, below the featured campaign
     sections: sections.length ? sections : [normalizeSection({ id: 'main', title: '' }, 0)],
   };
 }
@@ -82,12 +83,26 @@ export function normalizeContent(doc) {
 async function applySeeds(doc) {
   const dir = path.join(APP_ROOT, 'content', 'seeds');
   const files = (await readdir(dir).catch(() => [])).filter((f) => f.endsWith('.json')).sort();
+  // new campaigns first, then patches that change them
+  const isPatch = async (f) => 'patch' in JSON.parse(await readFile(path.join(dir, f), 'utf8').catch(() => '{}'));
+  const flags = await Promise.all(files.map(isPatch));
+  files.sort((x, y) => flags[files.indexOf(x)] - flags[files.indexOf(y)]);
   let changed = false;
   for (const file of files) {
     const id = file.replace(/\.json$/, '');
     if (doc.appliedSeeds.includes(id)) continue;
     try {
-      const { campaign } = JSON.parse(await readFile(path.join(dir, file), 'utf8'));
+      const { campaign, patch } = JSON.parse(await readFile(path.join(dir, file), 'utf8'));
+      if (patch) {
+        // A patch seed changes settings on a campaign that already exists, e.g. { "id": "amazon-haul", "home": true }.
+        const target = doc.campaigns.find((c) => c.id === patch.id);
+        if (!target) continue; // try again on a later start, once the campaign exists
+        for (const key of ['title', 'emoji', 'intro', 'nav', 'featured', 'home']) if (key in patch) target[key] = patch[key];
+        doc.appliedSeeds.push(id);
+        changed = true;
+        console.log(`Updated campaign "${target.title}" from content/seeds/${file}`);
+        continue;
+      }
       const clean = normalizeCampaign(campaign);
       const existing = doc.campaigns.find((c) => c.id === clean.id);
       if (!existing) {

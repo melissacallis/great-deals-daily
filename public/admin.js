@@ -224,6 +224,9 @@ function settingsCard(c) {
           save();
         } }),
         '⭐ Feature this campaign on the front page'),
+      isHome ? null : h('label', { className: 'field check full' },
+        h('input', { type: 'checkbox', checked: c.home, onchange: (e) => { c.home = e.target.checked; save(); } }),
+        '🏠 Also show on the front page (below the featured campaign)'),
     ),
     isHome ? h('p', { className: 'muted', style: 'margin-top:12px' }, 'These products appear in “Today’s Picks” on the front page.') : h('div', { className: 'actions' },
       h('button', { className: 'btn', type: 'button', onclick: () => {
