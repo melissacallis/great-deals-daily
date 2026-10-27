@@ -9,7 +9,10 @@ commission on qualifying purchases.
   page** in /admin; the Black Friday Watchlist by default), with a Black Friday
   countdown and the owner's headshot in the header
 - **Top 50 Deals** at `/deals`: the biggest discounts across every category,
-  ranked by % off (then by dollars saved), plus Today's Picks
+  ranked by % off (then by dollars saved), plus Today's Picks. **Off by default**
+  while the Amazon API is unavailable: set `SHOW_TOP_DEALS=1` in Railway to turn it
+  back on. While it's off, the site makes no Amazon API calls, `/deals` goes to the
+  front page, and the search box searches Amazon directly (with your tag)
 - Daily deals by category (Electronics, Home, Fashion, Beauty, Toys, Outdoors)
 - Product search
 - Discount %, list price, star rating, deal badges and countdowns

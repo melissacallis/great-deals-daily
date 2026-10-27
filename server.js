@@ -28,6 +28,8 @@ const api = hasCredentials
   : null;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// The Top 50 / category deals pages need the Amazon API. Off until SHOW_TOP_DEALS=1 is set in Railway.
+const SHOW_TOP_DEALS = process.env.SHOW_TOP_DEALS === '1';
 
 // Tagged links to Amazon's own pages, shown when the API refuses access
 // (new Associates accounts must make some sales before the API opens up).
@@ -265,6 +267,7 @@ const server = http.createServer(async (req, res) => {
       const { campaigns } = await getContent();
       return sendJson(res, 200, {
         campaigns: campaigns.filter((c) => c.nav && c.id !== HOME_CAMPAIGN).map(({ id, title, emoji }) => ({ id, title, emoji })),
+        topDeals: SHOW_TOP_DEALS,
       });
     }
     // The TikTok swipe page: Today's Picks first, then every campaign shown in the menu.
@@ -283,7 +286,15 @@ const server = http.createServer(async (req, res) => {
     // Campaign pages: /gift-guide (kept for old links) and /c/<campaign-id>.
     if (url.pathname === '/gift-guide' || /^\/c\/[\w-]+\/?$/.test(url.pathname)) return serveStatic(res, '/campaign.html');
     if (url.pathname === '/admin') return serveStatic(res, '/admin.html');
-    if (url.pathname === '/deals') return serveStatic(res, '/deals.html');
+    if (url.pathname === '/deals') {
+      if (SHOW_TOP_DEALS) return serveStatic(res, '/deals.html');
+      res.writeHead(302, { Location: '/' }); return res.end();
+    }
+    if (url.pathname === '/go/search') {
+      // Site search goes straight to Amazon's search, with the tag.
+      const q = (url.searchParams.get('q') ?? '').trim().slice(0, 100);
+      res.writeHead(302, { Location: q ? amazonLink('/s', { k: q }) : '/' }); return res.end();
+    }
     // The campaign featured on the front page: the one ticked in /admin, else the Black Friday watchlist.
     if (url.pathname === '/api/featured') {
       const { campaigns } = await getContent();
@@ -351,8 +362,10 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`${SITE_NAME} running at http://localhost:${PORT}`);
   console.log(api ? `Using Amazon Creators API (${MARKETPLACE})` : 'No Amazon credentials found: showing DEMO data. See README.md.');
-  ensureFresh();
-  // Keep checking even when nobody visits, so live deals appear as soon as Amazon allows.
-  setInterval(ensureFresh, 10 * 60_000).unref();
+  if (SHOW_TOP_DEALS) {
+    ensureFresh();
+    // Keep checking even when nobody visits, so live deals appear as soon as Amazon allows.
+    setInterval(ensureFresh, 10 * 60_000).unref();
+  } else console.log('Top Deals pages are off (set SHOW_TOP_DEALS=1 to turn them on); not calling the Amazon API.');
   getContent().catch((err) => console.error('Could not load content:', err)); // also runs one-time imports
 });

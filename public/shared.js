@@ -27,10 +27,10 @@ export async function renderNav() {
   const nav = document.querySelector('#nav');
   if (!nav) return;
   try {
-    const { campaigns } = await fetch('/api/campaigns').then((r) => r.json());
+    const { campaigns, topDeals } = await fetch('/api/campaigns').then((r) => r.json());
     const links = [
       ...campaigns.map((c) => ({ href: c.id === 'gift-guide' ? '/gift-guide' : `/c/${c.id}`, text: `${c.emoji} ${c.title}`.trim() })),
-      { href: '/deals', text: '🔥 Top Deals' },
+      ...(topDeals ? [{ href: '/deals', text: '🔥 Top Deals' }] : []),
     ];
     nav.replaceChildren(...links.map((l) => Object.assign(document.createElement('a'), {
       className: 'nav-link', href: l.href, textContent: l.text,

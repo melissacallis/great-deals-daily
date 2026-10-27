@@ -45,11 +45,11 @@ async function init() {
   $('#search-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const q = $('#search-input').value.trim();
-    if (q) location.href = `/deals?q=${encodeURIComponent(q)}`;
+    if (q) location.href = `/go/search?q=${encodeURIComponent(q)}`;
   });
 
   const res = await fetch('/api/featured');
-  if (!res.ok) { location.replace('/deals'); return; }
+  if (!res.ok) return;
   const c = await res.json();
   const isBlackFriday = /black friday/i.test(c.title) || c.id === 'black-friday';
   if (isBlackFriday) countdown();
