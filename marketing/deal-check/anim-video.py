@@ -14,8 +14,12 @@ durs[-1] += X
 counts = [round(d * FPS) for d in durs]
 
 def frame(fmt, slide, j):
-    name = f'in-{j:02d}.jpg' if j < 14 else f'boil-{(j - 14) // 3 % 3 + 1}.jpg'
-    return os.path.join(frames, 'anim', fmt, str(slide), name)
+    # in-* (rise in), then any draw-*/pop-* frames (the animated price line), then the boil loop
+    folder = os.path.join(frames, 'anim', fmt, str(slide))
+    lead = sorted(n for n in os.listdir(folder) if n.startswith(('in-', 'draw-', 'pop-')))
+    lead.sort(key=lambda n: ('in-', 'draw-', 'pop-').index(n.split('-')[0] + '-'))
+    name = lead[j] if j < len(lead) else f'boil-{(j - len(lead)) // 3 % 3 + 1}.jpg'
+    return os.path.join(folder, name)
 
 ease = lambda t: 1 - (1 - t) ** 3
 suffix = '-no-voice' if NO_VOICE else ''

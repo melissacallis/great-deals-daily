@@ -3,7 +3,7 @@
 // data-dd-box="x0,y0,x1,y1" (fractions) targets part of an element, e.g. a button inside a screenshot.
 // drawDoodles(seed, progress): a new seed redraws every stroke slightly differently (the "boil");
 // progress 0..1 draws the strokes on one after another.
-window.drawDoodles = function (seed, progress) {
+window.drawDoodles = function (seed, progress, lateProgress = progress) {
   let s = seed * 9301 + 49297;
   const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
   const jit = (a) => (rnd() - 0.5) * 2 * a;
@@ -95,12 +95,14 @@ window.drawDoodles = function (seed, progress) {
   };
   for (const el of document.querySelectorAll('[data-dd]')) {
     const b = box(el), c = el.dataset.ddColour || '#ffffff';
+    const first = strokes.length;
     for (const kind of el.dataset.dd.split(' ')) {
       if (kind === 'underline' && !el.dataset.ddBox) {
         // one wavy line under each line of wrapped text
         for (const r of el.getClientRects()) shapes.underline({ x0: r.left - sr.left, y0: r.top - sr.top, x1: r.right - sr.left, y1: r.bottom - sr.top }, c);
       } else shapes[kind](b, c);
     }
+    if (el.dataset.ddLate) for (let k = first; k < strokes.length; k++) strokes[k].late = true;
   }
   strokes.forEach((st, i) => {
     const p = document.createElementNS(NS, 'path');
@@ -109,10 +111,23 @@ window.drawDoodles = function (seed, progress) {
     p.style.filter = 'drop-shadow(0 3px 6px rgba(59,15,58,.18))';
     svg.appendChild(p);
     const len = p.getTotalLength(), n = strokes.length;
-    const local = Math.max(0, Math.min(1, progress * n - i * 0.85));
+    // "late" doodles (e.g. the circle round today's price) draw on their own cue
+    const local = st.late ? Math.max(0, Math.min(1, lateProgress)) : Math.max(0, Math.min(1, progress * n - i * 0.85));
     p.setAttribute('stroke-dasharray', `${len} ${len}`);
     p.setAttribute('stroke-dashoffset', `${len * (1 - local)}`);
   });
+};
+// Price chart: draw the line on to p (0..1) with the dot riding its tip; q (0..1) pops the "TODAY" label in.
+window.drawLine = function (p, q) {
+  const line = document.querySelector('#price-line'); if (!line) return;
+  const len = line.getTotalLength();
+  line.setAttribute('stroke-dasharray', `${len} ${len}`);
+  line.setAttribute('stroke-dashoffset', `${len * (1 - p)}`);
+  const dot = document.querySelector('#price-dot'), pt = line.getPointAtLength(len * p);
+  dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y); dot.style.opacity = p > 0.01 ? 1 : 0;
+  const label = document.querySelector('#price-label');
+  label.style.opacity = q; label.style.transformBox = 'fill-box'; label.style.transformOrigin = 'right center';
+  label.style.transform = `scale(${0.6 + 0.4 * (1 - Math.pow(1 - q, 3))})`;
 };
 // Entrance: headline, cards and badges rise in one after another (t = 0..1).
 window.enter = function (t) {

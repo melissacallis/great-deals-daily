@@ -80,9 +80,10 @@ function chart(f) {
     <line x1="${x0}" x2="${x1}" y1="${Y(0)}" y2="${Y(0)}" stroke="#eadbe6" stroke-width="3" stroke-dasharray="10 10"/>
     <text x="${x0}" y="${Y(1) - 18}" font-family="P" font-weight="800" font-size="26" fill="#9a7a95">FULL PRICE</text>
     <text x="${x0}" y="${Y(0) + 44}" font-family="P" font-weight="800" font-size="26" fill="#9a7a95">SALE PRICE</text>
-    <path d="${d}" fill="none" stroke="url(#g)" stroke-width="12" stroke-linejoin="round" stroke-linecap="round"/>
-    <circle cx="${X(ep.chart.days)}" cy="${Y(ep.chart.today)}" r="20" fill="#fff" stroke="#ff3d7f" stroke-width="10"/>
-    <text x="${X(ep.chart.days)}" y="${Y(ep.chart.today) + 64}" text-anchor="end" font-family="P" font-weight="800" font-size="28" fill="#ff3d7f">TODAY: LOWEST</text>
+    <path id="price-line" d="${d}" fill="none" stroke="url(#g)" stroke-width="12" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle id="price-dot" cx="${X(ep.chart.days)}" cy="${Y(ep.chart.today)}" r="20" fill="#fff" stroke="#ff3d7f" stroke-width="10"/>
+    <circle cx="${X(ep.chart.days)}" cy="${Y(ep.chart.today)}" r="14" fill="none" stroke="none" data-dd="circle" data-dd-colour="#ff3d7f" data-dd-late="1"/>
+    <text id="price-label" x="${X(ep.chart.days)}" y="${Y(ep.chart.today) + 64}" text-anchor="end" font-family="P" font-weight="800" font-size="28" fill="#ff3d7f">TODAY: LOWEST</text>
     <text x="${x0}" y="${H - 2}" font-family="P" font-weight="600" font-size="24" fill="#9a7a95">${esc(ep.chart.from)}</text>
     <text x="${x1}" y="${H - 2}" text-anchor="end" font-family="P" font-weight="600" font-size="24" fill="#9a7a95">${esc(ep.chart.to)}</text>
   </svg>`;
@@ -99,8 +100,8 @@ const slides = {
     <div class="card">${shot('deal', 320, dd('circle', PINK, ep.ddBoxes?.priceHistoryButton))}A "List Price" can be a price <b ${dd('underline', PINK)}>nobody actually pays</b>.<br><br>So I tapped <b class="grad">Price history</b>, right next to the price, to see what it really sold for.</div>${foot(f, '1 / 6')}</div>`,
   history: (f) => `<div class="slide"><div class="eyebrow">Step 2 · The last ${ep.chart.days} days</div>
     <h2 ${dd('sparkles', SUN)}>${esc(ep.historyTitle)}</h2>
-    <div class="card" style="padding:44px 54px">${ep.shots?.history ? shot('history', f.h > 1600 ? 760 : 560, dd('circle', PINK, ep.ddBoxes?.today)).replace('margin-bottom:28px', 'margin:0') : chart(f)}</div>
-    <p class="lead" style="font-size:32px">${esc(ep.historyNote)}</p>${foot(f, '2 / 6')}</div>`,
+    <div class="card" style="padding:44px 54px">${ep.shots?.history && !animChart ? shot('history', f.h > 1600 ? 760 : 560, dd('circle', PINK, ep.ddBoxes?.today)).replace('margin-bottom:28px', 'margin:0') : chart(f)}</div>
+    <p class="lead" style="font-size:32px">${esc(animChart ? "Redrawn from Amazon's own 30-day price history. Today is the lowest in that time." : ep.historyNote)}</p>${foot(f, '2 / 6')}</div>`,
   catch: (f) => `<div class="slide"><div class="eyebrow">Step 3 · The catch</div>
     <h2><span ${dd('burst', SUN)}>${esc(ep.catchTitle)}</span></h2>
     <div class="card">${ep.catchBody.replace('<b>', `<b ${dd('underline', PINK)}>`)}</div>${foot(f, '3 / 6')}</div>`,
@@ -131,7 +132,9 @@ const browser = await chromium.launch();
 // ANIM=1: write animation frames for the videos instead of still slides.
 // Per slide: in-00..13 (rise in, then doodles draw on) and boil-1..3 (finished doodles, redrawn three ways).
 const ANIM_SLIDES = ['hook', 'compared', 'history', 'catch', 'skip', 'verdict', 'cta'];
+let animChart = false;
 if (process.env.ANIM) {
+  animChart = true;
   const doodleJs = readFileSync(new URL('./doodles.js', import.meta.url), 'utf8');
   const browser = await chromium.launch();
   for (const name of ['reel', 'tiktok']) {
@@ -143,11 +146,23 @@ if (process.env.ANIM) {
       await page.evaluate(() => document.fonts.ready);
       await page.addScriptTag({ content: doodleJs });
       for (let k = 0; k < 14; k++) {
-        await page.evaluate(([t, p]) => { window.enter(1); window.drawDoodles(1, p); window.enter(t); }, [Math.min(1, k / 8), Math.max(0, (k - 6) / 8)]);
+        await page.evaluate(([t, p]) => { window.enter(1); window.drawDoodles(1, p, 0); if (document.querySelector('#price-line')) window.drawLine(0, 0); window.enter(t); }, [Math.min(1, k / 8), Math.max(0, (k - 6) / 8)]);
         await page.screenshot({ path: path.join(dir, `in-${String(k).padStart(2, '0')}.jpg`), type: 'jpeg', quality: 88 });
       }
+      if (await page.$('#price-line')) {
+        // the price line draws itself across the chart (2s), then "TODAY: LOWEST" pops in and gets circled
+        const shotTo = (name) => page.screenshot({ path: path.join(dir, `${name}.jpg`), type: 'jpeg', quality: 88 });
+        for (let k = 0; k < 48; k++) {
+          await page.evaluate((p) => { window.enter(1); window.drawDoodles(1, 1, 0); window.drawLine(p, 0); }, 1 - Math.pow(1 - k / 47, 2));
+          await shotTo(`draw-${String(k).padStart(2, '0')}`);
+        }
+        for (let k = 0; k < 10; k++) {
+          await page.evaluate((q) => { window.enter(1); window.drawDoodles(1, 1, q); window.drawLine(1, q); }, (k + 1) / 10);
+          await shotTo(`pop-${String(k).padStart(2, '0')}`);
+        }
+      }
       for (let b = 1; b <= 3; b++) {
-        await page.evaluate((seed) => { window.enter(1); window.drawDoodles(seed, 1); }, b);
+        await page.evaluate((seed) => { window.enter(1); window.drawDoodles(seed, 1); if (window.drawLine) window.drawLine(1, 1); }, b);
         await page.screenshot({ path: path.join(dir, `boil-${b}.jpg`), type: 'jpeg', quality: 88 });
       }
     }
