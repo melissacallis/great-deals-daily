@@ -165,7 +165,7 @@ async function runSearch(search) {
   const items = [];
   for (const itemPage of [1, 2]) {
     items.push(...await api.searchItems({ ...search, itemPage, itemCount: 10 }));
-    await sleep(1100);
+    await sleep(1500);
   }
   return items;
 }
@@ -196,7 +196,9 @@ async function refreshDeals() {
     store.notEligible = err.reason === 'AssociateNotEligible';
     store.error = err.message;
     store.failedAt = Date.now();
-    console.error(store.notEligible ? 'Amazon API: account not eligible yet, showing Amazon links instead.' : err);
+    if (store.notEligible) console.error('Amazon API: account not eligible yet, showing Amazon links instead.');
+    else if (err.status === 429) console.error('Amazon API: rate limit reached (ThrottleException), trying again in 10 minutes.');
+    else console.error(err);
   }
 }
 
@@ -344,5 +346,7 @@ server.listen(PORT, () => {
   console.log(`${SITE_NAME} running at http://localhost:${PORT}`);
   console.log(api ? `Using Amazon Creators API (${MARKETPLACE})` : 'No Amazon credentials found: showing DEMO data. See README.md.');
   ensureFresh();
+  // Keep checking even when nobody visits, so live deals appear as soon as Amazon allows.
+  setInterval(ensureFresh, 10 * 60_000).unref();
   getContent().catch((err) => console.error('Could not load content:', err)); // also runs one-time imports
 });

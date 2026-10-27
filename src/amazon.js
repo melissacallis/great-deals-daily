@@ -66,7 +66,19 @@ export class CreatorsApi {
     return this.token;
   }
 
+  // A 429 (ThrottleException) means "slow down", so the same request is retried after 2, 4 and 8 seconds.
   async call(operation, payload) {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await this.callOnce(operation, payload);
+      } catch (err) {
+        if (err.status !== 429 || attempt === 3) throw err;
+        await new Promise((r) => setTimeout(r, 2000 * 2 ** attempt));
+      }
+    }
+  }
+
+  async callOnce(operation, payload) {
     const token = await this.getToken();
     const res = await fetch(`${API_HOST}/catalog/v1/${operation}`, {
       method: 'POST',
