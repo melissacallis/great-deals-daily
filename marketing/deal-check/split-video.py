@@ -10,6 +10,7 @@ FPS, ANIM_FPS, TRANS, TOP_H = 30, 24, 8, 1120
 here = os.path.dirname(os.path.abspath(__file__))
 dur = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', src], capture_output=True, text=True).stdout)
 font = os.environ.get('FONT', '')
+audio = os.environ.get('AUDIO')  # optional cleaned voice track (e.g. music removed) instead of the video's own sound
 
 def frame(fmt, slide, j):
     folder = os.path.join(frames, 'anim', fmt, str(slide))
@@ -43,7 +44,9 @@ for fmt, handle in [('split-tiktok', 'tiktok'), ('split-reel', 'reel')]:
           f"{label}format=yuv420p[v]")
     out = f'{out_prefix}-{handle}.mp4'
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', src, '-framerate', str(FPS), '-i', os.path.join(seq, '%05d.jpg'), '-i', bottom,
-                    '-filter_complex', fc, '-map', '[v]', '-map', '0:a', '-t', f'{dur:.2f}',
+                    *(['-i', audio] if audio else []),
+                    '-filter_complex', fc + (';[3:a]loudnorm=I=-16:TP=-1.5:LRA=9[aud]' if audio else ''),
+                    '-map', '[v]', '-map', '[aud]' if audio else '0:a', '-t', f'{dur:.2f}',
                     '-c:v', 'libx264', '-preset', 'medium', '-crf', '21', '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', out],
                    check=True, timeout=580)
     print(out, f'{dur:.1f}s')
