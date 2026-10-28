@@ -24,6 +24,8 @@ const formats = {
   instagram: { w: 1080, h: 1350, handle: '@datadarling33', pad: [90, 80, 90, 80] },
   tiktok: { w: 1080, h: 1920, handle: '@datadarling', pad: [230, 230, 480, 80] },
   reel: { w: 1080, h: 1920, handle: '@datadarling33', pad: [230, 230, 480, 80] }, // Instagram Reel frames
+  'split-tiktok': { w: 1080, h: 1120, handle: '@datadarling', pad: [150, 170, 70, 70] }, // top half of a split-screen video
+  'split-reel': { w: 1080, h: 1120, handle: '@datadarling33', pad: [150, 170, 70, 70] },
   pinterest: { w: 1000, h: 1500, handle: '@datadarling', pad: [80, 70, 80, 70] },
 };
 
@@ -43,7 +45,8 @@ body { width: ${f.w}px; height: ${f.h}px; overflow: hidden; font-family: Inter, 
     linear-gradient(135deg, #b48cf0, #ffb48c 45%, #f79cc4); }
 .eyebrow { font: 800 30px P; letter-spacing: .14em; text-transform: uppercase; color: #fff; }
 h1, h2 { font-family: P; font-weight: 800; letter-spacing: -.02em; color: #fff; text-shadow: 0 4px 24px rgba(59,15,58,.25); }
-h1 { font-size: ${Math.round(f.w * 0.12)}px; line-height: 1; }
+h1 { font-size: ${Math.round(Math.min(f.w * 0.12, f.h * 0.095))}px; line-height: 1; }
+${f.h < 1300 ? '.foot { display: none !important; } /* split-screen top half: the video carries the #ad label */' : ''}
 h2 { font-size: ${Math.round(f.w * 0.08)}px; line-height: 1.06; }
 .lead { font: 600 42px/1.35 P; color: #fff; text-shadow: 0 3px 16px rgba(59,15,58,.25); }
 .card { background: #fff; border-radius: 44px; padding: 52px 54px; box-shadow: 0 30px 60px rgba(59,15,58,.18); font-size: 39px; line-height: 1.42; }
@@ -137,10 +140,11 @@ if (process.env.ANIM) {
   animChart = true;
   const doodleJs = readFileSync(new URL('./doodles.js', import.meta.url), 'utf8');
   const browser = await chromium.launch();
-  for (const name of ['reel', 'tiktok']) {
+  // ANIM_FORMATS / ANIM_KEYS pick which formats and slides to animate (default: reel + tiktok, the video slides)
+  for (const name of (process.env.ANIM_FORMATS || 'reel,tiktok').split(',')) {
     const f = formats[name];
     const page = await browser.newPage({ viewport: { width: f.w, height: f.h } });
-    for (const [i, key] of ANIM_SLIDES.entries()) {
+    for (const [i, key] of (process.env.ANIM_KEYS ? process.env.ANIM_KEYS.split(',') : ANIM_SLIDES).entries()) {
       const dir = path.join(outDir, 'anim', name, String(i)); mkdirSync(dir, { recursive: true });
       await page.setContent(`<style>${css(f)}</style>${slides[key](f)}`);
       await page.evaluate(() => document.fonts.ready);
@@ -173,6 +177,7 @@ if (process.env.ANIM) {
 }
 
 for (const [name, f] of Object.entries(formats)) {
+  if (name.startsWith('split')) continue; // only used for animation frames
   const dir = path.join(outDir, name); mkdirSync(dir, { recursive: true });
   const page = await browser.newPage({ viewport: { width: f.w, height: f.h } });
   const list = name === 'pinterest' ? [['1-pin-hook', slides.hook], ['2-pin-howto', slides.howto]] : Object.entries(slides).map(([k, fn], i) => [`${i + 1}-${k}`, fn]);
