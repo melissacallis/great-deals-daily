@@ -30,6 +30,11 @@ const formats = {
   instagram: { w: 1080, h: 1350, handle: '@datadarling33', pad: [90, 80, 90, 80] },
   tiktok: { w: 1080, h: 1920, handle: '@datadarling', pad: [230, 230, 480, 80] },
 };
+// top half of a split-screen video (animation frames only)
+const splitFormats = {
+  'split-tiktok': { w: 1080, h: 1120, handle: '@datadarling', pad: [150, 170, 70, 70] },
+  'split-reel': { w: 1080, h: 1120, handle: '@datadarling33', pad: [150, 170, 70, 70] },
+};
 const css = (f) => `
 @font-face { font-family: P; font-weight: 600; src: url(data:font/ttf;base64,${font('SemiBold')}); }
 @font-face { font-family: P; font-weight: 800; src: url(data:font/ttf;base64,${font('ExtraBold')}); }
@@ -41,7 +46,8 @@ body { width: ${f.w}px; height: ${f.h}px; overflow: hidden; font-family: Inter, 
     radial-gradient(circle at 105% 105%, rgba(157,176,255,.85), rgba(157,176,255,0) 40%), linear-gradient(135deg, #b48cf0, #ffb48c 45%, #f79cc4); }
 .eyebrow { font: 800 30px P; letter-spacing: .14em; text-transform: uppercase; color: #fff; }
 h1, h2 { font-family: P; font-weight: 800; letter-spacing: -.02em; color: #fff; text-shadow: 0 4px 24px rgba(59,15,58,.25); }
-h1 { font-size: 112px; line-height: 1; } h2 { font-size: 84px; line-height: 1.04; }
+h1 { font-size: ${f.h < 1300 ? 96 : 112}px; line-height: 1; } h2 { font-size: ${f.h < 1300 ? 74 : 84}px; line-height: 1.04; }
+${f.h < 1300 ? '.foot { display: none !important; }' : ''}
 .card { background: #fff; border-radius: 44px; padding: 46px 52px; box-shadow: 0 30px 60px rgba(59,15,58,.18); font-size: 39px; line-height: 1.42; }
 .card b { font-family: P; font-weight: 800; }
 .tag { display: inline-block; align-self: flex-start; background: #ff3d7f; color: #fff; font: 800 30px P; padding: 10px 28px; border-radius: 16px; border: 5px solid #3b0f3a; transform: rotate(-3deg); }
@@ -54,17 +60,17 @@ h1 { font-size: 112px; line-height: 1; } h2 { font-size: 84px; line-height: 1.04
 const foot = (f, r) => `<div class="foot"><span>${f.handle} · #ad</span><span>${r}</span></div>`;
 const slides = (f) => [
   ['01-cover', `<div class="slide"><div class="me"><img src="${face}"><div>Gift guide · for her</div></div>
-    <div class="row">${gifts.map((g, i) => sticker(g, 150, i)).join('')}</div>
-    <h1>6 gifts she’ll actually use</h1><p class="card" style="font-size:36px">No junk drawer gifts. Each one has a <b>“skip it if…”</b> so you buy the right one.</p>${foot(f, 'Swipe →')}</div>`],
+    <div class="row">${gifts.map((g, i) => sticker(g, f.h < 1300 ? 124 : 150, i)).join('')}</div>
+    <h1>6 gifts she’ll <span data-dd="underline" data-dd-colour="#ffd23f">actually use</span></h1><p class="card" style="font-size:36px">No junk drawer gifts. Each one has a <b>“skip it if…”</b> so you buy the right one.</p>${foot(f, 'Swipe →')}</div>`],
   ...gifts.map((g, i) => [`${String(i + 2).padStart(2, '0')}-gift`, `<div class="slide"><div class="eyebrow">Gift ${i + 1} of 6 · for her</div>
-    ${sticker(g, 260, i)}<h2>${g.label}</h2><span class="tag">${g.tag}</span>
-    <div class="card">${g.why}<div class="skip">Skip it if ${g.skip}.</div></div>${foot(f, `${i + 1} / 6`)}</div>`]),
+    <div data-dd="sparkles" data-dd-colour="#ffd23f" style="align-self:flex-start">${sticker(g, f.h < 1300 ? 200 : 260, i)}</div><h2>${g.label}</h2><span class="tag">${g.tag}</span>
+    <div class="card">${g.why.replace('<b>', '<b data-dd="underline" data-dd-colour="#ff3d7f">')}<div class="skip">Skip it if ${g.skip}.</div></div>${foot(f, `${i + 1} / 6`)}</div>`]),
   ['08-tips', `<div class="slide"><div class="eyebrow">Before you buy</div><h2>How to pick a gift she’ll use</h2>
     <div class="card steps"><div class="step"><i>1</i><span>Think about her <b>daily routine</b>, not a “wow” moment.</span></div>
-    <div class="step"><i>2</i><span>Read the <b>1-star reviews</b>. They tell you what breaks.</span></div>
+    <div class="step"><i>2</i><span>Read the <b data-dd="underline" data-dd-colour="#ff3d7f">1-star reviews</b>. They tell you what breaks.</span></div>
     <div class="step"><i>3</i><span>Check the <b>price history</b> before Black Friday.</span></div></div>${foot(f, 'Save this')}</div>`],
   ['09-cta', `<div class="slide"><div class="me"><img src="${face}"><div>Who’s hard to shop for?</div></div>
-    <h2>Tell me who, and I’ll find 3 ideas.</h2><div class="card"><b>All 6 are in my Holiday Gift Guide.</b><br>Tap the link in my bio, and check today’s price.</div>
+    <h2>Tell me who, and I’ll find 3 ideas.</h2><div class="card" data-dd="hearts" data-dd-colour="#ff3d7f"><b>All 6 are in my Holiday Gift Guide.</b><br>Tap the link in my bio, and check today’s price.</div>
     <p style="font: 600 30px P; color:#fff">#ad · As an Amazon Associate I earn from qualifying purchases.</p>${foot(f, '')}</div>`],
 ];
 const pinCss = css({ w: 1000, h: 1500, handle: '@datadarling', pad: [80, 70, 80, 70] });
@@ -78,6 +84,29 @@ const story = (f) => `<div class="slide" style="justify-content:flex-start; padd
   <div style="height:420px; border:6px dashed rgba(255,255,255,.8); border-radius:44px; display:grid; place-items:center; font: 600 32px P; color:#fff">Put the Instagram poll sticker here</div></div>`;
 
 mkdirSync(outDir, { recursive: true });
+const doodleJs = readFileSync(new URL('../deal-check/doodles.js', import.meta.url), 'utf8');
+if (process.env.ANIM) {
+  const browser = await chromium.launch();
+  for (const [name, f] of Object.entries(splitFormats)) {
+    const page = await browser.newPage({ viewport: { width: f.w, height: f.h } });
+    for (const [i, [, html]] of slides(f).entries()) {
+      const dir = path.join(outDir, 'anim', name, String(i)); mkdirSync(dir, { recursive: true });
+      await page.setContent(`<style>${css(f)}</style>${html}`); await page.evaluate(() => document.fonts.ready);
+      await page.addScriptTag({ content: doodleJs });
+      for (let k = 0; k < 14; k++) {
+        await page.evaluate(([t, p]) => { window.enter(1); window.drawDoodles(1, p); window.enter(t); }, [Math.min(1, k / 8), Math.max(0, (k - 6) / 8)]);
+        await page.screenshot({ path: path.join(dir, `in-${String(k).padStart(2, '0')}.jpg`), type: 'jpeg', quality: 88 });
+      }
+      for (let b = 1; b <= 3; b++) {
+        await page.evaluate((seed) => { window.enter(1); window.drawDoodles(seed, 1); }, b);
+        await page.screenshot({ path: path.join(dir, `boil-${b}.jpg`), type: 'jpeg', quality: 88 });
+      }
+    }
+    await page.close();
+  }
+  await browser.close();
+  process.exit(0);
+}
 const browser = await chromium.launch();
 for (const [name, f] of Object.entries(formats)) {
   const dir = path.join(outDir, name); mkdirSync(dir, { recursive: true });
