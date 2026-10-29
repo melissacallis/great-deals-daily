@@ -1,0 +1,46 @@
+{
+  "_help": "One-time change: adds 6 'actually useful' gifts to Gifts for Her in the Holiday Gift Guide. Edit them in /admin afterwards.",
+  "patch": {
+    "id": "gift-guide",
+    "addPicks": {
+      "her": [
+        {
+          "emoji": "🛋️",
+          "title": "Heated throw blanket",
+          "url": "https://www.amazon.com/s?k=heated+throw+blanket",
+          "why": "For the one who's always cold. Look for auto shut-off and a machine-washable cover. Skip it if she runs hot."
+        },
+        {
+          "emoji": "☕",
+          "title": "Insulated tumbler with handle",
+          "url": "https://www.amazon.com/s?k=insulated+tumbler+with+handle",
+          "why": "Keeps coffee hot through the commute and water cold all day. Check it fits her car's cup holder."
+        },
+        {
+          "emoji": "🛏️",
+          "title": "Satin pillowcases (2-pack)",
+          "url": "https://www.amazon.com/s?k=satin+pillowcase+2+pack",
+          "why": "Gentler on hair and skin, and feels fancier than it costs. An easy add-on gift."
+        },
+        {
+          "emoji": "📖",
+          "title": "Kindle Paperwhite",
+          "url": "https://www.amazon.com/s?k=Kindle+Paperwhite",
+          "why": "For the reader: glare-free, weeks of battery and waterproof. It's on my Black Friday watchlist, so check the price history first."
+        },
+        {
+          "emoji": "🔋",
+          "title": "Portable phone charger",
+          "url": "https://www.amazon.com/s?k=portable+phone+charger",
+          "why": "The gift she'll use every week. Make sure the cable fits her phone, and pick one that can charge it fully at least once."
+        },
+        {
+          "emoji": "🥿",
+          "title": "Memory foam slippers",
+          "url": "https://www.amazon.com/s?k=memory+foam+slippers+women",
+          "why": "Everyday comfort. Pick a pair with a hard sole so she can step outside to grab a package."
+        }
+      ]
+    }
+  }
+}

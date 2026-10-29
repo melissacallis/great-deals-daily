@@ -98,6 +98,13 @@ async function applySeeds(doc) {
         const target = doc.campaigns.find((c) => c.id === patch.id);
         if (!target) continue; // try again on a later start, once the campaign exists
         for (const key of ['title', 'emoji', 'intro', 'nav', 'featured', 'home']) if (key in patch) target[key] = patch[key];
+        // "addPicks": { "<section id>": [products] } adds products to a section, skipping ones already there (by title)
+        for (const [sectionId, picks] of Object.entries(patch.addPicks ?? {})) {
+          const section = target.sections.find((x) => x.id === sectionId);
+          if (!section) continue;
+          const have = new Set(section.picks.map((x) => x.title.toLowerCase()));
+          section.picks.push(...picks.map(normalizePick).filter((x) => x && !have.has(x.title.toLowerCase())));
+        }
         doc.appliedSeeds.push(id);
         changed = true;
         console.log(`Updated campaign "${target.title}" from content/seeds/${file}`);
