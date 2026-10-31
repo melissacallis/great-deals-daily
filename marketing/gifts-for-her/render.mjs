@@ -2,28 +2,53 @@
 // a Pinterest list pin (1000x1500) and a story poll (1080x1920). Doodle stickers, no product photos or prices.
 // node render.mjs <outDir> <fontDir> <headshot>
 import { createRequire } from 'node:module';
-import { readFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, mkdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const [,, outDir, fontDir, headshot] = process.argv;
 const font = (w) => readFileSync(path.join(fontDir, `Poppins-${w}.ttf`)).toString('base64');
 const face = `data:image/png;base64,${readFileSync(headshot).toString('base64')}`;
 
+// PHOTO_DIR (optional): cut-out photos named by gift key; they replace the doodle icons as die-cut stickers.
+const photoDir = process.env.PHOTO_DIR;
+const photo = (key) => {
+  const f = photoDir && path.join(photoDir, `${key}.png`);
+  if (!f || !existsSync(f)) return null;
+  const b = readFileSync(f); return { src: `data:image/png;base64,${b.toString('base64')}`, w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+};
 const gifts = [
-  { label: 'Heated throw blanket', tag: 'always cold?', colour: '#ffd0e0', why: 'For the one who’s always cold. Look for <b>auto shut-off</b> and a machine-washable cover.', skip: 'she runs hot',
+  { key: 'blanket', label: 'Heated throw blanket', tag: 'always cold?', colour: '#ffd0e0', why: 'For the one who’s always cold. Look for <b>auto shut-off</b> and a machine-washable cover.', skip: 'she runs hot',
     icon: '<rect x="-52" y="-30" width="104" height="22" rx="10"/><rect x="-52" y="-6" width="104" height="22" rx="10"/><rect x="-52" y="18" width="104" height="22" rx="10"/><path d="M52,30 Q70,30 66,48 Q62,62 46,58"/>' },
-  { label: 'Insulated tumbler', tag: 'used daily', colour: '#c9f0e4', why: 'Keeps coffee hot through the commute and water cold all day. <b>Check it fits her cup holder.</b>', skip: 'she already has three',
+  { key: 'tumbler', label: 'Insulated tumbler', tag: 'used daily', colour: '#c9f0e4', why: 'Keeps coffee hot through the commute and water cold all day. <b>Check it fits her cup holder.</b>', skip: 'she already has three',
     icon: '<path d="M-30,-40 L30,-40 L22,52 L-22,52 Z"/><path d="M-34,-40 L34,-40 M30,-20 Q56,-20 54,4 Q52,22 26,20"/><path d="M8,-40 L16,-62"/>' },
-  { label: 'Satin pillowcases', tag: 'small luxury', colour: '#e3d4ff', why: 'Gentler on hair and skin, and feels fancier than it costs. <b>Get a 2-pack.</b>', skip: 'she prefers cotton',
+  { key: 'pillow', label: 'Satin pillowcases', tag: 'small luxury', colour: '#e3d4ff', why: 'Gentler on hair and skin, and feels fancier than it costs. <b>Get a 2-pack.</b>', skip: 'she prefers cotton',
     icon: '<rect x="-56" y="-32" width="112" height="64" rx="26"/><path d="M-30,-10 Q-10,-22 10,-10 M-20,10 Q0,-2 24,10"/>' },
-  { label: 'Kindle Paperwhite', tag: 'on my watchlist', colour: '#ffe08a', why: 'For the reader: glare-free, weeks of battery, waterproof. <b>Check the price history before Black Friday.</b>', skip: 'she only reads paper books',
+  { key: 'kindle', label: 'Kindle Paperwhite', tag: 'on my watchlist', colour: '#ffe08a', why: 'For the reader: glare-free, weeks of battery, waterproof. <b>Check the price history before Black Friday.</b>', skip: 'she only reads paper books',
     icon: '<rect x="-36" y="-50" width="72" height="100" rx="10"/><rect x="-26" y="-38" width="52" height="66" rx="4"/><path d="M-18,-24 L18,-24 M-18,-12 L18,-12 M-18,0 L10,0 M-18,12 L18,12"/>' },
-  { label: 'Portable phone charger', tag: 'used weekly', colour: '#ffcfae', why: 'The gift she’ll use every week. <b>Make sure the cable fits her phone.</b>', skip: 'she’s never away from an outlet',
+  { key: 'charger', label: 'Portable phone charger', tag: 'used weekly', colour: '#ffcfae', why: 'The gift she’ll use every week. <b>Make sure the cable fits her phone.</b>', skip: 'she’s never away from an outlet',
     icon: '<rect x="-30" y="-48" width="60" height="96" rx="12"/><path d="M6,-26 L-12,4 L2,4 L-6,28 L14,-4 L0,-4 Z"/>' },
-  { label: 'Memory foam slippers', tag: 'cozy pick', colour: '#ffd0e0', why: 'Everyday comfort. <b>Pick a hard sole</b> so she can step outside to grab a package.', skip: 'she lives in socks',
+  { key: 'slippers', label: 'Memory foam slippers', tag: 'cozy pick', colour: '#ffd0e0', why: 'Everyday comfort. <b>Pick a hard sole</b> so she can step outside to grab a package.', skip: 'she lives in socks',
     icon: '<path d="M-50,10 Q-52,-24 -20,-26 L20,-26 Q50,-24 54,6 Q56,30 30,32 L-30,32 Q-50,30 -50,10 Z"/><path d="M-20,-26 Q-4,-2 20,-26"/>' },
 ];
-const sticker = (g, size, i) => `<svg width="${size}" height="${size}" viewBox="-110 -110 220 220"><defs><filter id="b${i}"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="${i + 2}"/><feDisplacementMap in="SourceGraphic" scale="6"/></filter></defs>
+const sticker = (g, size, i) => photo(g.key) ? photoSticker(photo(g.key), size, i) : doodleSticker(g, size, i);
+// die-cut photo sticker: plum + white outline, edge "boils" with the doodles (turbulence seed changes per boil frame)
+function photoSticker(p, size, i) {
+  const big = size * 1.25, k = (big * 0.8) / Math.max(p.w, p.h), w = p.w * k, h = p.h * k;
+  return `<svg width="${big}" height="${big}" viewBox="${-big / 2} ${-big / 2} ${big} ${big}" style="overflow:visible"><defs>
+    <filter id="ps${i}" x="-30%" y="-30%" width="160%" height="160%">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="${Math.round(big / 22)}" result="outer"/>
+      <feMorphology in="SourceAlpha" operator="dilate" radius="${Math.round(big / 34)}" result="inner"/>
+      <feTurbulence class="boil" type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="${i + 2}" result="noise"/>
+      <feDisplacementMap in="outer" in2="noise" scale="${big / 28}" result="outerB"/>
+      <feDisplacementMap in="inner" in2="noise" scale="${big / 28}" result="innerB"/>
+      <feFlood flood-color="#3b0f3a"/><feComposite in2="outerB" operator="in" result="plum"/>
+      <feFlood flood-color="#ffffff"/><feComposite in2="innerB" operator="in" result="white"/>
+      <feGaussianBlur in="outerB" stdDeviation="${big / 30}" result="bl"/><feOffset in="bl" dy="${big / 30}" result="sh"/>
+      <feFlood flood-color="#3b0f3a" flood-opacity=".3"/><feComposite in2="sh" operator="in" result="shadow"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="plum"/><feMergeNode in="white"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <image href="${p.src}" x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}" filter="url(#ps${i})"/></svg>`;
+}
+const doodleSticker = (g, size, i) => `<svg width="${size}" height="${size}" viewBox="-110 -110 220 220"><defs><filter id="b${i}"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="${i + 2}"/><feDisplacementMap in="SourceGraphic" scale="6"/></filter></defs>
   <g filter="url(#b${i})"><circle r="92" fill="${g.colour}" stroke="#3b0f3a" stroke-width="7"/><g fill="none" stroke="#3b0f3a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">${g.icon}</g></g></svg>`;
 
 const formats = {
@@ -60,10 +85,10 @@ ${f.h < 1300 ? '.foot { display: none !important; }' : ''}
 const foot = (f, r) => `<div class="foot"><span>${f.handle} · #ad</span><span>${r}</span></div>`;
 const slides = (f) => [
   ['01-cover', `<div class="slide"><div class="me"><img src="${face}"><div>Gift guide · for her</div></div>
-    <div class="row">${gifts.map((g, i) => sticker(g, f.h < 1300 ? 124 : 150, i)).join('')}</div>
+    <div class="row">${gifts.map((g, i) => sticker(g, f.h < 1300 ? 100 : 130, i)).join('')}</div>
     <h1>6 gifts she’ll <span data-dd="underline" data-dd-colour="#ffd23f">actually use</span></h1><p class="card" style="font-size:36px">No junk drawer gifts. Each one has a <b>“skip it if…”</b> so you buy the right one.</p>${foot(f, 'Swipe →')}</div>`],
   ...gifts.map((g, i) => [`${String(i + 2).padStart(2, '0')}-gift`, `<div class="slide"><div class="eyebrow">Gift ${i + 1} of 6 · for her</div>
-    <div data-dd="sparkles" data-dd-colour="#ffd23f" style="align-self:flex-start">${sticker(g, f.h < 1300 ? 200 : 260, i)}</div><h2>${g.label}</h2><span class="tag">${g.tag}</span>
+    <div data-dd="sparkles" data-dd-colour="#ffd23f" style="align-self:flex-start">${sticker(g, f.h < 1300 ? 236 : 290, i)}</div><h2>${g.label}</h2><span class="tag">${g.tag}</span>
     <div class="card">${g.why.replace('<b>', '<b data-dd="underline" data-dd-colour="#ff3d7f">')}<div class="skip">Skip it if ${g.skip}.</div></div>${foot(f, `${i + 1} / 6`)}</div>`]),
   ['08-tips', `<div class="slide"><div class="eyebrow">Before you buy</div><h2>How to pick a gift she’ll use</h2>
     <div class="card steps"><div class="step"><i>1</i><span>Think about her <b>daily routine</b>, not a “wow” moment.</span></div>
@@ -98,7 +123,7 @@ if (process.env.ANIM) {
         await page.screenshot({ path: path.join(dir, `in-${String(k).padStart(2, '0')}.jpg`), type: 'jpeg', quality: 88 });
       }
       for (let b = 1; b <= 3; b++) {
-        await page.evaluate((seed) => { window.enter(1); window.drawDoodles(seed, 1); }, b);
+        await page.evaluate((seed) => { window.enter(1); window.drawDoodles(seed, 1); document.querySelectorAll('feTurbulence.boil').forEach((t, j) => t.setAttribute('seed', String(j * 7 + seed))); }, b);
         await page.screenshot({ path: path.join(dir, `boil-${b}.jpg`), type: 'jpeg', quality: 88 });
       }
     }
