@@ -1,0 +1,4 @@
+{
+  "_help": "One-time change: puts the skillet photo (on the brand gradient) on gift #50.",
+  "patch": { "id": "fifty-gifts", "pickImages": { "Dash 14-inch Family Size Electric Skillet": "dash-skillet.jpg" } }
+}

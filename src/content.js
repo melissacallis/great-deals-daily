@@ -1,7 +1,7 @@
 // Campaigns and hand-picked products, edited from /admin.
 // Stored as one JSON file on a persistent disk (a Railway volume in
 // production); seeded from content/*.json the first time.
-import { readFile, writeFile, mkdir, rename, readdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rename, readdir, copyFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -99,6 +99,16 @@ async function applySeeds(doc) {
         const target = doc.campaigns.find((c) => c.id === patch.id);
         if (!target) continue; // try again on a later start, once the campaign exists
         for (const key of ['title', 'emoji', 'intro', 'nav', 'featured', 'home']) if (key in patch) target[key] = patch[key];
+        // "pickImages": { "<product title>": "<file in content/seed-images>" } copies the photo into uploads and sets it
+        for (const [title, file] of Object.entries(patch.pickImages ?? {})) {
+          const pick = target.sections.flatMap((x) => x.picks).find((x) => x.title.toLowerCase() === title.toLowerCase());
+          const ext = path.extname(file).toLowerCase();
+          if (!pick || !['.jpg', '.png', '.webp'].includes(ext)) continue;
+          await mkdir(UPLOADS_DIR, { recursive: true });
+          const name = `${randomUUID()}${ext}`;
+          await copyFile(path.join(APP_ROOT, 'content', 'seed-images', path.basename(file)), path.join(UPLOADS_DIR, name));
+          pick.image = `/uploads/${name}`;
+        }
         // "addPicks": { "<section id>": [products] } adds products to a section, skipping ones already there (by title)
         for (const [sectionId, picks] of Object.entries(patch.addPicks ?? {})) {
           const section = target.sections.find((x) => x.id === sectionId);
