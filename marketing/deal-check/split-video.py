@@ -36,8 +36,8 @@ for fmt, handle in [('split-tiktok', 'tiktok'), ('split-reel', 'reel')]:
         else:
             os.symlink(frame(fmt, i, local), dst)
     label = (f"drawtext=fontfile={font}:text='#ad':fontsize=34:fontcolor=white:box=1:boxcolor=0xff3d7f:boxborderw=14:x=40:y={TOP_H + 40},"
-             f"drawtext=fontfile={font}:text='Is this deal real?':fontsize=44:fontcolor=white:shadowcolor=0x3b0f3a66:shadowx=0:shadowy=3:x=40:y={TOP_H + 150},"
-             f"drawtext=fontfile={font}:text='with Data Darling':fontsize=34:fontcolor=0x3b0f3a:x=40:y={TOP_H + 210}," if font else '')
+             f"drawtext=fontfile={font}:text='{os.environ.get("TITLE", "Is this deal real?")}':fontsize=44:fontcolor=white:shadowcolor=0x3b0f3a66:shadowx=0:shadowy=3:x=40:y={TOP_H + 150},"
+             f"drawtext=fontfile={font}:text='{os.environ.get("SUBTITLE", "with Data Darling")}':fontsize=34:fontcolor=0x3b0f3a:x=40:y={TOP_H + 210}," if font else '')
     fc = (f"[2:v]fps={FPS},scale=1080:-2,crop=1080:{1920 - TOP_H}:0:0,setsar=1[me];"
           f"[1:v]scale=1080:{TOP_H},setsar=1[top];"
           f"color=c=0xffffff:s=1080x1920:r={FPS}[bg];[bg][top]overlay=0:0:shortest=1[a];[a][me]overlay=0:{TOP_H}:shortest=1,"
