@@ -1,0 +1,11 @@
+{
+  "_help": "One-time change: adds the 14-inch electric skillet to Home & Kitchen in the Holiday Gift Guide (it's promoted in the holiday soup video). Swap in your SiteStripe link in /admin.",
+  "patch": {
+    "id": "gift-guide",
+    "addPicks": {
+      "home": [
+        { "emoji": "🍲", "title": "Dash 14-inch electric skillet", "url": "https://www.amazon.com/s?k=Dash+14+inch+electric+skillet", "why": "One pan for holiday soups, pasta and big family meals, and it serves 6–8. Frees up the stove when you're hosting. Skip it if you rarely cook for a crowd." }
+      ]
+    }
+  }
+}
