@@ -16,7 +16,7 @@ function smart(s) {
 }
 
 function card(pick, i) {
-  const media = el('div', { className: 'watch-media' }, el('span', { className: 'watch-num', textContent: `#${i + 1}` }));
+  const media = el('div', { className: 'watch-media' }, el('span', { className: 'watch-num', textContent: `#${pick.rank ?? i + 1}` }));
   const emoji = el('span', { className: 'emoji', textContent: pick.emoji || '🛍️' });
   if (pick.image) {
     const img = el('img', { src: pick.image, alt: pick.title, loading: 'lazy' });

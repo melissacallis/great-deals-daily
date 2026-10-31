@@ -30,6 +30,7 @@ function normalizePick(p) {
     url: str(p.url, 1000),
     emoji: str(p.emoji, 8) || '⭐',
     image: str(p.image, 1000),
+    ...(Number.isInteger(Number(p.rank)) && Number(p.rank) > 0 ? { rank: Number(p.rank) } : {}), // countdown number, e.g. 50
   };
 }
 

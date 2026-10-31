@@ -1,0 +1,27 @@
+{
+  "_help": "One-time import: '50 Best Gifts in 50 Days' countdown (Oct 31 to Dec 19). Add one gift a day in /admin, newest at the top, with its number in the product's countdown field (rank).",
+  "campaign": {
+    "id": "fifty-gifts",
+    "title": "50 Best Gifts in 50 Days",
+    "emoji": "🎄",
+    "nav": true,
+    "home": true,
+    "intro": "One great gift a day, counting down from #50 to #1 by Dec 19. Each one has an honest reason, and a skip-it-if. Check today's price on Amazon before you buy.",
+    "sections": [
+      {
+        "id": "main",
+        "title": "",
+        "search": "",
+        "picks": [
+          {
+            "rank": 50,
+            "emoji": "🍲",
+            "title": "Dash 14-inch Family Size Electric Skillet",
+            "url": "https://www.amazon.com/s?k=Dash+Family+Size+Electric+Skillet+14+inch",
+            "why": "One pan for big holiday meals: a 14-inch nonstick surface, 2.5 inches deep, serves 6–8, with a glass lid. Frees up the stove when you're hosting. Skip it if you rarely cook for a crowd."
+          }
+        ]
+      }
+    ]
+  }
+}

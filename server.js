@@ -53,7 +53,7 @@ function cleanPick(p) {
   } else {
     return null;
   }
-  return { title: String(p.title), why: p.why ? String(p.why) : '', emoji: p.emoji ? String(p.emoji) : '⭐', image: cleanImage(p.image), url: url.toString() };
+  return { title: String(p.title), why: p.why ? String(p.why) : '', emoji: p.emoji ? String(p.emoji) : '⭐', image: cleanImage(p.image), url: url.toString(), ...(p.rank ? { rank: p.rank } : {}) };
 }
 
 // Product photos: either uploaded from /admin (the owner's own photos), or an
