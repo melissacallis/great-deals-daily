@@ -153,13 +153,25 @@ $('#search-form').addEventListener('submit', (e) => {
 
 $('#sort').addEventListener('change', (e) => { state.sort = e.target.value; render(); });
 
+// Today's Picks: the #1 deal of the Top 50 (live from Amazon, updates hourly) first, then the hand-picked products.
 async function loadPicks() {
+  const cards = [];
+  try {
+    const top = await fetch('/api/deals?category=top').then((r) => r.json());
+    const best = top.items?.[0];
+    if (best) {
+      const node = renderCard({ ...best, rank: null, dealBadge: '🔥 Best deal today' });
+      node.querySelector('.card').classList.add('best-deal');
+      cards.push(node);
+    }
+  } catch {}
   try {
     const { picks } = await fetch('/api/picks').then((r) => r.json());
-    if (!picks.length) return;
-    $('#picks').replaceChildren(...picks.map(pickCard));
-    $('#picks-section').hidden = false;
+    cards.push(...picks.map(pickCard));
   } catch {}
+  if (!cards.length) return;
+  $('#picks').replaceChildren(...cards);
+  $('#picks-section').hidden = false;
 }
 
 async function init() {
