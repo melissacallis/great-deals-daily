@@ -1,0 +1,4 @@
+{
+  "_help": "One-time change: hides the hand-picked Today's Picks on the site (kept in /admin). Tick 'Show these products on the site' in /admin to bring them back.",
+  "patch": { "id": "todays-picks", "hidden": true }
+}

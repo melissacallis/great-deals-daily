@@ -261,6 +261,7 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/picks') {
       const { campaigns } = await getContent();
       const home = campaigns.find((c) => c.id === HOME_CAMPAIGN);
+      if (home.hidden) return sendJson(res, 200, { picks: [] });
       return sendJson(res, 200, { picks: home.sections.flatMap((s) => s.picks).map(cleanPick).filter(Boolean) });
     }
     if (url.pathname === '/api/campaigns') {
@@ -273,7 +274,7 @@ const server = http.createServer(async (req, res) => {
     // The TikTok swipe page: Today's Picks first, then every campaign shown in the menu.
     if (url.pathname === '/api/swipe') {
       const { campaigns } = await getContent();
-      const slides = campaigns.filter((c) => c.id === HOME_CAMPAIGN || c.nav).map(publicCampaign);
+      const slides = campaigns.filter((c) => (c.id === HOME_CAMPAIGN && !c.hidden) || c.nav).map(publicCampaign);
       return sendJson(res, 200, { slides });
     }
     const campaignApi = url.pathname.match(/^\/api\/campaign\/([\w-]+)$/);

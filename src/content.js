@@ -54,6 +54,7 @@ function normalizeCampaign(c) {
     nav: Boolean(c?.nav),
     featured: Boolean(c?.featured),
     home: Boolean(c?.home), // also shown on the front page, below the featured campaign
+    hidden: Boolean(c?.hidden), // Today's Picks only: products kept in /admin but not shown on the site
     sections: sections.length ? sections : [normalizeSection({ id: 'main', title: '' }, 0)],
   };
 }
@@ -98,7 +99,7 @@ async function applySeeds(doc) {
         // A patch seed changes settings on a campaign that already exists, e.g. { "id": "amazon-haul", "home": true }.
         const target = doc.campaigns.find((c) => c.id === patch.id);
         if (!target) continue; // try again on a later start, once the campaign exists
-        for (const key of ['title', 'emoji', 'intro', 'nav', 'featured', 'home']) if (key in patch) target[key] = patch[key];
+        for (const key of ['title', 'emoji', 'intro', 'nav', 'featured', 'home', 'hidden']) if (key in patch) target[key] = patch[key];
         // "pickImages": { "<product title>": "<file in content/seed-images>" } copies the photo into uploads and sets it
         for (const [title, file] of Object.entries(patch.pickImages ?? {})) {
           const pick = target.sections.flatMap((x) => x.picks).find((x) => x.title.toLowerCase() === title.toLowerCase());

@@ -228,7 +228,11 @@ function settingsCard(c) {
         h('input', { type: 'checkbox', checked: c.home, onchange: (e) => { c.home = e.target.checked; save(); } }),
         '🏠 Also show on the front page (below the featured campaign)'),
     ),
-    isHome ? h('p', { className: 'muted', style: 'margin-top:12px' }, 'These products appear in “Today’s Picks” on the front page.') : h('div', { className: 'actions' },
+    isHome ? h('div', { style: 'margin-top:12px' },
+      h('label', { className: 'field check full' },
+        h('input', { type: 'checkbox', checked: !c.hidden, onchange: (e) => { c.hidden = !e.target.checked; save(); } }),
+        'Show these products on the site (Today’s Picks on Top Deals, and the swipe page)'),
+      h('p', { className: 'muted' }, 'Untick to hide them while you fix them. They stay saved here. The live “Best deal today” card always shows.')) : h('div', { className: 'actions' },
       h('button', { className: 'btn', type: 'button', onclick: () => {
         c.sections.push({ id: `section-${Date.now()}`, title: 'New section', emoji: '', search: '', picks: [] });
         save(); render();
