@@ -13,6 +13,7 @@ SOFT = ("split[o][s];[s]bilateral=sigmaS=14:sigmaR=0.10[sm];[o][sm]blend=all_mod
 
 def piece(seg):
     o = f"{work}/{seg['id']}.mp4"; a, b = seg['src']; secs = seg['secs']
+    if os.environ.get('REUSE') and seg['id'] not in os.environ['REUSE'].split(',') and os.path.exists(o): return o  # REUSE=ids to redo
     if seg.get('hold'):
         vin = ['-ss', f'{a:.2f}', '-i', src]; trim = f"trim=0:0.04,setpts=PTS-STARTPTS,tpad=stop_mode=clone:stop_duration={secs}"
         speed = None

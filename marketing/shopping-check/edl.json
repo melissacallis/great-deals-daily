@@ -176,8 +176,8 @@
    },
    "rings": [
     {
-     "x": 580,
-     "y": 747,
+     "x": 470,
+     "y": 472,
      "rx": 230,
      "ry": 78,
      "at": 3.1
@@ -245,7 +245,7 @@
    "chip": "FIND #3",
    "title": "Cotton Briefs 5-Pack",
    "sub": "High-waisted, full coverage",
-   "off": "-33%",
+   "off": "-47%",
    "zoom": {
     "start": 1.0,
     "end": 3.0,
@@ -256,8 +256,8 @@
    },
    "rings": [
     {
-     "x": 580,
-     "y": 747,
+     "x": 520,
+     "y": 915,
      "rx": 230,
      "ry": 78,
      "at": 3.1
