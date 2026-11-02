@@ -22,19 +22,32 @@ export function pickCard(pick) {
   return a;
 }
 
-// Header menu: campaigns marked "Show in menu" in /admin.
+// Header menu: a ☰ button that drops down the site's pages: Top 50 (the front page), Black Friday,
+// then every campaign marked "Show in menu" in /admin.
 export async function renderNav() {
   const nav = document.querySelector('#nav');
   if (!nav) return;
   try {
     const { campaigns, topDeals } = await fetch('/api/campaigns').then((r) => r.json());
+    const bf = campaigns.find((c) => c.id === 'black-friday');
     const links = [
-      ...campaigns.map((c) => ({ href: c.id === 'gift-guide' ? '/gift-guide' : `/c/${c.id}`, text: `${c.emoji} ${c.title}`.trim() })),
-      ...(topDeals ? [{ href: '/deals', text: '🔥 Top Deals' }] : []),
+      ...(topDeals ? [{ href: '/', text: '🔥 Top 50 Deals' }] : []),
+      { href: topDeals ? '/black-friday' : '/', text: `${bf?.emoji || '🛍️'} ${bf?.title || 'Black Friday'}` },
+      ...campaigns.filter((c) => c.id !== 'black-friday')
+        .map((c) => ({ href: c.id === 'gift-guide' ? '/gift-guide' : `/c/${c.id}`, text: `${c.emoji} ${c.title}`.trim() })),
+      { href: '/swipe', text: '📱 Swipe every list' },
     ];
-    nav.replaceChildren(...links.map((l) => Object.assign(document.createElement('a'), {
-      className: 'nav-link', href: l.href, textContent: l.text,
-      ariaCurrent: location.pathname === l.href ? 'page' : null,
+    const here = location.pathname.replace(/\/$/, '') || '/';
+    const panel = Object.assign(document.createElement('div'), { className: 'menu-panel', id: 'menu-panel', hidden: true });
+    panel.append(...links.map((l) => Object.assign(document.createElement('a'), {
+      className: 'menu-link', href: l.href, textContent: l.text, ariaCurrent: here === l.href ? 'page' : null,
     })));
+    const btn = Object.assign(document.createElement('button'), { className: 'menu-btn', type: 'button', innerHTML: '<span class="burger" aria-hidden="true"><i></i><i></i><i></i></span>Menu' });
+    btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'menu-panel');
+    const toggle = (open) => { panel.hidden = !open; btn.setAttribute('aria-expanded', String(open)); };
+    btn.addEventListener('click', (e) => { e.stopPropagation(); toggle(panel.hidden); });
+    document.addEventListener('click', (e) => { if (!nav.contains(e.target)) toggle(false); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggle(false); });
+    nav.replaceChildren(btn, panel);
   } catch {}
 }

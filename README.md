@@ -5,10 +5,11 @@ An Amazon affiliate deals website. It pulls discounted products from the
 2026) and links to them with your Associates tracking tag, so you earn a
 commission on qualifying purchases.
 
-- **Front page:** the featured campaign (tick **Feature this campaign on the front
+- **Front page (`/`):** the Top 50 Deals (below), with a ☰ Menu to every page. If Top Deals are off, the Black Friday page shows here instead.
+- **Black Friday page (`/black-friday`):** the featured campaign (tick **Feature this campaign on the front
   page** in /admin; the Black Friday Watchlist by default), with a Black Friday
   countdown and the owner's headshot in the header
-- **Top 50 Deals** at `/deals`: the biggest discounts across every category,
+- **Top 50 Deals** on the front page (`/deals` redirects there): the biggest discounts across every category,
   ranked by % off (then by dollars saved), plus Today's Picks. **Off by default**
   while the Amazon API is unavailable: set `SHOW_TOP_DEALS=1` in Railway to turn it
   back on. While it's off, the site makes no Amazon API calls, `/deals` goes to the
