@@ -1,0 +1,716 @@
+{
+ "segments": [
+  {
+   "id": "hook",
+   "src": [
+    0.1,
+    7.5
+   ],
+   "secs": 6.17,
+   "voice": true,
+   "lines": [
+    {
+     "text": "I shopped my own"
+    },
+    {
+     "text": "Top 50 deals",
+     "colour": "#ff3d7f",
+     "size": 84
+    },
+    {
+     "text": "Real deal or not?",
+     "size": 52
+    }
+   ],
+   "sfx": [
+    [
+     "pop",
+     0.1
+    ],
+    [
+     "riser",
+     0.2
+    ],
+    [
+     "ding",
+     1.1
+    ]
+   ]
+  },
+  {
+   "id": "intro",
+   "src": [
+    12.9,
+    25.2
+   ],
+   "secs": 10.25,
+   "voice": true,
+   "chip": "GREAT DEALS DAILY",
+   "title": "Today's Top 50",
+   "sub": "Marked down from their usual price",
+   "sfx": [
+    [
+     "whoosh",
+     0
+    ]
+   ]
+  },
+  {
+   "id": "s1",
+   "kind": "skim",
+   "src": [
+    25.2,
+    56.6
+   ],
+   "secs": 2.4,
+   "badge": "\u25b6\u25b6 x13",
+   "sfx": [
+    [
+     "whoosh",
+     0
+    ],
+    [
+     "tick",
+     0.2
+    ]
+   ]
+  },
+  {
+   "id": "f1",
+   "src": [
+    56.6,
+    73.4
+   ],
+   "secs": 14.0,
+   "voice": true,
+   "n": 1,
+   "chip": "FIND #1",
+   "title": "AUTOMET Oversized Top",
+   "sub": "Long sleeve, relaxed fall fit",
+   "off": "-60%",
+   "zoom": {
+    "start": 1.0,
+    "end": 3.0,
+    "cx": 0.53,
+    "cy": 0.51,
+    "from": 1.0,
+    "to": 1.7
+   },
+   "rings": [
+    {
+     "x": 580,
+     "y": 747,
+     "rx": 230,
+     "ry": 78,
+     "at": 3.1
+    }
+   ],
+   "sfx": [
+    [
+     "whoosh",
+     0
+    ],
+    [
+     "pop",
+     0.4
+    ],
+    [
+     "shutter",
+     1.0
+    ],
+    [
+     "pop",
+     5.5
+    ]
+   ],
+   "stickers": [
+    {
+     "text": "Cozy fall staple",
+     "at": 5.5,
+     "rot": -6,
+     "x": 300,
+     "y": 1230
+    }
+   ]
+  },
+  {
+   "id": "s2",
+   "kind": "skim",
+   "src": [
+    73.4,
+    148.6
+   ],
+   "secs": 2.4,
+   "badge": "\u25b6\u25b6 x31",
+   "sfx": [
+    [
+     "whoosh",
+     0
+    ],
+    [
+     "tick",
+     0.2
+    ]
+   ]
+  },
+  {
+   "id": "f2",
+   "src": [
+    148.6,
+    168.0
+   ],
+   "secs": 16.17,
+   "voice": true,
+   "n": 2,
+   "chip": "FIND #2",
+   "title": "TNNZEET Long-Sleeve Top",
+   "sub": "Fitted crop top, lots of colours",
+   "off": "-54%",
+   "zoom": {
+    "start": 1.0,
+    "end": 3.0,
+    "cx": 0.52,
+    "cy": 0.57,
+    "from": 1.0,
+    "to": 1.7
+   },
+   "rings": [
+    {
+     "x": 580,
+     "y": 747,
+     "rx": 230,
+     "ry": 78,
+     "at": 3.1
+    }
+   ],
+   "sfx": [
+    [
+     "whoosh",
+     0
+    ],
+    [
+     "pop",
+     0.4
+    ],
+    [
+     "shutter",
+     1.0
+    ],
+    [
+     "boing",
+     7.0
+    ]
+   ],
+   "stickers": [
+    {
+     "text": "Price changes by colour!",
+     "at": 7.0,
+     "rot": -4,
+     "x": 470,
+     "y": 1235,
+     "colour": "#3fb8ff",
+     "boing": true
+    }
+   ]
+  },
+  {
+   "id": "s3",
+   "kind": "skim",
+   "src": [
+    168.0,
+    242.8
+   ],
+   "secs": 2.4,
+   "badge": "\u25b6\u25b6 x31",
+   "sfx": [
+    [
+     "whoosh",
+     0
+    ],
+    [
+     "tick",
+     0.2
+    ]
+   ]
+  },
+  {
+   "id": "f3",
+   "src": [
+    242.8,
+    262.2
+   ],
+   "secs": 16.17,
+   "voice": true,
+   "n": 3,
+   "chip": "FIND #3",
+   "title": "Cotton Briefs 5-Pack",
+   "sub": "High-waisted, full coverage",
+   "off": "-33%",
+   "zoom": {
+    "start": 1.0,
+    "end": 3.0,
+    "cx": 0.53,
+    "cy": 0.32,
+    "from": 1.0,
+    "to": 1.7
+   },
+   "rings": [
+    {
+     "x": 580,
+     "y": 747,
+     "rx": 230,
+     "ry": 78,
+     "at": 3.1
+    }
+   ],
+   "sfx": [
+    [
+     "whoosh",
+     0
+    ],
+    [
+     "pop",
+     0.4
+    ],
+    [
+     "shutter",
+     1.0
+    ],
+    [
+     "boing",
+     7.0
+    ]
+   ],
+   "stickers": [
+    {
+     "text": "Price changes by size, too!",
+     "at": 7.0,
+     "rot": 5,
+     "x": 470,
+     "y": 1235,
+     "colour": "#3fb8ff",
+     "boing": true
+    }
+   ]
+  },
+  {
+   "id": "s4",
+   "kind": "skim",
+   "src": [
+    262.2,
+    319.4
+   ],
+   "secs": 2.4,
+   "badge": "\u25b6\u25b6 x24",
+   "sfx": [
+    [
+     "whoosh",
+     0
+    ],
+    [
+     "tick",
+     0.2
+    ]
+   ]
+  },
+  {
+   "id": "f4",
+   "src": [
+    319.4,
+    339.8
+   ],
+   "secs": 17.0,
+   "voice": true,
+   "n": 4,
+   "chip": "FIND #4",
+   "title": "CAROTE 21-pc Pots & Pans",
+   "sub": "Nonstick, detachable handles",
+   "off": "-40%",
+   "zoom": {
+    "start": 1.0,
+    "end": 3.0,
+    "cx": 0.7,
+    "cy": 0.66,
+    "from": 1.0,
+    "to": 1.7
+   },
+   "rings": [
+    {
+     "x": 580,
+     "y": 747,
+     "rx": 230,
+     "ry": 78,
+     "at": 3.1
+    }
+   ],
+   "sfx": [
+    [
+     "whoosh",
+     0
+    ],
+    [
+     "pop",
+     0.4
+    ],
+    [
+     "shutter",
+     1.0
+    ],
+    [
+     "pop",
+     6.0
+    ],
+    [
+     "pop",
+     12.0
+    ]
+   ],
+   "stickers": [
+    {
+     "text": "Amazon's Choice",
+     "at": 6.0,
+     "rot": -5,
+     "x": 290,
+     "y": 1230
+    },
+    {
+     "text": "Is it really a deal?",
+     "at": 12.0,
+     "rot": 4,
+     "x": 600,
+     "y": 330,
+     "colour": "#ff3d7f"
+    }
+   ]
+  },
+  {
+   "id": "s5",
+   "kind": "skim",
+   "src": [
+    339.8,
+    356.7
+   ],
+   "secs": 1.6,
+   "badge": "\u25b6\u25b6 x11",
+   "sfx": [
+    [
+     "whoosh",
+     0
+    ],
+    [
+     "tick",
+     0.2
+    ]
+   ]
+  },
+  {
+   "id": "g1",
+   "src": [
+    356.7,
+    369.0
+   ],
+   "secs": 10.25,
+   "voice": true,
+   "chip": "PRICE CHECK",
+   "chipColour": "#3fb8ff",
+   "title": "I Googled its price history",
+   "sub": "CAROTE 21-pc set",
+   "zoom": {
+    "from": 1.0,
+    "to": 1.5,
+    "cx": 0.45,
+    "cy": 0.41,
+    "start": 0.8,
+    "end": 3.0
+   },
+   "rings": [
+    {
+     "x": 540,
+     "y": 747,
+     "rx": 470,
+     "ry": 60,
+     "at": 3.4,
+     "colour": "#1fc79a"
+    }
+   ],
+   "stickers": [
+    {
+     "text": "Lowest price on record!",
+     "at": 4.4,
+     "rot": -4,
+     "x": 540,
+     "y": 897,
+     "colour": "#1fc79a"
+    }
+   ],
+   "sfx": [
+    [
+     "whoosh",
+     0
+    ],
+    [
+     "click",
+     0.3
+    ],
+    [
+     "shutter",
+     0.8
+    ],
+    [
+     "pop",
+     4.4
+    ]
+   ]
+  },
+  {
+   "id": "g2",
+   "src": [
+    369.9,
+    381.1
+   ],
+   "secs": 11.73,
+   "voice": true,
+   "chip": "PRICE CHECK",
+   "chipColour": "#3fb8ff",
+   "title": "CAROTE 21-pc Pots & Pans",
+   "sub": "Verdict",
+   "off": "-40%",
+   "verdict": {
+    "kind": "yes",
+    "label": "REAL DEAL",
+    "line": "At its lowest recorded price",
+    "at": 7.13
+   },
+   "sfx": [
+    [
+     "riser",
+     6.33
+    ],
+    [
+     "ding",
+     7.43
+    ],
+    [
+     "chime",
+     7.73
+    ]
+   ]
+  },
+  {
+   "id": "s6",
+   "kind": "skim",
+   "src": [
+    381.1,
+    442.8
+   ],
+   "secs": 2.4,
+   "badge": "\u25b6\u25b6 x26",
+   "sfx": [
+    [
+     "whoosh",
+     0
+    ],
+    [
+     "tick",
+     0.2
+    ]
+   ]
+  },
+  {
+   "id": "f5",
+   "src": [
+    442.8,
+    461.3
+   ],
+   "secs": 15.42,
+   "voice": true,
+   "n": 5,
+   "chip": "FIND #5",
+   "title": "adidas Daily 4.0 Sneakers",
+   "sub": "Men's casual low-tops",
+   "off": "-40%",
+   "zoom": {
+    "start": 1.0,
+    "end": 3.0,
+    "cx": 0.65,
+    "cy": 0.26,
+    "from": 1.0,
+    "to": 1.7
+   },
+   "rings": [
+    {
+     "x": 580,
+     "y": 681,
+     "rx": 230,
+     "ry": 78,
+     "at": 3.1
+    }
+   ],
+   "sfx": [
+    [
+     "whoosh",
+     0
+    ],
+    [
+     "pop",
+     0.4
+    ],
+    [
+     "shutter",
+     1.0
+    ],
+    [
+     "boing",
+     7.0
+    ]
+   ],
+   "stickers": [
+    {
+     "text": "Other colours cost more",
+     "at": 7.0,
+     "rot": -4,
+     "x": 470,
+     "y": 1235,
+     "colour": "#3fb8ff",
+     "boing": true
+    }
+   ]
+  },
+  {
+   "id": "s7",
+   "kind": "skim",
+   "src": [
+    461.3,
+    521.6
+   ],
+   "secs": 2.4,
+   "badge": "\u25b6\u25b6 x25",
+   "sfx": [
+    [
+     "whoosh",
+     0
+    ],
+    [
+     "tick",
+     0.2
+    ]
+   ]
+  },
+  {
+   "id": "f6",
+   "src": [
+    521.6,
+    542.6
+   ],
+   "secs": 17.5,
+   "voice": true,
+   "n": 6,
+   "chip": "FIND #6",
+   "title": "CAROTE Titanium 21-pc Set",
+   "sub": "Limited time deal",
+   "off": "-36%",
+   "zoom": {
+    "start": 1.0,
+    "end": 3.0,
+    "cx": 0.7,
+    "cy": 0.66,
+    "from": 1.0,
+    "to": 1.7
+   },
+   "rings": [
+    {
+     "x": 580,
+     "y": 747,
+     "rx": 230,
+     "ry": 78,
+     "at": 3.1
+    }
+   ],
+   "sfx": [
+    [
+     "whoosh",
+     0
+    ],
+    [
+     "pop",
+     0.4
+    ],
+    [
+     "shutter",
+     1.0
+    ],
+    [
+     "pop",
+     5.0
+    ],
+    [
+     "pop",
+     11.0
+    ]
+   ],
+   "stickers": [
+    {
+     "text": "Limited time deal!",
+     "at": 5.0,
+     "rot": -5,
+     "x": 320,
+     "y": 1230,
+     "colour": "#e0344f"
+    },
+    {
+     "text": "Check today's price",
+     "at": 11.0,
+     "rot": 4,
+     "x": 600,
+     "y": 330
+    }
+   ]
+  },
+  {
+   "id": "outro",
+   "src": [
+    598.8,
+    599.0
+   ],
+   "hold": true,
+   "secs": 4.2,
+   "lines": [
+    {
+     "text": "Which one would",
+     "size": 60
+    },
+    {
+     "text": "you grab?",
+     "size": 60
+    },
+    {
+     "text": "Links in my bio",
+     "colour": "#ff3d7f",
+     "size": 66
+    },
+    {
+     "text": "#ad  As an Amazon Associate",
+     "size": 34
+    },
+    {
+     "text": "I earn from qualifying purchases",
+     "size": 34
+    }
+   ],
+   "sfx": [
+    [
+     "whoosh",
+     0
+    ],
+    [
+     "pop",
+     0.2
+    ],
+    [
+     "chime",
+     0.6
+    ]
+   ]
+  }
+ ]
+}
