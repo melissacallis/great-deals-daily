@@ -1,0 +1,178 @@
+{
+ "introSecs": 2.6,
+ "outroSecs": 3.4,
+ "items": [
+  {
+   "n": 1,
+   "total": 9,
+   "title": "Medicube Exosome Shot",
+   "off": "-69%",
+   "verdict": "yes",
+   "line": "At its lowest recorded price",
+   "product": [
+    20,
+    40
+   ],
+   "history": [
+    155,
+    178
+   ],
+   "productSecs": 3.0,
+   "historySecs": 4.2,
+   "bannerSecs": 7.2,
+   "verdictSecs": 2.6
+  },
+  {
+   "n": 2,
+   "total": 9,
+   "title": "150-pc Magnetic Blocks",
+   "off": "-54%",
+   "verdict": "no",
+   "line": "Similar sets cheaper at Walmart",
+   "product": [
+    222,
+    236
+   ],
+   "history": [
+    256,
+    286
+   ],
+   "productSecs": 3.0,
+   "historySecs": 4.2,
+   "bannerSecs": 7.2,
+   "verdictSecs": 2.6
+  },
+  {
+   "n": 3,
+   "total": 9,
+   "title": "Sink Caddy Organizer",
+   "off": "-50%",
+   "verdict": "yes",
+   "line": "Lower than Walmart right now",
+   "product": [
+    336,
+    348
+   ],
+   "history": [
+    366,
+    398
+   ],
+   "productSecs": 3.0,
+   "historySecs": 4.2,
+   "bannerSecs": 7.2,
+   "verdictSecs": 2.6
+  },
+  {
+   "n": 4,
+   "total": 9,
+   "title": "Cotton Briefs 5-Pack",
+   "off": "-47%",
+   "verdict": "unk",
+   "line": "No price history check",
+   "product": [
+    440,
+    500
+   ],
+   "productSecs": 3.4,
+   "historySecs": 0,
+   "bannerSecs": 3.4,
+   "verdictSecs": 1.8
+  },
+  {
+   "n": 5,
+   "total": 9,
+   "title": "Ninja Air Fryer XL",
+   "off": "-44%",
+   "verdict": "no",
+   "line": "Hit lower before. Wait for Black Friday",
+   "product": [
+    555,
+    569
+   ],
+   "history": [
+    594,
+    628
+   ],
+   "productSecs": 3.0,
+   "historySecs": 4.2,
+   "bannerSecs": 7.2,
+   "verdictSecs": 2.6
+  },
+  {
+   "n": 6,
+   "total": 9,
+   "title": "Ninja Air Fryer Pro",
+   "off": "-38%",
+   "verdict": "yes",
+   "line": "Matches its lowest price ever",
+   "product": [
+    716,
+    729
+   ],
+   "history": [
+    750,
+    754.5
+   ],
+   "productSecs": 3.0,
+   "historySecs": 4.2,
+   "bannerSecs": 7.2,
+   "verdictSecs": 2.6
+  },
+  {
+   "n": 7,
+   "total": 9,
+   "title": "Medicube Jelly Mist",
+   "off": "-34%",
+   "verdict": "yes",
+   "line": "Cheaper than every other store",
+   "product": [
+    840,
+    862
+   ],
+   "history": [
+    878,
+    896
+   ],
+   "productSecs": 3.0,
+   "historySecs": 4.2,
+   "bannerSecs": 7.2,
+   "verdictSecs": 2.6
+  },
+  {
+   "n": 8,
+   "total": 9,
+   "title": "Long Open Cardigan",
+   "off": "-33%",
+   "verdict": "unk",
+   "line": "No price history check",
+   "product": [
+    945,
+    985
+   ],
+   "productSecs": 3.4,
+   "historySecs": 0,
+   "bannerSecs": 3.4,
+   "verdictSecs": 1.8
+  },
+  {
+   "n": 9,
+   "total": 9,
+   "title": "Nike Air Max Alpha Trainer 6",
+   "off": "-30%",
+   "verdict": "no",
+   "line": "Cheaper at other stores",
+   "product": [
+    1022,
+    1031
+   ],
+   "history": [
+    1048,
+    1072
+   ],
+   "productSecs": 3.0,
+   "historySecs": 4.2,
+   "bannerSecs": 7.2,
+   "verdictSecs": 2.6
+  }
+ ]
+}
