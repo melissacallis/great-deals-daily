@@ -153,17 +153,17 @@ $('#search-form').addEventListener('submit', (e) => {
 
 $('#sort').addEventListener('change', (e) => { state.sort = e.target.value; render(); });
 
-// Today's Picks: the #1 deal of the Top 50 (live from Amazon, updates hourly) first, then the hand-picked products.
+// Today's Picks: the top 3 deals of the Top 50 (live from Amazon, updates hourly) first, then the hand-picked products.
+const PICK_BADGES = ['🔥 Best deal today', '🥈 #2 today', '🥉 #3 today'];
 async function loadPicks() {
   const cards = [];
   try {
     const top = await fetch('/api/deals?category=top').then((r) => r.json());
-    const best = top.items?.[0];
-    if (best) {
-      const node = renderCard({ ...best, rank: null, dealBadge: '🔥 Best deal today' });
-      node.querySelector('.card').classList.add('best-deal');
+    (top.items || []).slice(0, 3).forEach((item, i) => {
+      const node = renderCard({ ...item, rank: null, dealBadge: PICK_BADGES[i] });
+      if (i === 0) node.querySelector('.card').classList.add('best-deal');
       cards.push(node);
-    }
+    });
   } catch {}
   try {
     const { picks } = await fetch('/api/picks').then((r) => r.json());
