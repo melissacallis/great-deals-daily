@@ -92,3 +92,15 @@ body.studio-open { overflow: hidden; }
 .studio-card figcaption { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 8px; font-size: 13px; font-weight: 600; color: var(--muted); text-transform: capitalize; }
 .studio-caption { font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.5; min-height: 260px; }
 .bg-select { width: auto; }
+
+/* Taps panel */
+.clicks { margin-top: 22px; border-top: 2px solid #f5d6e2; padding-top: 16px; }
+.clicks h2 { margin: 0 0 10px; font-size: 18px; }
+.clicks h3 { margin: 14px 0 6px; font-size: 14px; color: #7b5b6e; }
+.clicks-totals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.clicks-totals div { background: #fff5f8; border-radius: 12px; padding: 8px; text-align: center; font-size: 12px; color: #7b5b6e; }
+.clicks-totals b { display: block; font-size: 22px; color: #3b0f3a; }
+.clicks-list ol { margin: 0; padding-left: 20px; font-size: 13px; }
+.clicks-list li { display: flex; justify-content: space-between; gap: 8px; }
+.clicks-list li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clicks .btn { margin-top: 12px; }

@@ -1,6 +1,6 @@
 // Front page: the featured campaign (the Black Friday Watchlist by default),
 // with a countdown to Black Friday while it's still ahead.
-import { renderNav } from '/shared.js';
+import { renderNav, goLink } from '/shared.js';
 
 const $ = (sel) => document.querySelector(sel);
 const BLACK_FRIDAY = new Date(2026, 10, 27); // Nov 27, 2026, local midnight
@@ -23,7 +23,7 @@ function card(pick, i) {
     img.onerror = () => img.replaceWith(emoji);
     media.prepend(img);
   } else media.prepend(emoji);
-  return el('a', { className: 'watch-card', href: pick.url, target: '_blank', rel: 'nofollow sponsored noopener' },
+  return el('a', { className: 'watch-card', href: goLink(pick.url, { title: pick.title }), target: '_blank', rel: 'nofollow sponsored noopener' },
     media,
     el('div', { className: 'watch-body' },
       el('h3', { textContent: smart(pick.title) }),

@@ -17,6 +17,10 @@ commission on qualifying purchases.
 - A Top 50 page per list, each with its own link: `/top/her`, `/top/him`, `/top/kids`,
   `/top/tech`, `/top/home`, `/top/beauty`, `/top/fashion`, `/top/outdoors` (in the ☰ Menu and the chips)
 - Product search
+- Tap counting: product links go through `/go/p`, which records the tap (product, page,
+  where the visitor came from; no personal data) in `clicks.jsonl` on the volume and forwards to Amazon.
+  Totals show in /admin under **Taps to Amazon**
+- Daily Top 10 pin maker at `/pin` (today's date + the top 10 deals, ready to download for Pinterest)
 - Discount %, list price, star rating, deal badges and countdowns
 - Sorting by discount, price or rating
 - Works on phones

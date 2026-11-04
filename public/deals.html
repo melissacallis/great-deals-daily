@@ -24,7 +24,7 @@
   // Count taps on Amazon links as a custom event, so Pinterest can show which pins lead to shopping.
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a[href]');
-    if (a && /(^|\.)(amazon\.com|amzn\.to)$/.test(a.hostname)) pintrk('track', 'custom', { event_id: 'amazon-' + Date.now() });
+    if (a && (/(^|\.)(amazon\.com|amzn\.to)$/.test(a.hostname) || a.pathname === "/go/p")) pintrk('track', 'custom', { event_id: 'amazon-' + Date.now() });
   }, true);
   </script>
   <noscript><img height="1" width="1" style="display:none;" alt="" src="https://ct.pinterest.com/v3/?event=init&tid=2613911035706&noscript=1"></noscript>

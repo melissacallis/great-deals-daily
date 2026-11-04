@@ -1,4 +1,4 @@
-import { pickCard, renderNav } from '/shared.js';
+import { pickCard, renderNav, goLink } from '/shared.js';
 
 const $ = (sel) => document.querySelector(sel);
 const grid = $('#grid');
@@ -29,7 +29,7 @@ function timeLeft(iso) {
 function renderCard(item) {
   const node = tpl.content.cloneNode(true);
   const link = node.querySelector('.card-link');
-  link.href = item.url;
+  link.href = goLink(item.url, { asin: item.asin, title: item.title });
   if (item.url === '#demo') { link.removeAttribute('target'); link.addEventListener('click', (e) => e.preventDefault()); }
 
   const img = node.querySelector('img');

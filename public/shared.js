@@ -1,9 +1,24 @@
+// Product links go through /go/p so the site can count taps (which deal, which page, which app the visitor came from)
+// before forwarding to Amazon. Where the visitor came from is remembered for the visit (e.g. a Pinterest pin).
+let landingSource = '';
+try {
+  landingSource = sessionStorage.getItem('src') ?? '';
+  if (!landingSource && document.referrer && new URL(document.referrer).host !== location.host) {
+    landingSource = document.referrer; sessionStorage.setItem('src', landingSource);
+  }
+} catch {}
+export function goLink(url, { asin = '', title = '' } = {}) {
+  if (!url || !/^https:\/\/((www\.)?amazon\.com|amzn\.to|a\.co)\//.test(url)) return url;
+  const q = new URLSearchParams({ u: url, a: asin, t: String(title).slice(0, 80), from: location.pathname, s: landingSource.slice(0, 200) });
+  return `/go/p?${q}`;
+}
+
 // Hand-picked product cards (Today's Picks and campaign pages), added in /admin.
 // They carry no price; the photo is the owner's own or an Amazon-hosted image.
 export function pickCard(pick) {
   const a = document.createElement('a');
   a.className = 'pick';
-  a.href = pick.url;
+  a.href = goLink(pick.url, { title: pick.title });
   a.target = '_blank';
   a.rel = 'nofollow sponsored noopener';
   a.innerHTML = '<span class="pick-emoji"></span><span class="pick-body"><strong class="pick-title"></strong><span class="pick-why"></span><span class="pick-cta">See it on Amazon →</span></span>';

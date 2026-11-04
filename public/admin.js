@@ -320,6 +320,32 @@ function render() {
     ...c.sections.map((s) => sectionCard(c, s)));
 }
 
+// --- Taps: product links tapped on the site (recorded by /go/p) ----------
+
+async function renderClicks() {
+  const box = $('#clicks');
+  try {
+    const res = await fetch('/api/clicks', { headers: { Authorization: `Bearer ${state.password}` } });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error);
+    const list = (title, rows) => rows.length ? h('div', { className: 'clicks-list' }, h('h3', {}, title),
+      h('ol', {}, rows.slice(0, 5).map((r) => h('li', {}, h('span', {}, r.name), h('b', {}, String(r.count)))))) : null;
+    box.replaceChildren(...[
+      h('h2', {}, '📊 Taps to Amazon'),
+      h('div', { className: 'clicks-totals' },
+        h('div', {}, h('b', {}, String(d.today)), 'today'),
+        h('div', {}, h('b', {}, String(d.week)), '7 days'),
+        h('div', {}, h('b', {}, String(d.month)), '30 days')),
+      d.month ? null : h('p', { className: 'hint' }, 'No taps yet. Each time a visitor taps a product, it shows here.'),
+      list('Top products (30 days)', d.products),
+      list('From page', d.pages),
+      list('Visitors came from', d.sources),
+      h('button', { className: 'btn', type: 'button', onclick: renderClicks }, '↻ Refresh')].filter(Boolean));
+  } catch (err) {
+    box.replaceChildren(h('p', { className: 'hint' }, `Taps unavailable: ${err.message}`));
+  }
+}
+
 // --- Sign in / out ------------------------------------------------------
 
 function logout(message) {
@@ -347,6 +373,7 @@ async function signIn(password) {
     $('#app').hidden = false;
     $('#logout').hidden = false;
     render();
+    renderClicks();
   } catch (err) {
     logout(err.message);
   }

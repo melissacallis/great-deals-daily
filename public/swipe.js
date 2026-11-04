@@ -2,6 +2,7 @@
 // swipes sideways; tapping a card opens a full-size viewer where visitors
 // swipe through that campaign's products one at a time.
 // /swipe#<campaign-id> scrolls straight to that campaign.
+import { goLink } from '/shared.js';
 const $ = (sel) => document.querySelector(sel);
 
 function el(tag, props = {}, ...children) {
@@ -43,7 +44,7 @@ const external = { target: '_blank', rel: 'nofollow sponsored noopener' };
 
 function tile(item, onOpen) {
   if (item.kind === 'browse') {
-    return el('a', { className: 'tile browse-tile', href: item.url, ...external },
+    return el('a', { className: 'tile browse-tile', href: goLink(item.url, { title: item.title }), ...external },
       el('span', { className: 'emoji', textContent: item.emoji }),
       el('strong', { textContent: item.title }),
       el('span', { textContent: `Shop “${item.search}” on Amazon →` }));
@@ -64,7 +65,7 @@ function viewerSlide(item) {
         item.section ? el('span', { className: 'viewer-section', textContent: item.section }) : null,
         el('h3', { textContent: item.title }),
         el('p', { textContent: `See popular picks for “${item.search}” on Amazon.` }),
-        el('a', { className: 'cta', href: item.url, ...external, textContent: 'Browse on Amazon →' })));
+        el('a', { className: 'cta', href: goLink(item.url, { title: item.title }), ...external, textContent: 'Browse on Amazon →' })));
   }
   return el('section', { className: 'viewer-slide' },
     el('div', { className: 'viewer-card' },
@@ -72,7 +73,7 @@ function viewerSlide(item) {
       item.section ? el('span', { className: 'viewer-section', textContent: item.section }) : null,
       el('h3', { textContent: item.title }),
       item.why ? el('p', { textContent: item.why }) : null,
-      el('a', { className: 'cta', href: item.url, ...external, textContent: 'Shop on Amazon →' })));
+      el('a', { className: 'cta', href: goLink(item.url, { title: item.title }), ...external, textContent: 'Shop on Amazon →' })));
 }
 
 // --- Full-size viewer ---------------------------------------------------

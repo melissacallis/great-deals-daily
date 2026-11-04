@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { CreatorsApi } from './src/amazon.js';
 import { CATEGORIES, POOL_SEARCHES, TOP, LIST_SIZE } from './src/categories.js';
 import { demoDeals } from './src/demo.js';
+import { amazonTarget, recordClick, clickSummary } from './src/clicks.js';
 import { getContent, saveContent, storageInfo, HOME_CAMPAIGN, UPLOADS_DIR } from './src/content.js';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public');
@@ -347,6 +348,18 @@ const server = http.createServer(async (req, res) => {
     }
     if (url.pathname === '/deals') {
       res.writeHead(301, { Location: `/${url.search}` }); return res.end();
+    }
+    // Product taps: record the tap, then forward to Amazon (Amazon links only).
+    if (url.pathname === '/go/p') {
+      const target = amazonTarget(url.searchParams.get('u') ?? '');
+      if (!target) { res.writeHead(302, { Location: '/' }); return res.end(); }
+      recordClick(req, url.searchParams); // don't make the shopper wait for the write
+      res.writeHead(302, { Location: target, 'Cache-Control': 'no-store', 'Referrer-Policy': 'unsafe-url' }); return res.end();
+    }
+    if (url.pathname === '/api/clicks') {
+      const auth = checkAdmin(req);
+      if (!auth.ok) return sendJson(res, auth.status, { error: auth.error });
+      return sendJson(res, 200, await clickSummary());
     }
     if (url.pathname === '/go/search') {
       // Site search goes straight to Amazon's search, with the tag.
