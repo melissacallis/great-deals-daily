@@ -4,7 +4,7 @@ import { timingSafeEqual, createHash, randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CreatorsApi } from './src/amazon.js';
-import { CATEGORIES, POOL_SEARCHES, TOP } from './src/categories.js';
+import { CATEGORIES, POOL_SEARCHES, TOP, LIST_SIZE } from './src/categories.js';
 import { demoDeals } from './src/demo.js';
 import { getContent, saveContent, storageInfo, HOME_CAMPAIGN, UPLOADS_DIR } from './src/content.js';
 
@@ -148,19 +148,21 @@ async function readJsonBody(req, limit = 1_000_000) {
 
 const fallbackFor = (cat) => cat.id === TOP.id
   ? amazonLink('/deals')
-  : amazonLink('/s', { k: `${cat.keywords.split(' ')[0]} deals` });
+  : amazonLink('/s', { k: `${cat.searches[0].keywords} deals` });
 
 // All deals are fetched in one background pass, then served from memory.
 // The API allows about 1 request/second for new accounts, so calls are spaced out.
+// Lists are published as they finish, so the first visitors after a restart don't wait for the whole pass.
 const store = { at: 0, failedAt: 0, byCategory: {}, top: [], notEligible: false, error: null };
 let refreshing = null;
+let firstData = null; // resolves once the first list has items after a cold start
 
-function rankTop(lists) {
+function rankTop(lists, size = TOP.size) {
   const seen = new Set();
   return lists.flat()
     .filter((it) => !seen.has(it.asin) && seen.add(it.asin))
     .sort((a, b) => b.savingsPct - a.savingsPct || b.savingsAmount - a.savingsAmount)
-    .slice(0, TOP.size);
+    .slice(0, size);
 }
 
 async function runSearch(search) {
@@ -172,28 +174,45 @@ async function runSearch(search) {
   return items;
 }
 
+// One search failing (a bad keyword, a hiccup) shouldn't sink the whole refresh; an ineligible account should.
+async function trySearch(search) {
+  try { return await runSearch(search); } catch (err) {
+    if (err.reason === 'AssociateNotEligible' || err.status === 401 || err.status === 403) throw err;
+    console.error(`Amazon API: search "${search.keywords}" in ${search.searchIndex} failed: ${err.message.slice(0, 200)}`);
+    await sleep(1500);
+    return [];
+  }
+}
+
 async function refreshDeals() {
   if (!api) {
-    for (const cat of CATEGORIES) store.byCategory[cat.id] = demoDeals(cat.id);
+    for (const cat of CATEGORIES) store.byCategory[cat.id] = demoDeals(cat.id).slice(0, LIST_SIZE);
     store.top = rankTop(Object.values(store.byCategory));
     store.at = Date.now();
     return;
   }
   const byCategory = {};
   const pool = [];
+  const cold = !store.at;
+  let announce;
+  if (cold) firstData = new Promise((r) => { announce = r; });
   try {
     for (const cat of CATEGORIES) {
-      byCategory[cat.id] = rankTop([await runSearch(cat)]);
+      const found = [];
+      for (const search of cat.searches) found.push(await trySearch(search));
+      byCategory[cat.id] = rankTop(found, LIST_SIZE);
+      if (cold && byCategory[cat.id].length) {
+        // Publish what we have so far; the full Top 50 fills in as the pass continues.
+        Object.assign(store.byCategory, { [cat.id]: byCategory[cat.id] });
+        store.top = rankTop(Object.values(store.byCategory));
+        announce?.(); announce = null;
+      }
     }
-    for (const search of POOL_SEARCHES) pool.push(await runSearch(search));
-    Object.assign(store, {
-      byCategory,
-      top: rankTop([...Object.values(byCategory), ...pool]),
-      at: Date.now(),
-      notEligible: false,
-      error: null,
-    });
-    console.log(`Refreshed deals: ${store.top.length} in Top 50`);
+    for (const search of POOL_SEARCHES) pool.push(await trySearch(search));
+    const top = rankTop([...Object.values(byCategory), ...pool]);
+    if (!top.length) throw new Error('Amazon returned no deals for any search.');
+    Object.assign(store, { byCategory, top, at: Date.now(), notEligible: false, error: null });
+    console.log(`Refreshed deals: ${store.top.length} in Top 50; ${CATEGORIES.map((c) => `${c.id} ${byCategory[c.id].length}`).join(', ')}`);
   } catch (err) {
     store.notEligible = err.reason === 'AssociateNotEligible';
     store.error = err.message;
@@ -201,6 +220,8 @@ async function refreshDeals() {
     if (store.notEligible) console.error('Amazon API: account not eligible yet, showing Amazon links instead.');
     else if (err.status === 429) console.error('Amazon API: rate limit reached (ThrottleException), trying again in 10 minutes.');
     else console.error(err);
+  } finally {
+    announce?.();
   }
 }
 
@@ -209,7 +230,8 @@ function ensureFresh() {
     && Date.now() - store.failedAt > 10 * 60_000; // after a failure, wait 10 minutes before retrying
   if (stale && !refreshing) refreshing = refreshDeals().finally(() => { refreshing = null; });
   // Only make the visitor wait if there is nothing at all to show yet.
-  return store.at ? Promise.resolve() : refreshing ?? Promise.resolve();
+  if (store.at || store.top.length) return Promise.resolve();
+  return firstData ?? refreshing ?? Promise.resolve();
 }
 
 async function search(q) {
@@ -245,7 +267,7 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, {
         siteName: SITE_NAME,
         demo: !api,
-        categories: [TOP, ...CATEGORIES].map(({ id, label, icon }) => ({ id, label, icon })),
+        categories: [TOP, ...CATEGORIES].map(({ id, label, icon, title, intro }) => ({ id, label, icon, title: title ?? label, intro })),
       });
     }
     if (url.pathname === '/api/deals') {
@@ -256,7 +278,7 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, { category: cat.id, notEligible: true, fallbackUrl: fallbackFor(cat), items: [] });
       }
       if (!items.length && store.error) throw new Error(store.error);
-      return sendJson(res, 200, { category: cat.id, ranked: cat.id === TOP.id, updatedAt: store.at, demo: !api, items });
+      return sendJson(res, 200, { category: cat.id, ranked: true, updatedAt: store.at || Date.now(), demo: !api, items });
     }
     if (url.pathname === '/api/picks') {
       const { campaigns } = await getContent();
@@ -269,6 +291,7 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, {
         campaigns: campaigns.filter((c) => c.nav && c.id !== HOME_CAMPAIGN).map(({ id, title, emoji }) => ({ id, title, emoji })),
         topDeals: SHOW_TOP_DEALS,
+        topLists: SHOW_TOP_DEALS ? CATEGORIES.map(({ id, label, icon }) => ({ id, label, icon })) : [],
       });
     }
     // The TikTok swipe page: Today's Picks first, then every campaign shown in the menu.
@@ -291,6 +314,12 @@ const server = http.createServer(async (req, res) => {
     // campaigns) lives at /black-friday. /deals is kept for old links.
     if (url.pathname === '/') return serveStatic(res, SHOW_TOP_DEALS ? '/deals.html' : '/index.html');
     if (url.pathname === '/black-friday') return serveStatic(res, '/index.html');
+    // One Top 50 page per list: /top/her, /top/him, /top/kids, /top/tech …
+    const topPage = url.pathname.match(/^\/top\/([\w-]+)\/?$/);
+    if (topPage) {
+      if (!SHOW_TOP_DEALS || !CATEGORIES.some((c) => c.id === topPage[1])) { res.writeHead(302, { Location: '/' }); return res.end(); }
+      return serveStatic(res, '/deals.html');
+    }
     if (url.pathname === '/deals') {
       res.writeHead(301, { Location: `/${url.search}` }); return res.end();
     }

@@ -28,10 +28,11 @@ export async function renderNav() {
   const nav = document.querySelector('#nav');
   if (!nav) return;
   try {
-    const { campaigns, topDeals } = await fetch('/api/campaigns').then((r) => r.json());
+    const { campaigns, topDeals, topLists = [] } = await fetch('/api/campaigns').then((r) => r.json());
     const bf = campaigns.find((c) => c.id === 'black-friday');
     const links = [
       ...(topDeals ? [{ href: '/', text: '🔥 Top 50 Deals' }] : []),
+      ...topLists.map((t) => ({ href: `/top/${t.id}`, text: `${t.icon} Top 50 ${t.label}`, sub: true })),
       { href: topDeals ? '/black-friday' : '/', text: `${bf?.emoji || '🛍️'} ${bf?.title || 'Black Friday'}` },
       ...campaigns.filter((c) => c.id !== 'black-friday')
         .map((c) => ({ href: c.id === 'gift-guide' ? '/gift-guide' : `/c/${c.id}`, text: `${c.emoji} ${c.title}`.trim() })),
@@ -40,7 +41,7 @@ export async function renderNav() {
     const here = location.pathname.replace(/\/$/, '') || '/';
     const panel = Object.assign(document.createElement('div'), { className: 'menu-panel', id: 'menu-panel', hidden: true });
     panel.append(...links.map((l) => Object.assign(document.createElement('a'), {
-      className: 'menu-link', href: l.href, textContent: l.text, ariaCurrent: here === l.href ? 'page' : null,
+      className: l.sub ? 'menu-link menu-sub' : 'menu-link', href: l.href, textContent: l.text, ariaCurrent: here === l.href ? 'page' : null,
     })));
     const btn = Object.assign(document.createElement('button'), { className: 'menu-btn', type: 'button', innerHTML: '<span class="burger" aria-hidden="true"><i></i><i></i><i></i></span>Menu' });
     btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'menu-panel');

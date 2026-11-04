@@ -14,7 +14,8 @@ commission on qualifying purchases.
   while the Amazon API is unavailable: set `SHOW_TOP_DEALS=1` in Railway to turn it
   back on. While it's off, the site makes no Amazon API calls, `/deals` goes to the
   front page, and the search box searches Amazon directly (with your tag)
-- Daily deals by category (Electronics, Home, Fashion, Beauty, Toys, Outdoors)
+- A Top 50 page per list, each with its own link: `/top/her`, `/top/him`, `/top/kids`,
+  `/top/tech`, `/top/home`, `/top/beauty`, `/top/fashion`, `/top/outdoors` (in the ☰ Menu and the chips)
 - Product search
 - Discount %, list price, star rating, deal badges and countdowns
 - Sorting by discount, price or rating
@@ -119,9 +120,10 @@ at the top lists every campaign and jumps to its row.
 
 ## Customise
 
-- **Categories and searches:** `src/categories.js`. Each entry is a search with
-  keywords, a search index and a minimum discount %. `POOL_SEARCHES` adds extra
-  searches that only feed the Top 50.
+- **Lists and searches:** `src/categories.js`. Each list (For Her, For Him, Kids …) is
+  its own Top 50 page at `/top/<id>`, filled from several searches (keywords, a search
+  index and a minimum discount %). Each search costs 2 API calls per refresh.
+  `POOL_SEARCHES` adds extra searches that only feed the main Top 50.
 - **Look:** `public/styles.css` (colours are at the top). Graphics are SVG files in `public/img/`.
 - **Site name:** `SITE_NAME` in `.env`.
 - **Refresh rate:** `CACHE_MINUTES` in `.env` (default 60). Results are cached to

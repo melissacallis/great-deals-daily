@@ -109,24 +109,30 @@ async function load() {
   }
 }
 
+// Each list is its own page: / for the Top 50, /top/<id> for the others (For Her, For Him, Kids …).
+const pageFor = (c) => (c.id === 'top' ? '/' : `/top/${c.id}`);
+
 function renderCategories() {
   const nav = $('#categories');
   nav.replaceChildren(...state.categories.map((c) => {
-    const b = document.createElement('button');
-    b.className = 'chip';
-    b.textContent = `${c.icon} ${c.label}`;
-    b.setAttribute('aria-pressed', String(!state.query && c.id === state.category));
-    b.addEventListener('click', () => {
-      state.category = c.id;
-      state.query = '';
-      $('#search-input').value = '';
-      $('#results-title').textContent = c.label;
-      history.replaceState(null, '', c.id === 'top' ? '/' : `/?category=${c.id}`);
-      renderCategories();
-      load();
-    });
-    return b;
+    const a = document.createElement('a');
+    a.className = 'chip';
+    a.href = pageFor(c);
+    a.textContent = `${c.icon} ${c.label}`;
+    if (!state.query && c.id === state.category) a.setAttribute('aria-current', 'page');
+    return a;
   }));
+  nav.querySelector('[aria-current]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
+}
+
+// On a list page, the hero says which Top 50 this is.
+function setPageHeader(cat) {
+  if (cat.id === 'top') return;
+  document.title = `${cat.title} | Great Deals Daily`;
+  document.querySelector('meta[name="description"]')?.setAttribute('content', cat.intro ?? cat.title);
+  const h1 = $('.hero h1');
+  h1.replaceChildren(`${cat.icon} ${cat.title.replace(/ Deals.*$/, '')} `, Object.assign(document.createElement('span'), { className: 'hl', textContent: cat.title.replace(/^Top 50 /, '').replace(/^.*?(Deals.*)$/, '$1') }));
+  if (cat.intro) $('.hero .lede').textContent = cat.intro;
 }
 
 function startCountdown() {
@@ -176,17 +182,18 @@ async function loadPicks() {
 
 async function init() {
   startCountdown();
-  loadPicks();
   renderNav();
   const config = await fetch('/api/config').then((r) => r.json());
   state.categories = config.categories;
   $('#site-name').textContent = config.siteName;
   $('#demo-banner').hidden = !config.demo;
 
-  const param = new URLSearchParams(location.search).get('category');
+  const param = location.pathname.match(/^\/top\/([\w-]+)/)?.[1] ?? new URLSearchParams(location.search).get('category');
   const initial = state.categories.find((c) => c.id === param) ?? state.categories[0];
   state.category = initial.id;
-  $('#results-title').textContent = initial.label;
+  $('#results-title').textContent = initial.id === 'top' ? 'Top 50 Deals' : `${initial.icon} ${initial.label}`;
+  setPageHeader(initial);
+  if (initial.id === 'top') loadPicks(); // Today's Picks only on the front page
   const q = new URLSearchParams(location.search).get('q');
   if (q) {
     state.query = q;
