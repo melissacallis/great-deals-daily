@@ -4,10 +4,12 @@ import { createRequire } from 'node:module';
 import { readFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 const { chromium } = createRequire(import.meta.url)('playwright');
-const [,, outDir, fontDir] = process.argv;
+const [,, outDir, fontDir, headshotFile] = process.argv; // headshot: optional, defaults to the site's
 mkdirSync(outDir, { recursive: true });
 const here = path.dirname(new URL(import.meta.url).pathname);
 const logo = readFileSync(path.join(here, '../../public/img/logo-badge.svg')).toString('base64');
+const face = readFileSync(headshotFile || path.join(here, '../../public/img/headshot.jpg')).toString('base64');
+const faceType = (headshotFile || '').endsWith('.png') ? 'image/png' : 'image/jpeg';
 const font = (w) => readFileSync(path.join(fontDir, `Poppins-${w}.ttf`)).toString('base64');
 
 const PINS = [
@@ -30,7 +32,7 @@ h1{position:absolute;left:80px;top:190px;margin:0;font-weight:800;line-height:.9
 h1 .t{display:block;font-size:96px;letter-spacing:0;opacity:.95;margin-bottom:26px}
 h1 .hl{color:#ffd23f}
 .squig{position:absolute;left:80px;top:705px}
-.sub{position:absolute;left:84px;top:750px;font-size:40px;font-weight:600;line-height:1.3;max-width:820px}
+.sub{position:absolute;left:84px;top:762px;font-size:40px;font-weight:600;line-height:1.3;max-width:820px}
 .card{position:absolute;left:60px;right:60px;top:880px;background:#fff;border:6px solid #3b0f3a;border-radius:44px;padding:36px 40px;display:grid;grid-template-columns:1fr 1fr;gap:22px 30px;transform:rotate(-1.2deg);box-shadow:0 18px 0 rgba(59,15,58,.25)}
 .it{display:flex;align-items:center;gap:18px;color:#3b0f3a;font-weight:800;font-size:38px}
 .it span{font-size:62px;line-height:1}
@@ -39,6 +41,8 @@ h1 .hl{color:#ffd23f}
 .ad{position:absolute;left:84px;top:1385px;font-size:24px;font-weight:600;opacity:.95;max-width:560px;line-height:1.35}
 .logo{position:absolute;right:60px;bottom:70px;width:250px;height:250px;filter:drop-shadow(0 10px 16px rgba(59,15,58,.35));transform:rotate(6deg)}
 .spark{position:absolute;color:#ffd23f;font-size:60px}
+.face{position:absolute;left:705px;top:440px;width:230px;height:230px;border-radius:50%;object-fit:cover;border:9px solid #fff;box-shadow:0 14px 0 rgba(59,15,58,.22)}
+.bubble{position:absolute;right:40px;top:650px;white-space:nowrap;background:#ffd23f;color:#3b0f3a;font-weight:800;font-size:26px;padding:8px 20px;border-radius:24px;border:5px solid #3b0f3a;transform:rotate(-5deg)}
 </style></head><body><div class="pin">
 <div class="blob" style="width:520px;height:520px;right:-160px;top:-140px"></div>
 <div class="blob" style="width:300px;height:300px;left:-120px;top:620px"></div>
@@ -51,6 +55,7 @@ h1 .hl{color:#ffd23f}
 <div class="url">www.ubottega.com${p.path}</div>
 <div class="ad">#ad · As an Amazon Associate<br>I earn from qualifying purchases</div>
 <span class="spark" style="right:110px;top:120px">✦</span><span class="spark" style="right:250px;top:560px;font-size:40px">✦</span><span class="spark" style="left:860px;top:820px;font-size:34px;color:#fff">✦</span>
+<img class="face" src="data:${faceType};base64,${face}"><div class="bubble">I checked every price!</div>
 <img class="logo" src="data:image/svg+xml;base64,${logo}">
 </div></body></html>`;
 

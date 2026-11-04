@@ -1,8 +1,8 @@
 # Pinterest pins: Top 50 Gift Deals (Her, Him, Kids)
 
-Images in `out/` (1000×1500). No prices and no Amazon product photos, so they're safe under the Associates rules.
+Images in `out/` (1000×1500, not in git because they include your photo). No prices and no Amazon product photos, so they're safe under the Associates rules.
 Post **one pin every 2–3 days** (Pinterest favours fresh pins over a burst): Her first, then Him, then Kids.
-Rebuild after edits: `node render.mjs ./out <dir with Poppins fonts>`.
+Rebuild after edits: `node render.mjs ./out <dir with Poppins fonts> [headshot.png]`.
 
 ---
 
