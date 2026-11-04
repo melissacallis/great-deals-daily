@@ -122,7 +122,9 @@ function renderCategories() {
     if (!state.query && c.id === state.category) a.setAttribute('aria-current', 'page');
     return a;
   }));
-  nav.querySelector('[aria-current]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
+  // Bring the current chip into view sideways only (scrollIntoView would also scroll the page down).
+  const cur = nav.querySelector('[aria-current]');
+  if (cur) nav.scrollLeft = cur.offsetLeft - nav.offsetLeft - (nav.clientWidth - cur.offsetWidth) / 2;
 }
 
 // On a list page, the hero says which Top 50 this is.

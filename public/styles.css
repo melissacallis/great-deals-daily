@@ -205,7 +205,7 @@ code { background: rgba(59, 15, 58, .08); padding: 1px 5px; border-radius: 4px; 
 }
 
 /* Header lockup: headshot + name */
-.logo .avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2.5px solid #fff; box-shadow: 0 4px 12px -4px rgba(59, 15, 58, .45); flex-shrink: 0; }
+.logo .avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 12px -4px rgba(59, 15, 58, .45); flex-shrink: 0; }
 .logo-text { display: flex; flex-direction: column; line-height: 1.05; }
 .logo-text small { font-family: Inter, system-ui, sans-serif; font-size: 12px; font-weight: 600; opacity: .9; letter-spacing: .02em; }
 .nav-link[aria-current="page"] { background: #fff; color: var(--brand-dark); }
@@ -236,7 +236,7 @@ code { background: rgba(59, 15, 58, .08); padding: 1px 5px; border-radius: 4px; 
 .more-card span span { color: var(--sun); font-weight: 700; font-size: 14px; }
 .bf-countdown .countdown-time { min-width: 0; }
 @media (max-width: 720px) {
-  .logo .avatar { width: 40px; height: 40px; }
+  .logo .avatar { width: 48px; height: 48px; }
   .watch-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .watch-body { padding: 10px 12px 12px; }
   .watch-body h3 { font-size: 15px; }
