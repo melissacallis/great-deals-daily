@@ -34,7 +34,7 @@ async function init() {
   const res = await fetch(`/api/campaign/${encodeURIComponent(campaignId)}`);
   const guide = await res.json();
   if (!res.ok) { $('#guide-title').textContent = 'Page not found'; $('#guide').innerHTML = `<p class="empty">${guide.error}</p>`; return; }
-  document.title = `${guide.title} | Great Deals Daily`;
+  document.title = `${guide.title} | UBottega`;
   $('#guide-eyebrow').textContent = guide.emoji ? `${guide.emoji} Hand-picked` : 'Hand-picked';
   $('#guide-title').textContent = guide.title;
   $('#guide-intro').textContent = guide.intro;

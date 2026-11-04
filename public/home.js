@@ -53,7 +53,7 @@ async function init() {
   const c = await res.json();
   const isBlackFriday = /black friday/i.test(c.title) || c.id === 'black-friday';
   if (isBlackFriday) countdown();
-  document.title = `${smart(c.title)} | Great Deals Daily`;
+  document.title = `${smart(c.title)} | UBottega`;
   $('#feat-eyebrow').textContent = isBlackFriday ? '🛍️ Black Friday 2026' : `${c.emoji || '⭐'} Featured`;
   const words = smart(c.title).split(' ');
   const last = words.pop();

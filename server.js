@@ -11,7 +11,8 @@ import { getContent, saveContent, storageInfo, HOME_CAMPAIGN, UPLOADS_DIR } from
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public');
 const PORT = Number(process.env.PORT ?? 3000);
 const CACHE_MINUTES = Number(process.env.CACHE_MINUTES ?? 60);
-const SITE_NAME = process.env.SITE_NAME ?? 'Great Deals Daily';
+const SITE_NAME = process.env.SITE_NAME ?? 'UBottega';
+const CANONICAL_HOST = process.env.CANONICAL_HOST ?? '';
 
 const env = process.env;
 const MARKETPLACE = env.AMAZON_MARKETPLACE ?? 'www.amazon.com';
@@ -262,6 +263,10 @@ async function serveStatic(res, urlPath) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
+  // Once the custom domain is live (CANONICAL_HOST=www.ubottega.com in Railway), old railway.app links forward to it.
+  if (CANONICAL_HOST && req.headers.host?.endsWith('.up.railway.app')) {
+    res.writeHead(301, { Location: `https://${CANONICAL_HOST}${req.url}` }); return res.end();
+  }
   try {
     if (url.pathname === '/api/config') {
       return sendJson(res, 200, {

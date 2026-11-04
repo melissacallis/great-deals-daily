@@ -1,4 +1,4 @@
-# Great Deals Daily
+# UBottega
 
 An Amazon affiliate deals website. It pulls discounted products from the
 **Amazon Creators API** (the replacement for PA-API 5, which Amazon retired in
@@ -125,7 +125,9 @@ at the top lists every campaign and jumps to its row.
   index and a minimum discount %). Each search costs 2 API calls per refresh.
   `POOL_SEARCHES` adds extra searches that only feed the main Top 50.
 - **Look:** `public/styles.css` (colours are at the top). Graphics are SVG files in `public/img/`.
-- **Site name:** `SITE_NAME` in `.env`.
+- **Site name:** `SITE_NAME` in `.env` (default UBottega).
+- **Custom domain:** set `CANONICAL_HOST=www.ubottega.com` in Railway once the domain is verified;
+  visits to the old `*.up.railway.app` address then forward there (301).
 - **Refresh rate:** `CACHE_MINUTES` in `.env` (default 60). Results are cached to
   stay within Amazon's rate limit. Don't set it above 1440 (24 hours), because
   Amazon requires prices to be kept fresh.

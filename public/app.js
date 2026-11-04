@@ -128,7 +128,7 @@ function renderCategories() {
 // On a list page, the hero says which Top 50 this is.
 function setPageHeader(cat) {
   if (cat.id === 'top') return;
-  document.title = `${cat.title} | Great Deals Daily`;
+  document.title = `${cat.title} | UBottega`;
   document.querySelector('meta[name="description"]')?.setAttribute('content', cat.intro ?? cat.title);
   const h1 = $('.hero h1');
   h1.replaceChildren(`${cat.icon} ${cat.title.replace(/ Deals.*$/, '')} `, Object.assign(document.createElement('span'), { className: 'hl', textContent: cat.title.replace(/^Top 50 /, '').replace(/^.*?(Deals.*)$/, '$1') }));

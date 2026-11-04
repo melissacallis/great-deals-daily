@@ -136,7 +136,7 @@ function lockup(ctx, assets, x, y, color) {
   ctx.fillStyle = color;
   ctx.font = `800 32px ${DISPLAY}`;
   ctx.textBaseline = 'middle';
-  ctx.fillText('Great Deals Daily', x + 80, y + 33);
+  ctx.fillText('UBottega', x + 80, y + 33);
   ctx.textBaseline = 'alphabetic';
 }
 
