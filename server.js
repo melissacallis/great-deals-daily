@@ -240,6 +240,7 @@ async function search(q) {
   return api.searchItems({ keywords: q, searchIndex: 'All', itemCount: 10 });
 }
 const searchCache = new Map();
+const imgCache = new Map();
 
 function sendJson(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -285,6 +286,24 @@ const server = http.createServer(async (req, res) => {
       if (!items.length && store.error) throw new Error(store.error);
       return sendJson(res, 200, { category: cat.id, ranked: true, updatedAt: store.at || Date.now(), demo: !api, items });
     }
+    // Product photos for the daily pin (/pin), served from our own address so the browser may save the drawn image.
+    // Only Amazon's image servers are allowed, and results are cached in memory for a day.
+    if (url.pathname === '/api/img') {
+      let src; try { src = new URL(url.searchParams.get('u') ?? ''); } catch { return sendJson(res, 400, { error: 'Bad image address.' }); }
+      if (src.protocol !== 'https:' || !/^(m\.media-amazon\.com|images-na\.ssl-images-amazon\.com)$/.test(src.hostname)) return sendJson(res, 400, { error: 'Only Amazon product images.' });
+      let hit = imgCache.get(src.href);
+      if (!hit || Date.now() - hit.at > 86_400_000) {
+        const r = await fetch(src.href);
+        if (!r.ok) return sendJson(res, 502, { error: 'Image not available.' });
+        const body = Buffer.from(await r.arrayBuffer());
+        if (body.length > 3_000_000) return sendJson(res, 502, { error: 'Image too large.' });
+        hit = { at: Date.now(), type: r.headers.get('content-type') ?? 'image/jpeg', body };
+        if (imgCache.size > 200) imgCache.delete(imgCache.keys().next().value);
+        imgCache.set(src.href, hit);
+      }
+      res.writeHead(200, { 'Content-Type': hit.type, 'Cache-Control': 'public, max-age=86400' });
+      return res.end(hit.body);
+    }
     if (url.pathname === '/api/picks') {
       const { campaigns } = await getContent();
       const home = campaigns.find((c) => c.id === HOME_CAMPAIGN);
@@ -319,6 +338,7 @@ const server = http.createServer(async (req, res) => {
     // campaigns) lives at /black-friday. /deals is kept for old links.
     if (url.pathname === '/') return serveStatic(res, SHOW_TOP_DEALS ? '/deals.html' : '/index.html');
     if (url.pathname === '/black-friday') return serveStatic(res, '/index.html');
+    if (url.pathname === '/pin') return serveStatic(res, '/pin.html'); // daily Top 10 pin maker (unlisted)
     // One Top 50 page per list: /top/her, /top/him, /top/kids, /top/tech …
     const topPage = url.pathname.match(/^\/top\/([\w-]+)\/?$/);
     if (topPage) {
