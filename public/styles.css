@@ -80,6 +80,7 @@ code { background: rgba(59, 15, 58, .08); padding: 1px 5px; border-radius: 4px; 
 .hero-copy { max-width: 620px; }
 .hero-art { width: min(44%, 480px); height: auto; flex-shrink: 0; filter: drop-shadow(0 18px 30px rgba(59, 15, 58, .25)); animation: float 6s ease-in-out infinite; }
 .hero-art.small { width: min(34%, 340px); }
+.hero-art.hero-portrait { width: min(38%, 400px); border-radius: 50%; }
 @keyframes float { 50% { transform: translateY(-10px) rotate(-1deg); } }
 .eyebrow { display: inline-block; color: var(--plum); background: var(--sun); text-transform: uppercase; font-weight: 800; letter-spacing: .08em; font-size: 12px; margin: 0 0 14px; padding: 6px 12px; border-radius: 999px; }
 .eyebrow:empty { display: none; }
@@ -194,6 +195,7 @@ code { background: rgba(59, 15, 58, .08); padding: 1px 5px; border-radius: 4px; 
   .hero-inner { flex-direction: column-reverse; align-items: flex-start; gap: 6px; padding-top: 16px; padding-bottom: 64px; }
   .hero-art { width: min(56%, 220px); align-self: center; }
   .hero-art.small { width: min(44%, 170px); }
+  .hero-art.hero-portrait { width: min(62%, 240px); }
   .lede { font-size: 16px; }
   .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .card-body { padding: 10px 12px 12px; }
