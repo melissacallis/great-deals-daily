@@ -25,6 +25,15 @@ export function sourceName(ref) {
   try { return new URL(h).hostname.replace(/^www\./, ''); } catch { return h.slice(0, 40); }
 }
 
+// Apps open links in their own in-app browser and usually hide where the visitor came from,
+// but each one names itself in the browser's user agent.
+const APPS = [['tiktok', /musical_ly|TikTok|BytedanceWebview|trill/i], ['instagram', /Instagram/], ['facebook', /FBAN|FBAV|FB_IAB/],
+  ['pinterest', /Pinterest/], ['snapchat', /Snapchat/], ['threads', /Barcelona/], ['messenger', /Messenger/]];
+export function appName(ua) {
+  for (const [name, re] of APPS) if (re.test(ua ?? '')) return name;
+  return null;
+}
+
 export async function recordClick(req, params) {
   const ua = req.headers['user-agent'] ?? '';
   if (BOTS.test(ua)) return;
@@ -33,7 +42,7 @@ export async function recordClick(req, params) {
     asin: clean(params.get('a'), 20),
     title: clean(params.get('t'), 80),
     from: clean(params.get('from'), 60),
-    src: sourceName(params.get('s')),
+    src: sourceName(params.get('s')) === 'direct' ? (appName(ua) ?? 'direct') : sourceName(params.get('s')),
     phone: /iphone|android|mobile/i.test(ua),
   };
   try { await mkdir(DATA_DIR, { recursive: true }); await appendFile(FILE, JSON.stringify(row) + '\n'); }
