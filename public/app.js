@@ -133,7 +133,9 @@ function setPageHeader(cat) {
   document.title = `${cat.title} | UBottega`;
   document.querySelector('meta[name="description"]')?.setAttribute('content', cat.intro ?? cat.title);
   const h1 = $('.hero h1');
-  h1.replaceChildren(`${cat.icon} ${cat.title.replace(/ Deals.*$/, '')} `, Object.assign(document.createElement('span'), { className: 'hl', textContent: cat.title.replace(/^Top 50 /, '').replace(/^.*?(Deals.*)$/, '$1') }));
+  // "Top 50 Deals for Her" -> "Top 50 " + highlighted "Deals for Her"; "Top 50 Gifts Under $10" -> "Top 50 " + "Gifts Under $10"
+  const [, plain, hl] = cat.title.match(/^(.*?)((?:Deals|Gifts)\b.*)$/) ?? [null, cat.title, ''];
+  h1.replaceChildren(`${cat.icon} ${plain}`, Object.assign(document.createElement('span'), { className: 'hl', textContent: hl }));
   if (cat.intro) $('.hero .lede').textContent = cat.intro;
 }
 

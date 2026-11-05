@@ -15,7 +15,8 @@ commission on qualifying purchases.
   back on. While it's off, the site makes no Amazon API calls, `/deals` goes to the
   front page, and the search box searches Amazon directly (with your tag)
 - A Top 50 page per list, each with its own link: `/top/her`, `/top/him`, `/top/kids`,
-  `/top/tech`, `/top/home`, `/top/beauty`, `/top/fashion`, `/top/outdoors` (in the ☰ Menu and the chips)
+  `/top/under-10`, `/top/under-25`, `/top/under-50` (price-capped), `/top/tech`, `/top/home`,
+  `/top/beauty`, `/top/fashion`, `/top/outdoors` (in the ☰ Menu and the chips)
 - Product search
 - Tap counting: product links go through `/go/p`, which records the tap (product, page,
   where the visitor came from; no personal data) in `clicks.jsonl` on the volume and forwards to Amazon.

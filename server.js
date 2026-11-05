@@ -170,11 +170,19 @@ function rankTop(lists, size = TOP.size) {
 async function runSearch(search) {
   const items = [];
   for (const itemPage of [1, 2]) {
-    items.push(...await api.searchItems({ ...search, itemPage, itemCount: 10 }));
+    try {
+      items.push(...await api.searchItems({ ...search, itemPage, itemCount: 10 }));
+    } catch (err) {
+      // If Amazon doesn't accept the price cap, search without it; the cap is applied to the results below anyway.
+      if (!search.maxPrice || err.status !== 400) throw err;
+      const { maxPrice, ...rest } = search;
+      items.push(...await api.searchItems({ ...rest, itemPage, itemCount: 10 }));
+    }
     await sleep(1500);
   }
-  return items;
+  return search.maxPrice ? items.filter((it) => it.priceAmount <= search.maxPrice / 100) : items;
 }
+const underCap = (cat, items) => items.filter((it) => it.priceAmount > 0 && it.priceAmount <= cat.maxPrice);
 
 // One search failing (a bad keyword, a hiccup) shouldn't sink the whole refresh; an ineligible account should.
 async function trySearch(search) {
@@ -189,6 +197,8 @@ async function trySearch(search) {
 async function refreshDeals() {
   if (!api) {
     for (const cat of CATEGORIES) store.byCategory[cat.id] = demoDeals(cat.id).slice(0, LIST_SIZE);
+    const everything = Object.values(store.byCategory).flat();
+    for (const cat of CATEGORIES.filter((c) => c.maxPrice)) store.byCategory[cat.id] = rankTop([underCap(cat, everything)], LIST_SIZE);
     store.top = rankTop(Object.values(store.byCategory));
     store.at = Date.now();
     return;
@@ -199,10 +209,14 @@ async function refreshDeals() {
   let announce;
   if (cold) firstData = new Promise((r) => { announce = r; });
   try {
-    for (const cat of CATEGORIES) {
+    const everything = []; // every item found this pass, for the price-cap lists
+    // Price-cap lists go last so they can also pick from everything the other lists found.
+    const ordered = [...CATEGORIES.filter((c) => !c.maxPrice), ...CATEGORIES.filter((c) => c.maxPrice)];
+    for (const cat of ordered) {
       const found = [];
       for (const search of cat.searches) found.push(await trySearch(search));
-      byCategory[cat.id] = rankTop(found, LIST_SIZE);
+      everything.push(...found.flat());
+      byCategory[cat.id] = cat.maxPrice ? rankTop([underCap(cat, everything)], LIST_SIZE) : rankTop(found, LIST_SIZE);
       if (cold && byCategory[cat.id].length) {
         // Publish what we have so far; the full Top 50 fills in as the pass continues.
         Object.assign(store.byCategory, { [cat.id]: byCategory[cat.id] });
@@ -211,6 +225,8 @@ async function refreshDeals() {
       }
     }
     for (const search of POOL_SEARCHES) pool.push(await trySearch(search));
+    // the general deal pool can top up the price-cap lists too
+    for (const cat of CATEGORIES.filter((c) => c.maxPrice)) byCategory[cat.id] = rankTop([byCategory[cat.id], underCap(cat, pool.flat())], LIST_SIZE);
     const top = rankTop([...Object.values(byCategory), ...pool]);
     if (!top.length) throw new Error('Amazon returned no deals for any search.');
     Object.assign(store, { byCategory, top, at: Date.now(), notEligible: false, error: null });

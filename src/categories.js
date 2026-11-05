@@ -3,7 +3,9 @@
 // minSavingPercent keeps only items that are actually discounted.
 // Search index names: https://affiliate-program.amazon.com/creatorsapi/docs/en-us/locale-reference
 // Every search costs 2 API calls per refresh (2 pages of 10), so keep the total modest.
-const s = (searchIndex, keywords, minSavingPercent = 25) => ({ searchIndex, keywords, minSavingPercent });
+const s = (searchIndex, keywords, minSavingPercent = 25, extra = {}) => ({ searchIndex, keywords, minSavingPercent, ...extra });
+// Price-cap lists: maxPrice (dollars) keeps only items at or under the cap. They also draw on every other search.
+const capped = (keywords, max, pct = 20) => s('All', keywords, pct, { maxPrice: max * 100 });
 
 export const CATEGORIES = [
   {
@@ -20,6 +22,21 @@ export const CATEGORIES = [
     id: 'kids', label: 'For Kids', icon: '🧸', title: 'Top 50 Deals for Kids',
     intro: 'Toys, LEGO, games and gifts kids love, marked down from their usual price.',
     searches: [s('ToysAndGames', 'toys'), s('ToysAndGames', 'lego'), s('VideoGames', 'kids'), s('All', 'gifts for kids', 30)],
+  },
+  {
+    id: 'under-10', label: 'Under $10', icon: '💸', title: 'Top 50 Gifts Under $10', maxPrice: 10,
+    intro: 'Stocking stuffers and small gifts, all $10 or less and marked down from their usual price. Set your cap and stick to it.',
+    searches: [capped('stocking stuffers', 10), capped('gifts under 10 dollars', 10)],
+  },
+  {
+    id: 'under-25', label: 'Under $25', icon: '🎁', title: 'Top 50 Gifts Under $25', maxPrice: 25,
+    intro: 'Gifts that look like more, all $25 or less and marked down. Great for coworkers, teachers and white elephant swaps.',
+    searches: [capped('gifts under 25 dollars', 25), capped('white elephant gifts', 25)],
+  },
+  {
+    id: 'under-50', label: 'Under $50', icon: '🛍️', title: 'Top 50 Gifts Under $50', maxPrice: 50,
+    intro: 'Bigger gifts for the people at the top of your list, all $50 or less and marked down from their usual price.',
+    searches: [capped('gifts under 50 dollars', 50)],
   },
   {
     id: 'tech', label: 'Electronics', icon: '🎧', title: 'Top 50 Electronics Deals',

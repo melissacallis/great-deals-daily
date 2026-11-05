@@ -100,9 +100,10 @@ export class CreatorsApi {
     return JSON.parse(text);
   }
 
-  async searchItems({ keywords, searchIndex = 'All', minSavingPercent, sortBy, itemPage = 1, itemCount = 10 }) {
+  async searchItems({ keywords, searchIndex = 'All', minSavingPercent, maxPrice, sortBy, itemPage = 1, itemCount = 10 }) {
     const payload = { keywords, searchIndex, itemPage, itemCount };
     if (minSavingPercent) payload.minSavingPercent = minSavingPercent;
+    if (maxPrice) payload.maxPrice = maxPrice; // in cents, e.g. 2500 = $25
     if (sortBy) payload.sortBy = sortBy;
     const data = await this.call('searchItems', payload);
     return (data.searchResult?.items ?? []).map(normalizeItem).filter(Boolean);
