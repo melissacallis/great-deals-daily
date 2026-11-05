@@ -36,7 +36,8 @@ for h in HIGHLIGHTS:
     cursor = h['at']
 segs.append(dict(id='s4', kind='scroll', src=[cursor, 38.0], secs=round((38.0 - cursor) / 2, 2)))
 segs.append(dict(id='outro', kind='outro', src=[38.0, 38.0], secs=3.4))
-edl = dict(date='11-5', weekday='THU', segments=segs)
+edl = dict(date='11-5', weekday='THU', segments=segs,
+           cta=os.environ.get('CTA', '🔗 Link in bio'), ctaEnd=os.environ.get('CTA_END', '🔗 Link in bio'))  # Pinterest: CTA='👆 Tap to shop'
 json.dump(edl, open(f'{work}/edl.json', 'w'), indent=1)
 
 ov = f'{work}/ov'

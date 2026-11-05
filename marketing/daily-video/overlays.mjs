@@ -16,7 +16,7 @@ html,body{margin:0;width:1080px;height:1920px;background:transparent;overflow:hi
 <svg id="s" width="1080" height="1920" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>
 <script>
 const LOGO = 'data:image/svg+xml;base64,${logo}';
-const edl = { date: ${JSON.stringify(edl.date)}, weekday: ${JSON.stringify(edl.weekday)} };
+const edl = { date: ${JSON.stringify(edl.date)}, weekday: ${JSON.stringify(edl.weekday)}, cta: ${JSON.stringify(edl.cta || '🔗 Link in bio')}, ctaEnd: ${JSON.stringify(edl.ctaEnd || '🔗 Link in bio')} };
 let seed = 1; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647); const j = (a) => (rnd() - .5) * 2 * a;
 const INK = '#3b0f3a', PINK = '#ff3d7f', SUN = '#ffd23f', MINT = '#1fc79a', SKY = '#3fb8ff';
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
@@ -45,7 +45,7 @@ function idle(t) { // info area while scrolling
   s += '<text x="540" y="1500" text-anchor="middle" font-family="P" font-weight="600" font-size="40" fill="#6b4a78">Scrolling today’s Top 50…</text>';
   const k = (t * 1.6) % 1; s += stroke(wob(330, 1560, 330 + 420 * k, 1560, 6, 3), PINK, 10);
   s += sparkle(170 + j(3), 1420 + j(3), 26, SUN) + sparkle(910 + j(3), 1400 + j(3), 20, PINK);
-  s += '<rect x="290" y="1650" width="500" height="96" rx="48" fill="' + INK + '"/><text x="540" y="1713" text-anchor="middle" font-family="P" font-weight="800" font-size="40" fill="#fff">🔗 Link in bio</text>';
+  s += '<rect x="290" y="1650" width="500" height="96" rx="48" fill="' + INK + '"/><text x="540" y="1713" text-anchor="middle" font-family="P" font-weight="800" font-size="40" fill="#fff">' + esc(edl.cta) + '</text>';
   return s;
 }
 function highlight(seg, t) {
@@ -58,7 +58,7 @@ function highlight(seg, t) {
   seg.name.forEach((l, i) => s += '<text x="110" y="' + (1440 + i * 74) + '" font-family="P" font-weight="800" font-size="60" fill="' + INK + '">' + esc(l) + '</text>');
   s += '<text x="110" y="' + (1440 + seg.name.length * 74 + 20) + '" font-family="P" font-weight="600" font-size="38" fill="#6b4a78">' + esc(seg.note) + '</text>';
   s += '</g>';
-  s += '<g opacity="' + e + '"><rect x="290" y="1770" width="500" height="90" rx="45" fill="' + INK + '"/><text x="540" y="1830" text-anchor="middle" font-family="P" font-weight="800" font-size="38" fill="#fff">🔗 Link in bio</text></g>';
+  s += '<g opacity="' + e + '"><rect x="290" y="1770" width="500" height="90" rx="45" fill="' + INK + '"/><text x="540" y="1830" text-anchor="middle" font-family="P" font-weight="800" font-size="38" fill="#fff">' + esc(edl.cta) + '</text></g>';
   const k = pop(t - .7); if (k) s += '<g transform="translate(905 1600) rotate(' + (10 + j(1.5)) + ') scale(' + k + ')">' + burst(0, 0, 105, PINK) + '<text x="0" y="-6" text-anchor="middle" font-family="P" font-weight="800" font-size="56" fill="#fff">' + esc(seg.off) + '</text><text x="0" y="40" text-anchor="middle" font-family="P" font-weight="800" font-size="30" fill="#fff">OFF</text></g>';
   // boiling circle around the price, drawn once the zoom has landed
   if (seg.ring && t > seg.ringAt && t < seg.secs - .5) {
@@ -72,7 +72,7 @@ function outro(seg, t) {
   const e = ease(t / .4); let s = '<rect x="0" y="300" width="1080" height="1620" fill="rgba(59,15,58,' + (.75 * e) + ')"/>';
   s += '<g opacity="' + e + '"><image href="' + LOGO + '" x="340" y="420" width="400" height="400"/>';
   s += '<text x="540" y="960" text-anchor="middle" font-family="P" font-weight="800" font-size="72" fill="#fff">See all 50 deals</text>';
-  s += '<text x="540" y="1050" text-anchor="middle" font-family="P" font-weight="800" font-size="60" fill="' + SUN + '">🔗 Link in bio</text>';
+  s += '<text x="540" y="1050" text-anchor="middle" font-family="P" font-weight="800" font-size="60" fill="' + SUN + '">' + esc(edl.ctaEnd) + '</text>';
   s += '<text x="540" y="1150" text-anchor="middle" font-family="P" font-weight="600" font-size="36" fill="#fff">Prices change fast: check today’s price</text>';
   s += sparkle(250 + j(3), 520 + j(3), 30, SUN) + sparkle(840 + j(3), 760 + j(3), 24, PINK) + '</g>';
   return s;

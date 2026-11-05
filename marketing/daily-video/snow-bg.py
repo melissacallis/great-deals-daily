@@ -1,10 +1,12 @@
 # Snowy background for the Instagram Reel: the pink gradient (or the cover image for the first seconds)
-# with falling snow, written straight to a video. python snow-bg.py <cover.png> <cover_secs> <total_secs> <out.mp4>
+# with falling snow, written straight to a video. python snow-bg.py <cover.png> <cover_secs> <total_secs> <out.mp4> [WxH]
+# Size defaults to 1080x1920 (Reels/TikTok); use 1000x1500 for Pinterest.
 import math, random, subprocess, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 cover_f, cover_secs, total, out = sys.argv[1], float(sys.argv[2]), float(sys.argv[3]), sys.argv[4]
-W, H, FPS = 1080, 1920, 30
+W, H = map(int, (sys.argv[5] if len(sys.argv) > 5 else '1080x1920').split('x'))
+FPS = 30
 rnd = random.Random(11)
 # gradient matching the cover: pink at the top-left to coral at the bottom
 yy, xx = np.mgrid[0:H, 0:W]
