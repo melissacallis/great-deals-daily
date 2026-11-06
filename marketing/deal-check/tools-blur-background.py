@@ -1,6 +1,7 @@
 # Blurs the room behind the owner in a webcam video (MediaPipe selfie segmenter run with LiteRT), keeps her sharp,
 # trims black borders and keeps the original audio.
-# python tools-blur-background.py <video> <model.tflite> <out.mp4> [blur strength, default 35] [keep-chair: 1 or x0,y0,x1,y1]
+# python tools-blur-background.py <video> <model.tflite> <out.mp4> [blur strength, default 35] [keep-chair: 1 | x0,y0,x1,y1 | outline JSON]
+# The outline is a JSON list of polygons ([[x,y],...]) traced around the chair in the trimmed picture: best when the camera doesn't move.
 # With keep-chair, the dark office chair touching her (behind and beside her) stays sharp too.
 import sys, subprocess, re, numpy as np, cv2
 from ai_edge_litert.interpreter import Interpreter
@@ -8,7 +9,8 @@ src, model, out = sys.argv[1:4]
 STRENGTH = float(sys.argv[4]) if len(sys.argv) > 4 else 35
 KEEP_CHAIR = len(sys.argv) > 5 and sys.argv[5] not in ('', '0')
 # optional box (in the trimmed picture's pixels) the chair sits in, so dark shadows next to it stay blurred
-CHAIR_BOX = tuple(int(v) for v in sys.argv[5].split(',')) if KEEP_CHAIR and ',' in sys.argv[5] else None
+CHAIR_POLYS = __import__('json').loads(sys.argv[5]) if KEEP_CHAIR and sys.argv[5].startswith('[') else None
+CHAIR_BOX = tuple(int(v) for v in sys.argv[5].split(',')) if KEEP_CHAIR and not CHAIR_POLYS and ',' in sys.argv[5] else None
 
 # find black borders around the picture
 det = subprocess.run(['ffmpeg', '-i', src, '-t', '3', '-vf', 'cropdetect=limit=24:round=2:reset=0', '-f', 'null', '-'], capture_output=True, text=True).stderr
@@ -25,7 +27,7 @@ dec = subprocess.Popen(['ffmpeg', '-v', 'error', '-i', src, '-vf', f'crop={W}:{H
 enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', fps, '-i', '-', '-i', src,
                         '-map', '0:v', '-map', '1:a?', '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p',
                         '-c:a', 'aac', '-b:a', '160k', '-shortest', out], stdin=subprocess.PIPE)
-prev, n = None, 0
+prev, prev_chair, n = None, None, 0
 while True:
     buf = dec.stdout.read(W * H * 3)
     if len(buf) < W * H * 3: break
@@ -38,7 +40,13 @@ while True:
     if n_lab > 2:   # keep only the biggest person shape
         keep = cv2.dilate((lab == 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))).astype(np.uint8), np.ones((15, 15), np.uint8))
         m = m * cv2.GaussianBlur(keep.astype(np.float32), (15, 15), 0)
-    if KEEP_CHAIR:
+    if CHAIR_POLYS:   # traced outline: steady and exact for a fixed camera
+        if n == 0:
+            static_chair = np.zeros((H, W), np.float32)
+            for poly in CHAIR_POLYS: cv2.fillPoly(static_chair, [np.array(poly, np.int32)], 1)
+            static_chair = cv2.GaussianBlur(static_chair, (0, 0), 1.5)
+        m = np.maximum(m, static_chair)
+    elif KEEP_CHAIR:
         # the chair: dark, low-colour pixels in one piece that touches her outline (so dark things elsewhere stay blurred)
         hsv = cv2.cvtColor(frame, cv2.COLOR_RGB2HSV)
         dark = ((hsv[..., 2] < 70) & (hsv[..., 1] < 110)).astype(np.uint8)
@@ -52,9 +60,14 @@ while True:
         chair = np.zeros((H, W), np.float32)
         for i in range(1, n_lab):
             if stats[i, cv2.CC_STAT_AREA] > W * H * 0.01 and (near & (lab == i)).any():
-                chair[lab == i] = 1
-        chair = cv2.morphologyEx(chair, cv2.MORPH_CLOSE, np.ones((21, 21), np.uint8))
-        m = np.maximum(m, cv2.GaussianBlur(chair, (0, 0), 3))
+                # fill the whole outline of each chair piece, so shiny highlights and edges stay sharp too
+                pts = cv2.findNonZero((lab == i).astype(np.uint8))
+                cv2.fillConvexPoly(chair, cv2.convexHull(pts), 1)
+        if CHAIR_BOX: chair *= box
+        chair = cv2.dilate(chair, np.ones((5, 5), np.uint8))
+        chair_mask = chair if prev_chair is None else np.maximum(chair, prev_chair * 0.85)   # don't flicker
+        prev_chair = chair_mask
+        m = np.maximum(m, cv2.GaussianBlur(chair_mask, (0, 0), 1.5))
     prev = m if prev is None else prev * 0.45 + m * 0.55      # steady the edge between frames
     # strong blur of the room: blur a small copy (fast and smooth), then scale back up
     small = cv2.resize(frame, (W // 4, H // 4), interpolation=cv2.INTER_AREA)
