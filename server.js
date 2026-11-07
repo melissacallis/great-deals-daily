@@ -230,6 +230,7 @@ async function refreshDeals() {
     const top = rankTop([...Object.values(byCategory), ...pool]);
     if (!top.length) throw new Error('Amazon returned no deals for any search.');
     Object.assign(store, { byCategory, top, at: Date.now(), notEligible: false, error: null });
+    saveDealCache();
     console.log(`Refreshed deals: ${store.top.length} in Top 50; ${CATEGORIES.map((c) => `${c.id} ${byCategory[c.id].length}`).join(', ')}`);
   } catch (err) {
     store.notEligible = err.reason === 'AssociateNotEligible';
@@ -243,7 +244,26 @@ async function refreshDeals() {
   }
 }
 
-function ensureFresh() {
+// The latest deals are saved on the volume, so after a restart (every deploy) pages show them right away
+// instead of "No deals found" while the first refresh runs (about 3-4 minutes).
+const DEAL_CACHE = path.join(path.dirname(UPLOADS_DIR), 'deals-cache.json');
+function saveDealCache() {
+  writeFile(DEAL_CACHE, JSON.stringify({ at: store.at, top: store.top, byCategory: store.byCategory }))
+    .catch((err) => console.error('Could not save the deals cache:', err.message));
+}
+async function loadDealCache() {
+  try {
+    const saved = JSON.parse(await readFile(DEAL_CACHE, 'utf8'));
+    if (!store.at && saved.top?.length && Date.now() - saved.at < 2 * 86_400_000) {
+      Object.assign(store, { top: saved.top, byCategory: saved.byCategory ?? {}, at: saved.at });
+      console.log(`Loaded saved deals from ${new Date(saved.at).toISOString()} while fresh ones load.`);
+    }
+  } catch {}
+}
+const dealCacheReady = api ? loadDealCache() : Promise.resolve();
+
+async function ensureFresh() {
+  await dealCacheReady;
   const stale = Date.now() - store.at > CACHE_MINUTES * 60_000
     && Date.now() - store.failedAt > 10 * 60_000; // after a failure, wait 10 minutes before retrying
   if (stale && !refreshing) refreshing = refreshDeals().finally(() => { refreshing = null; });
