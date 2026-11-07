@@ -10,7 +10,7 @@ const DATA_DIR = process.env.DATA_DIR ?? process.env.RAILWAY_VOLUME_MOUNT_PATH ?
 const FILE = path.join(DATA_DIR, 'clicks.jsonl');
 
 const AMAZON_HOSTS = /^(www\.)?amazon\.com$|^amzn\.to$|^a\.co$/;
-const BOTS = /bot|crawl|spider|preview|facebookexternalhit|slurp|headless|python|curl|wget|scanner/i;
+const BOTS = /bot|crawl|spider|preview|facebookexternalhit|slurp|headless|python|curl|wget|scanner|googleother|google-inspectiontool|heritrix|archive|fetch|monitor|checker/i;
 
 // Only Amazon links may be forwarded (otherwise /go/p could send people anywhere).
 export function amazonTarget(u) {
