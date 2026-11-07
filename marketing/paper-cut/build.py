@@ -1,10 +1,14 @@
 # Paper-cut daily deals video from a screen recording (browser in the top-left 480x480 of the recording).
 # Starts zoomed on the address bar, scrolls at 3x, freezes and zooms on each highlighted deal with a paper ring
 # around the price and a paper header card at the bottom. Sound effects only (paper, snips, tape), no music.
-# python build.py <recording> <work dir> <out prefix> <fontDir> <python with numpy>
+# python build.py <recording> <work dir> <out prefix> <fontDir> [talking intro clip]
+# The optional intro clip (her talking, portrait) opens the video in a tall paper window with cut-paper captions;
+# its voice is kept. Captions: INTRO_CAPTIONS env, JSON [[start, end, text], ...] in clip seconds.
 # Writes <out prefix>-tiktok.mp4 / -instagram.mp4 (1080x1920) and -pinterest.mp4 (1000x1500).
 import json, os, subprocess, sys
 src, work, out, font_dir = sys.argv[1:5]
+intro = sys.argv[5] if len(sys.argv) > 5 else None
+INTRO = (0.6, 13.2)  # part of the intro clip to use
 here = os.path.dirname(os.path.abspath(__file__))
 os.makedirs(work, exist_ok=True)
 FPS = 30
@@ -23,7 +27,12 @@ def view(cx, cy, z, sw=SW, sh=SH):
     w, h = sw / z, sh / z
     return min(max(cx - w / 2, 0), sw - w), min(max(cy - h / 2, 0), sh - h), w, h
 
-segs = [dict(id='intro', kind='addr', src=[4.0, 8.7], secs=4.7, crop=(480, 423, 0, 0), zoom=dict(cx=97, cy=30, z=3.4, start=.2, end=1.6))]
+segs = []
+if intro:
+    a0, a1 = INTRO
+    caps = [[x - a0, y - a0, txt] for x, y, txt in json.loads(os.environ.get('INTRO_CAPTIONS', '[]'))]
+    segs.append(dict(id='talk', kind='talk', src=[a0, a1], secs=round(a1 - a0, 2), win=[140, 330, 800, 1066], captions=caps, capY=1470))
+segs += [dict(id='intro', kind='addr', src=[4.0, 8.7], secs=4.7, crop=(480, 423, 0, 0), zoom=dict(cx=97, cy=30, z=3.4, start=.2, end=1.6))]
 scrolls = [(8.7, 20.0), (20.0, 28.0), (28.0, 40.0), (63.5, 70.0)]
 for (a, b), h in zip(scrolls, HIGH):
     segs.append(dict(id=f's{h["n"]}', kind='scroll', src=[a, b], secs=round((b - a) / 3, 2)))
@@ -44,6 +53,13 @@ def render(variant, cta, cta_end):
     for seg in segs:
         o = f"{vw}/{seg['id']}.mp4"; a, b = seg['src']; secs = seg['secs']
         cw, ch, cxo, cyo = seg.get('crop', (SW, SH, 0, SY))
+        if seg['kind'] == 'talk':
+            wx, wy, ww, wh = seg['win']
+            fc = (f"[0:v]setpts=PTS-STARTPTS,fps={FPS},scale=720:1280,crop=720:960:0:90,scale={ww}:{wh}:flags=lanczos[p];color=c=0xe9d3b4:s=1080x1920:r={FPS}:d={secs:.3f}[bg];"
+                  f"[bg][p]overlay={wx}:{wy}:shortest=1[base];[1:v]format=rgba[ov];[base][ov]overlay=0:0:eof_action=repeat,trim=0:{secs:.3f},format=yuv420p[v]")
+            subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', f'{a:.2f}', '-t', f'{secs:.2f}', '-i', intro, '-framerate', '12', '-i', f"{vw}/ov/{seg['id']}/%04d.png",
+                            '-filter_complex', fc, '-map', '[v]', '-an', '-r', str(FPS), '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', o], check=True)
+            parts.append(o); events += [('pop', t + .1)]; t += secs; continue
         if seg['kind'] in ('highlight', 'outro'):
             frame = f"{vw}/{seg['id']}.png"
             subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', f'{a:.2f}', '-i', src, '-frames:v', '1', frame], check=True)
@@ -96,11 +112,20 @@ def sfx_files():
 
 def mix(video, events, total, out_file):
     ins, fl = [], []
+    voice = None
+    if intro:
+        voice = len(events) + 1
+        a0, a1 = INTRO
+        ins_v = ['-ss', f'{a0:.2f}', '-t', f'{a1 - a0:.2f}', '-i', intro]
     for i, (k, at) in enumerate(events):
         ins += ['-i', f'{work}/{k}.wav']; ms = max(0, int(at * 1000))
         vol = {'rustle': .55, 'tick': .5, 'tape': .5}.get(k, .8)
         fl.append(f"[{i + 1}:a]aformat=sample_rates=48000:channel_layouts=stereo,volume={vol},adelay={ms}|{ms}[e{i}]")
-    fl.append(''.join(f'[e{i}]' for i in range(len(events))) + f"amix=inputs={len(events)}:normalize=0:duration=longest,apad=whole_dur={total:.2f},atrim=0:{total:.2f},alimiter=limit=0.9[a]")
+    n_in = len(events)
+    if voice:
+        ins += ins_v
+        fl.append(f"[{voice}:a]aformat=sample_rates=48000:channel_layouts=stereo,highpass=f=80,afftdn=nf=-25,loudnorm=I=-15:TP=-1.5,aresample=48000[vo]")
+    fl.append(''.join(f'[e{i}]' for i in range(n_in)) + ('[vo]' if voice else '') + f"amix=inputs={n_in + (1 if voice else 0)}:normalize=0:duration=longest,apad=whole_dur={total:.2f},atrim=0:{total:.2f},alimiter=limit=0.9[a]")
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', video, *ins, '-filter_complex', ';'.join(fl), '-map', '0:v', '-map', '[a]',
                     '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-shortest', '-movflags', '+faststart', out_file], check=True)
 

@@ -54,9 +54,9 @@ function cutWord(text, x, y, size, colours, b) {
   return s;
 }
 
-function backdrop(b) { // all the paper around the browser window, with a torn hole for it
+function backdrop(b, win) { // all the paper around the browser window, with a torn hole for it
   seed = 77 + b; let s = '';
-  const { PX, PY, PW, PH } = E;
+  const [PX, PY, PW, PH] = win || [E.PX, E.PY, E.PW, E.PH];
   const hole = tornRect(PX + 6, PY + 6, PW - 12, PH - 12, 3, 30);
   s += '<defs><mask id="win"><rect width="1080" height="1920" fill="#fff"/><path d="' + P(hole) + '" fill="#000"/></mask></defs>';
   s += '<g mask="url(#win)"><rect width="1080" height="1920" fill="' + KRAFT + '"/><rect width="1080" height="1920" fill="url(#grain)" opacity=".7"/>';
@@ -75,7 +75,7 @@ function backdrop(b) { // all the paper around the browser window, with a torn h
 }
 function header(b) {
   let s = '<image href="' + LOGO + '" x="' + (24 + j(1)) + '" y="' + (36 + j(1)) + '" width="190" height="190" filter="url(#sh)"/>';
-  s += cutWord('TOP DEALS', 236, 132, 92, [CREAM, SUN, '#fff', MINT, SKY, CREAM, SUN, '#fff', MINT], b);
+  s += cutWord('TOP DEALS', 230, 128, 78, [CREAM, SUN, '#fff', MINT, SKY, CREAM, SUN, '#fff', MINT], b);
   seed = 600 + b;
   s += '<g transform="translate(250 205) rotate(' + (-2 + j(.6)) + ')">' + sheet(tornRect(0, -38, 450, 66, 2.5, 10), INK) + '<text x="22" y="10" font-family="P" font-weight="800" font-size="36" fill="#fff">on Amazon today</text></g>';
   // date tag on a string
@@ -115,6 +115,20 @@ function highlight(seg, t, b) {
   // little scissors cut-out near the ring
   return s;
 }
+function captions(seg, t, b) { // her words as cut-paper strips across the bottom of her window
+  const c = (seg.captions || []).find((x) => t >= x[0] && t < x[1]); if (!c) return '';
+  const k = step((t - c[0]) / .25, 3); seed = 1700 + Math.round(c[0] * 10) + b;
+  const words = c[2].split(' '); const lines = []; let line = '';
+  for (const w of words) { if ((line + ' ' + w).trim().length > 18 && line) { lines.push(line); line = w; } else line = (line + ' ' + w).trim(); }
+  lines.push(line);
+  let s = '', y = seg.capY - (lines.length - 1) * 92;
+  lines.forEach((l, i) => {
+    const w = l.length * 34 + 70, rot = (i % 2 ? 1.5 : -1.5) + j(.6), bg = [SUN, '#fff', PINK, MINT][(Math.round(c[0]) + i) % 4];
+    s += '<g transform="translate(540 ' + (y + i * 92) + ') rotate(' + rot + ') scale(' + (.6 + .4 * k) + ')">' + sheet(tornRect(-w / 2, -50, w, 88, 3, 10), bg)
+       + '<text x="0" y="14" text-anchor="middle" font-family="P" font-weight="800" font-size="56" fill="' + INK + '">' + esc(l) + '</text></g>';
+  });
+  return s;
+}
 function outro(t, b) {
   const k = step(t / .5); seed = 1300 + b; const { PX, PY, PW, PH } = E;
   let s = '<g transform="translate(0 ' + ((1 - k) * 1400) + ')">' + sheet(tornRect(PX - 10, PY - 10, PW + 20, PH + 20, 6, 30), CREAM);
@@ -124,7 +138,8 @@ function outro(t, b) {
   return s + '</g>';
 }
 window.render = (seg, t, b) => {
-  let s = backdrop(b) + header(b);
+  let s = backdrop(b, seg.win) + header(b);
+  if (seg.kind === 'talk') s += captions(seg, t, b);
   if (seg.kind === 'addr') s += note('Where I find today’s deals', 'Real markdowns, checked daily', t, b);
   if (seg.kind === 'scroll') s += note('Scrolling today’s Top 50…', E.cta, t, b) + ffwd(t, b);
   if (seg.kind === 'highlight') s += highlight(seg, t, b);
