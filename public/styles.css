@@ -80,7 +80,9 @@ code { background: rgba(59, 15, 58, .08); padding: 1px 5px; border-radius: 4px; 
 .hero-copy { max-width: 620px; }
 .hero-art { width: min(44%, 480px); height: auto; flex-shrink: 0; filter: drop-shadow(0 18px 30px rgba(59, 15, 58, .25)); animation: float 6s ease-in-out infinite; }
 .hero-art.small { width: min(34%, 340px); }
-.hero-art.hero-portrait { width: min(38%, 400px); border-radius: 50%; }
+.hero-art.hero-portrait { width: min(38%, 400px); border-radius: 50%; animation: coin-flip 1.4s cubic-bezier(.2, .7, .3, 1) both, float 6s ease-in-out 1.4s infinite; }
+/* The portrait spins once like a coin when the page opens, then floats. */
+@keyframes coin-flip { from { transform: perspective(900px) rotateY(-360deg) scale(.85); } to { transform: perspective(900px) rotateY(0) scale(1); } }
 @keyframes float { 50% { transform: translateY(-10px) rotate(-1deg); } }
 .eyebrow { display: inline-block; color: var(--plum); background: var(--sun); text-transform: uppercase; font-weight: 800; letter-spacing: .08em; font-size: 12px; margin: 0 0 14px; padding: 6px 12px; border-radius: 999px; }
 .eyebrow:empty { display: none; }
@@ -182,7 +184,7 @@ code { background: rgba(59, 15, 58, .08); padding: 1px 5px; border-radius: 4px; 
 .site-footer strong { color: #fff; }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-art { animation: none; }
+  .hero-art, .hero-art.hero-portrait { animation: none; }
   .card, .pick, .chip, .cta, .card-img img { transition: none; }
 }
 
