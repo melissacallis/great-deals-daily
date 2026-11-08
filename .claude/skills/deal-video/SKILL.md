@@ -98,7 +98,14 @@ all cards fan out at the end, "LINK IN BIO" sticker when she says it, date tag o
    `python marketing/hand-cards/palm_video.py config.json`. Check frames at every card time.
 Pillow fonts have no emoji: keep on-video text plain ("LINK IN BIO", "UNDER $10").
 
-## 6. Work in progress: next-level motion
+## 6. Effects menu
+
+`effects.md` (next to this file) lists 16 effects the owner wants available (orbit, couch wall, UI world,
+frame break, digital zoom, phone mockup, checklist, headline wall, zoom-through cut, chart grow, pull-back
+reveal, green screen, paper cut, doodle boil, vertigo, cover story), how to build each, and which exist.
+When she asks for an effect by name, read it, build or reuse it, and mark it ✅ there once it works.
+
+## 7. Work in progress: next-level motion
 
 The owner wants more motion and sharper close-ups:
 - **Pop-out cards**: a deal card peels off the page in 3D, comes to the front (page blurs/dims),
