@@ -10,7 +10,7 @@ Status: ✅ built and used · 🟡 partly there (same parts exist) · ⬜ not bu
 | # | Effect | What it looks like | How we build it | Deals idea |
 |---|---|---|---|---|
 | 1 | **Orbit** 🟡 | Small photo/video cards circle around her; behind her on the far side, in front on the near side | Cards on an elliptical path; draw the far half before compositing her cutout, the near half after | Today's 5 deals orbiting her head while she says "these are flying off the shelf" |
-| 2 | **Couch wall** ⬜ | Pictures pinned on the wall behind her, popping on one by one | Place card PNGs (with tape) into the background layer, behind the cutout; slight perspective | Gift ideas "pinned" on her wall like a mood board |
+| 2 | **Couch wall** ✅ | Pictures pinned on the wall behind her, popping on one by one | `marketing/hand-cards/couch_wall.py config.json`: pins (card, label, % off, time, x, y, h, rot) taped onto the real wall, her matte drawn on top. Put pins in open wall space (ceiling, sides); cards right behind her head mostly disappear | Gift ideas "pinned" on her wall like a mood board |
 | 3 | **UI world** ⬜ | She appears inside an app screen (chat box typing a prompt) | Render a UI frame in Playwright (our site, or a chat bubble), put her video in its window, type text | Her inside the ubottega.com page, typing a search |
 | 4 | **Frame break** 🟡 | She's in a phone/picture frame, and part of her steps out over the frame edge | Frame drawn over the video, then her cutout drawn again on top only where it crosses the frame edge | "Breaking out" of a deal card / the site frame |
 | 5 | **Digital zoom** ✅ | Sharp punch-in zooms on key words, with a blur flash | zoompan / scale with easing; whip-blur on the cut | Punch in on her face at "79% off!" |
