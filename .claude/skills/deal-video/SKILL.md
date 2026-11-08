@@ -81,7 +81,24 @@ the scroll ranges and DATE/WEEKDAY. Find price positions by grabbing the frame w
   a caption per platform (TikTok/IG caption with hashtags; Pinterest title + description + link
   `https://www.ubottega.com/` + board).
 
-## 5. Work in progress: next-level motion
+## 5. Palm video ("deals in my hand"), approved 11-8
+
+She talks to camera (phone, upright, waist up); she is cut out and placed in front of her **live site
+scrolling** behind her; deal cards lift off the page and land on her **open palm** as she names them,
+all cards fan out at the end, "LINK IN BIO" sticker when she says it, date tag on top. Her voice + effects.
+1. `ffmpeg -i clip -vf fps=30 … src.mp4`; transcript with `asr-words.py` to find when she names each deal.
+2. `python marketing/hand-cards/hand_track.py src.mp4 $S/model/hand track.json preview.mp4`
+   (model: MediaPipe `hand_landmarker.task` unzipped into `$S/model/hand`). Summarise `open` per second
+   and look at the preview to find open-palm moments; match them to the words.
+3. Cards from the live site: `COMPACT=1 sh marketing/hand-cards/live_cards.sh <dir> her him under-10 tech home`
+   (needs the "great-deals-daily" environment, which allows www.ubottega.com + m.media-amazon.com).
+   Swap any card that doesn't fit the label (e.g. a book as "for him") with `card_render.mjs <url> <dir> 1 <skip>`.
+4. Background: `node marketing/hand-cards/site_scroll.mjs https://www.ubottega.com/ site.png`.
+5. Write a config (video, track, site, cards with label/in/out, fan in/out, cta_at, date) and run
+   `python marketing/hand-cards/palm_video.py config.json`. Check frames at every card time.
+Pillow fonts have no emoji: keep on-video text plain ("LINK IN BIO", "UNDER $10").
+
+## 6. Work in progress: next-level motion
 
 The owner wants more motion and sharper close-ups:
 - **Pop-out cards**: a deal card peels off the page in 3D, comes to the front (page blurs/dims),
