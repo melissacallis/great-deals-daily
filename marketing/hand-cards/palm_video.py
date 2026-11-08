@@ -49,6 +49,17 @@ def sprite(img, h, angle, alpha=1.0, shadow=1.0):
     sh = sh.filter(ImageFilter.GaussianBlur(pad / 2.5)); sh.alpha_composite(s, (pad, pad))
     return sh.rotate(-angle, resample=Image.BICUBIC, expand=True)
 
+def burst(off, r, rot):
+    # big discount starburst: pink star with white outline, "-61%" and "OFF"
+    size = int(r * 2.4); im = Image.new('RGBA', (size, size), (0, 0, 0, 0)); d = ImageDraw.Draw(im); c = size / 2
+    pts = [(c + math.cos(i * math.pi / 12) * (r if i % 2 == 0 else r * .8), c + math.sin(i * math.pi / 12) * (r if i % 2 == 0 else r * .8)) for i in range(24)]
+    d.polygon([(x + r * .05, y + r * .08) for x, y in pts], fill=(40, 10, 30, 90))
+    d.polygon(pts, fill=PINK + (255,), outline=(255, 255, 255), width=max(3, int(r * .07)))
+    f1, f2 = FONT(int(r * .62)), FONT(int(r * .32))
+    w1 = f1.getlength(off); d.text((c - w1 / 2, c - r * .55), off, font=f1, fill=(255, 255, 255))
+    w2 = f2.getlength('OFF'); d.text((c - w2 / 2, c + r * .12), 'OFF', font=f2, fill=SUN)
+    return im.rotate(rot, resample=Image.BICUBIC, expand=True)
+
 def ease_out_back(x, c=1.6):
     x = min(1, max(0, x)); return 1 + (c + 1) * (x - 1) ** 3 + c * (x - 1) ** 2
 def ease_in(x): x = min(1, max(0, x)); return x * x * x
@@ -76,7 +87,7 @@ enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_f
 prev_m, n = None, 0
 date_tag = None
 events = []
-for c in cards: events += [('whoosh', c['in'] - T0), ('pop', c['in'] - T0 + .45), ('swish', c['out'] - T0)]
+for c in cards: events += [('whoosh', c['in'] - T0), ('pop', c['in'] - T0 + .45), ('ding', c['in'] - T0 + .5), ('swish', c['out'] - T0)]
 if C.get('fan'): events += [('whoosh', C['fan']['in'] - T0), ('pop', C['fan']['in'] - T0 + .6), ('swish', C['fan']['out'] - T0)]
 while True:
     buf = dec.stdout.read(W * H * 3)
@@ -110,6 +121,11 @@ while True:
             pos = pos + np.array([0, math.sin(t * 2.6) * h * .012])
         sp = sprite(c['im'], hh, ang, al)
         img.alpha_composite(sp, (int(pos[0] - sp.width / 2), int(pos[1] - sp.height / 2)))
+        if c.get('off') and to <= 0 and ti > .4:
+            k = ease_out_back((ti - .4) / .35, 2.2)
+            r = h * .19 * max(.01, k); bx = pos[0] + hh * .3 * (1 if pos[0] < W * .62 else -1); by = pos[1] - hh * .42
+            b = burst(c['off'], r, 12 * (1 if bx > pos[0] else -1) + math.sin(t * 4) * 3)
+            img.alpha_composite(b, (int(bx - b.width / 2), int(by - b.height / 2)))
 
     # all cards fanned in front of her
     if C.get('fan') and C['fan']['in'] <= t <= C['fan']['out'] + .7:
@@ -131,8 +147,9 @@ while True:
     d = ImageDraw.Draw(img)
     # date tag, top
     f1 = FONT(50); txt = f"TOP DEALS TODAY · {C['date']}"; tw = f1.getlength(txt)
-    d.rounded_rectangle((W / 2 - tw / 2 - 34, 120, W / 2 + tw / 2 + 34, 210), radius=45, fill=INK + (235,))
-    d.text((W / 2 - tw / 2, 133), txt, font=f1, fill=SUN)
+    ty = C.get('tag_y', 120)
+    d.rounded_rectangle((W / 2 - tw / 2 - 34, ty, W / 2 + tw / 2 + 34, ty + 90), radius=45, fill=INK + (235,))
+    d.text((W / 2 - tw / 2, ty + 13), txt, font=f1, fill=SUN)
     # call to action sticker
     if C.get('cta_at') and C['cta_at'][0] <= t <= C['cta_at'][1]:
         k = ease_out_back((t - C['cta_at'][0]) / .4); f2 = FONT(int(64 * min(1.1, k)) or 1); txt = C['cta']; tw = f2.getlength(txt)
@@ -150,14 +167,18 @@ def save(name, x):
     with wave.open(f"{C['out']}.{name}.wav", 'wb') as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes((x * 32767).astype('<i2').tobytes())
 T = lambda d: np.arange(int(d * sr)) / sr
+t_ = T(.8); save('ding', (np.sin(2 * np.pi * 1318 * t_) + .6 * np.sin(2 * np.pi * 1975 * t_)) * np.exp(-6 * t_))
 t_ = T(.25); save('pop', np.sin(2 * np.pi * (900 - 2800 * t_) * t_) * np.exp(-22 * t_))
 t_ = T(.35); nz = np.diff(rng.standard_normal(len(t_)), prepend=0); save('swish', np.convolve(nz, np.ones(8) / 8, 'same') * np.sin(np.pi * t_ / .35) ** 2)
 ins, fl = ['-i', tmp_video, '-ss', str(T0), '-t', str(DUR), '-i', C['video']], []
 for i, (k, at) in enumerate(events):
     ins += ['-i', C['whoosh'] if k == 'whoosh' else f"{C['out']}.{k}.wav"]; ms = max(0, int(at * 1000))
-    fl.append(f"[{i + 2}:a]aformat=sample_rates=48000:channel_layouts=stereo,volume={.35 if k == 'whoosh' else .5},adelay={ms}|{ms}[e{i}]")
+    fl.append(f"[{i + 2}:a]aformat=sample_rates=48000:channel_layouts=stereo,volume={ {'whoosh': .35, 'ding': .3}.get(k, .5) },adelay={ms}|{ms}[e{i}]")
 fl.append("[1:a]aformat=sample_rates=48000:channel_layouts=stereo,highpass=f=80,afftdn=nf=-25,loudnorm=I=-15:TP=-1.5,aresample=48000[vo]")
 fl.append('[vo]' + ''.join(f'[e{i}]' for i in range(len(events))) + f"amix=inputs={len(events) + 1}:normalize=0:duration=first,alimiter=limit=0.95[a]")
-subprocess.run(['ffmpeg', '-v', 'error', '-y', *ins, '-filter_complex', ';'.join(fl), '-map', '0:v', '-map', '[a]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k',
+vcodec = ['-c:v', 'copy']
+if C.get('pinterest'):   # 2:3 for Pinterest: keep y 140-1760, scale to 1000x1500
+    fl.append('[0:v]crop=1080:1620:0:140,scale=1000:1500:flags=lanczos[pv]'); vcodec = ['-c:v', 'libx264', '-preset', 'medium', '-crf', '18']
+subprocess.run(['ffmpeg', '-v', 'error', '-y', *ins, '-filter_complex', ';'.join(fl), '-map', '[pv]' if C.get('pinterest') else '0:v', '-map', '[a]', *vcodec, '-c:a', 'aac', '-b:a', '160k',
                 '-shortest', '-movflags', '+faststart', C['out']], check=True)
 print(C['out'], f'{n} frames')
