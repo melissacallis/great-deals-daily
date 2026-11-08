@@ -53,7 +53,7 @@ function renderCard(item) {
 
   node.querySelector('.price').textContent = item.price;
   const list = node.querySelector('.list');
-  if (item.listPrice) list.textContent = `${item.listPriceLabel}: ${item.listPrice}`; else list.remove();
+  if (item.listPrice) list.textContent = `${String(item.listPriceLabel).replace(/:\s*$/, "")}: ${item.listPrice}`; else list.remove(); // Amazon labels often end in ":" already
   const save = node.querySelector('.save');
   if (item.savingsAmount > 0) save.textContent = `You save ${item.savingsDisplay ?? `$${item.savingsAmount.toFixed(2)}`}`; else save.remove();
 

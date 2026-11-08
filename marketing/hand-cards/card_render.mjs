@@ -12,6 +12,15 @@ await p.goto(url, { waitUntil: 'networkidle' });
 await p.waitForSelector('#grid .card');
 // clean card for video: no hover lift or page shadow
 await p.addStyleTag({ content: '.card{transform:none!important;box-shadow:none!important} body{background:transparent!important}' });
+// compact video card (COMPACT=1): photo, name, price, savings; no button or countdown; same height for every card
+if (process.env.COMPACT) await p.addStyleTag({ content: `
+  #grid { display: block !important; width: 228px !important; } #grid .card { margin-bottom: 24px; }
+  .card, .card-link, .card-body { height: auto !important; min-height: 0 !important; }
+  .card-body { gap: 6px !important; } .card .cta, .card .ends, .card .rating { display: none !important; }
+  .card .prices { margin-top: 4px !important; } .card .title { min-height: 2.6em; }` });
+// sharper product photos: Amazon serves bigger versions of the same image (_SL500_ -> _SL1000_)
+await p.$$eval('#grid .card img', (imgs) => imgs.forEach((im) => { if (/_SL\d+_/.test(im.src)) im.src = im.src.replace(/_SL\d+_/, '_SL1000_'); }));
+await p.waitForTimeout(1500);
 const cards = (await p.$$('#grid .card')).slice(Number(skip), Number(skip) + Number(count));
 const info = [];
 for (const [i, c] of cards.entries()) {
