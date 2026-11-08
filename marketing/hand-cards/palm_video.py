@@ -123,7 +123,9 @@ while True:
         img.alpha_composite(sp, (int(pos[0] - sp.width / 2), int(pos[1] - sp.height / 2)))
         if c.get('off') and to <= 0 and ti > .4:
             k = ease_out_back((ti - .4) / .35, 2.2)
-            r = h * .19 * max(.01, k); bx = pos[0] + hh * .3 * (1 if pos[0] < W * .62 else -1); by = pos[1] - hh * .42
+            r = h * .19 * k
+            if r < 12: continue
+            bx = pos[0] + hh * .3 * (1 if pos[0] < W * .62 else -1); by = pos[1] - hh * .42
             b = burst(c['off'], r, 12 * (1 if bx > pos[0] else -1) + math.sin(t * 4) * 3)
             img.alpha_composite(b, (int(bx - b.width / 2), int(by - b.height / 2)))
 
