@@ -284,7 +284,7 @@ function sendJson(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
-const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.png': 'image/png', '.ico': 'image/x-icon', '.txt': 'text/plain' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.png': 'image/png', '.ico': 'image/x-icon', '.txt': 'text/plain', '.woff2': 'font/woff2' };
 
 async function serveStatic(res, urlPath) {
   const file = path.normalize(path.join(ROOT, urlPath === '/' ? 'index.html' : urlPath));

@@ -21,6 +21,11 @@ commission on qualifying purchases.
 - Tap counting: product links go through `/go/p`, which records the tap (product, page,
   where the visitor came from; no personal data) in `clicks.jsonl` on the volume and forwards to Amazon.
   Totals show in /admin under **Taps to Amazon**
+- Cookie consent (`public/consent.js`): nothing that tracks visitors runs until they click **Accept**:
+  the Pinterest tag (and its cookie), and recording which app a visitor came from on product taps. **Decline** keeps it
+  all off; the footer's **Cookie settings** reopens the choice. Fonts are self-hosted (`public/fonts/`), so no
+  request goes to Google either. Add any future tag or analytics inside `loadPinterest()`'s pattern in `consent.js`,
+  never as a `<script>` in the HTML.
 - Daily Top 10 pin maker at `/pin` (today's date + the top 10 deals, ready to download for Pinterest)
 - Discount %, list price, star rating, deal badges and countdowns
 - Sorting by discount, price or rating

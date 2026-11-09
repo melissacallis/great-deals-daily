@@ -42,7 +42,8 @@ export async function recordClick(req, params) {
     asin: clean(params.get('a'), 20),
     title: clean(params.get('t'), 80),
     from: clean(params.get('from'), 60),
-    src: sourceName(params.get('s')) === 'direct' ? (appName(ua) ?? 'direct') : sourceName(params.get('s')),
+    // which app/site they came from is only recorded with the visitor's cookie consent (c=1)
+    src: params.get('c') !== '1' ? 'no consent' : sourceName(params.get('s')) === 'direct' ? (appName(ua) ?? 'direct') : sourceName(params.get('s')),
     phone: /iphone|android|mobile/i.test(ua),
   };
   try { await mkdir(DATA_DIR, { recursive: true }); await appendFile(FILE, JSON.stringify(row) + '\n'); }

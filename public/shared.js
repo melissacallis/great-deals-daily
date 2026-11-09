@@ -1,15 +1,22 @@
-// Product links go through /go/p so the site can count taps (which deal, which page, which app the visitor came from)
-// before forwarding to Amazon. Where the visitor came from is remembered for the visit (e.g. a Pinterest pin).
+// Product links go through /go/p so the site can count taps (which deal, on which page) before forwarding to Amazon.
+// Only with cookie consent does it also remember and report which app/site the visitor came from (e.g. a Pinterest pin).
+import { hasConsent } from '/consent.js';
 let landingSource = '';
-try {
-  landingSource = sessionStorage.getItem('src') ?? '';
-  if (!landingSource && document.referrer && new URL(document.referrer).host !== location.host) {
-    landingSource = document.referrer; sessionStorage.setItem('src', landingSource);
-  }
-} catch {}
+function rememberSource() {
+  if (!hasConsent()) return;
+  try {
+    landingSource = sessionStorage.getItem('src') ?? '';
+    if (!landingSource && document.referrer && new URL(document.referrer).host !== location.host) {
+      landingSource = document.referrer; sessionStorage.setItem('src', landingSource);
+    }
+  } catch {}
+}
+rememberSource();
+document.addEventListener('consentchange', rememberSource);
 export function goLink(url, { asin = '', title = '' } = {}) {
   if (!url || !/^https:\/\/((www\.)?amazon\.com|amzn\.to|a\.co)\//.test(url)) return url;
-  const q = new URLSearchParams({ u: url, a: asin, t: String(title).slice(0, 80), from: location.pathname, s: landingSource.slice(0, 200) });
+  const q = new URLSearchParams({ u: url, a: asin, t: String(title).slice(0, 80), from: location.pathname });
+  if (hasConsent()) { q.set('s', landingSource.slice(0, 200)); q.set('c', '1'); }
   return `/go/p?${q}`;
 }
 
