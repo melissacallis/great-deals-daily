@@ -2,7 +2,7 @@
 //   behind/  (drawn between the room and the owner: wall stickers, the price chart)
 //   front/   (drawn over her: checklist, tags, call to action)
 // node fx_layers.mjs <config.json> <outDir> <fontDir>
-// config.fx: [{type, start, end, ...}] with types:
+// config.fx: [{type, start, end, front?, ...}] (front: true draws a 'behind' effect over her) with types:
 //   slap      {text, sub, x, y, stampX: true}       big sticker slaps on the wall, then a red X stamps it (behind)
 //   notes     {items: [{text, at, x, y, rot, color}]} paper notes pinned on the wall one by one (behind)
 //   chart     {x, y, w, h, good_until}              real-deal line drops (✓ ding), then a flat "fake" line (✗) (behind)
@@ -52,7 +52,7 @@ const R={
  tag(f,t){const k=back((t-f.start)/.3);if(k<=0)return['',''];const w=f.text.length*25+70;return['','<g transform="translate('+f.x+' '+f.y+') scale('+Math.max(.01,Math.min(1.05,k))+')" filter="url(#sh)"><rect x="'+(-w/2)+'" y="-40" width="'+w+'" height="80" rx="40" fill="'+(f.color||INK)+'"/><text x="0" y="14" text-anchor="middle" font-family="P" font-weight="800" font-size="40" fill="'+SUN+'">'+esc(f.text)+'</text></g>']},
  cta(f,t){const k=back((t-f.start)/.4);if(k<=0)return['',''];const w=f.text.length*36+90;return['','<g transform="translate(540 '+(f.y||1420)+') scale('+Math.max(.01,Math.min(1.08,k))+')" filter="url(#sh)"><rect x="'+(-w/2)+'" y="-62" width="'+w+'" height="124" rx="62" fill="'+PINK+'" stroke="#fff" stroke-width="7"/><text x="0" y="22" text-anchor="middle" font-family="P" font-weight="800" font-size="62" fill="#fff">'+esc(f.text)+'</text></g>']},
 };
-window.render=(fx,t)=>{let b='',fr='';for(const f of fx){if(t<f.start-.01||t>f.end)continue;const [x,y]=R[f.type](f,t);b+=x;fr+=y}return[b,fr]};
+window.render=(fx,t)=>{let b='',fr='';for(const f of fx){if(t<f.start-.01||t>f.end)continue;const [x,y]=R[f.type](f,t);if(f.front){fr+=x+y}else{b+=x;fr+=y}}return[b,fr]};  // f.front: draw a wall effect over her instead
 window.draw=(s)=>{document.getElementById('s').innerHTML=shadow+s};
 </script>`;
 const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1080, height: 1920 } });
