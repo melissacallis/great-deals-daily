@@ -25,7 +25,8 @@ commission on qualifying purchases.
   the Pinterest tag (and its cookie), and recording which app a visitor came from on product taps. **Decline** keeps it
   all off; the footer's **Cookie settings** reopens the choice. Fonts are self-hosted (`public/fonts/`), so no
   request goes to Google either. Add any future tag or analytics inside `loadPinterest()`'s pattern in `consent.js`,
-  never as a `<script>` in the HTML.
+  never as a `<script>` in the HTML. The privacy page is `public/privacy.html` (/privacy); update it whenever
+  what the site collects changes. A browser Global Privacy Control signal counts as Decline.
 - Daily Top 10 pin maker at `/pin` (today's date + the top 10 deals, ready to download for Pinterest)
 - Discount %, list price, star rating, deal badges and countdowns
 - Sorting by discount, price or rating

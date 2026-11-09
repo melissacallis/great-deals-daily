@@ -48,7 +48,7 @@ function banner() {
   box.innerHTML = `
     <p><strong>Cookies?</strong> With your OK, we use the Pinterest tag (a cookie) to see which pins bring visitors,
     and we note which app you came from when you tap a deal. No emails, no selling your data.
-    Decline and nothing like that runs.</p>
+    Decline and nothing like that runs. <a href="/privacy">Privacy</a></p>
     <div class="cookie-actions">
       <button type="button" class="cookie-decline">Decline</button>
       <button type="button" class="cookie-accept">Accept</button>
@@ -63,7 +63,7 @@ style.textContent = `
   #cookie-banner { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 1000; max-width: 560px; margin: 0 auto;
     background: #fff; color: #3b0f3a; border-radius: 18px; padding: 14px 16px; box-shadow: 0 12px 34px rgba(59,15,58,.3);
     font: 14px/1.45 Inter, system-ui, sans-serif; border: 2px solid #ffd6e4; }
-  #cookie-banner p { margin: 0 0 10px; }
+  #cookie-banner p { margin: 0 0 10px; } #cookie-banner a { color: #ff3d7f; font-weight: 700; }
   #cookie-banner .cookie-actions { display: flex; gap: 10px; justify-content: flex-end; }
   #cookie-banner button { font: 700 14px Inter, system-ui, sans-serif; border-radius: 999px; padding: 10px 18px; cursor: pointer; border: 2px solid #3b0f3a; }
   #cookie-banner .cookie-decline { background: #fff; color: #3b0f3a; }
@@ -74,8 +74,10 @@ document.head.appendChild(style);
 function init() {
   let choice = null;
   try { choice = localStorage.getItem(KEY); } catch {}
+  // Global Privacy Control (browser opt-out signal) counts as "Decline" unless the visitor chose "Accept" themselves.
+  const gpc = navigator.globalPrivacyControl === true;
   if (choice === 'granted') loadPinterest();
-  else if (choice !== 'denied') banner();
+  else if (choice !== 'denied' && !gpc) banner();
   document.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-cookie-settings]')) banner(); });
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

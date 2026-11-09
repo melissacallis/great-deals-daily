@@ -371,6 +371,7 @@ const server = http.createServer(async (req, res) => {
     // Campaign pages: /gift-guide (kept for old links) and /c/<campaign-id>.
     if (url.pathname === '/gift-guide' || /^\/c\/[\w-]+\/?$/.test(url.pathname)) return serveStatic(res, '/campaign.html');
     if (url.pathname === '/admin') return serveStatic(res, '/admin.html');
+    if (url.pathname === '/privacy') return serveStatic(res, '/privacy.html');
     // Front page: the Top 50 deals (when they're on). The Black Friday page (featured campaign + front-page
     // campaigns) lives at /black-friday. /deals is kept for old links.
     if (url.pathname === '/') return serveStatic(res, SHOW_TOP_DEALS ? '/deals.html' : '/index.html');
