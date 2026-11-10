@@ -3,6 +3,7 @@
 // with the host small at the bottom). Keeps clear of LIVE overlays: top ~180 px (host/viewers), bottom ~520 px
 // (comments), right ~110 px lower half (gift buttons).
 // node live_bg.mjs <deals.json> <outDir> <fontDir> <date label> [skip indexes, e.g. 6]
+// env: PICK=1,3,4 (use only these list positions), TITLE, SUB, THEME=xmas, NAME (output file prefix)
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -10,7 +11,10 @@ const { chromium } = createRequire(import.meta.url)('playwright');
 const [,, dealsFile, outDir, fontDir, dateLabel, skip = ''] = process.argv;
 const skipSet = new Set(skip.split(',').filter(Boolean).map(Number));
 const all = JSON.parse(readFileSync(dealsFile, 'utf8')).items;
-const deals = all.filter((_, i) => !skipSet.has(i + 1)).slice(0, 10);
+const pick = (process.env.PICK || '').split(',').filter(Boolean).map(Number);
+const deals = pick.length ? pick.map((n) => all[n - 1]) : all.filter((_, i) => !skipSet.has(i + 1)).slice(0, 10);
+const TITLE = process.env.TITLE || 'Top 10 Deals', SUB = process.env.SUB || 'on Amazon right now', XMAS = process.env.THEME === 'xmas';
+const NAME = process.env.NAME || 'live-top10';
 const logo = readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '../../public/img/logo-badge.svg')).toString('base64');
 const font = (w) => readFileSync(path.join(fontDir, `Poppins-${w}.ttf`)).toString('base64');
 const short = (t) => { let s = t.replace(/\s+/g, ' ').trim(); const c = s.search(/,| - | – | \| |\(|\[| with /i); if (c > 14) s = s.slice(0, c); return s.length > 34 ? s.slice(0, 32).replace(/\s+\S*$/, '') + '…' : s; };
@@ -21,7 +25,8 @@ const html = (layout) => `<!doctype html><style>
 @font-face{font-family:P;font-weight:600;src:url(data:font/ttf;base64,${font('SemiBold')})}
 @font-face{font-family:P;font-weight:800;src:url(data:font/ttf;base64,${font('ExtraBold')})}
 *{box-sizing:border-box} html,body{margin:0;width:1080px;height:1920px;overflow:hidden;font-family:P}
-body{background:radial-gradient(circle at 20% 15%,#ff7aa8 0,transparent 45%),radial-gradient(circle at 85% 80%,#ffb36b 0,transparent 45%),linear-gradient(160deg,#ff3d7f,#ff8a3d)}
+body{background:${XMAS ? 'radial-gradient(circle at 20% 12%,#e8364f 0,transparent 50%),radial-gradient(circle at 85% 85%,#1f9d6b 0,transparent 50%),linear-gradient(160deg,#b3122e,#0f6b47)' : 'radial-gradient(circle at 20% 15%,#ff7aa8 0,transparent 45%),radial-gradient(circle at 85% 80%,#ffb36b 0,transparent 45%),linear-gradient(160deg,#ff3d7f,#ff8a3d)'}}
+.lights{position:absolute;top:105px;left:0;width:1080px;height:60px}
 .snow{position:absolute;color:rgba(255,255,255,.55);font-size:28px}
 .head{position:absolute;top:190px;left:0;right:0;text-align:center;color:#fff}
 .head img{width:120px;height:120px;vertical-align:middle;filter:drop-shadow(0 6px 10px rgba(59,15,58,.35))}
@@ -44,7 +49,8 @@ body{background:radial-gradient(circle at 20% 15%,#ff7aa8 0,transparent 45%),rad
 .foot{position:absolute;left:0;right:0;text-align:center;color:#fff;font-weight:800;font-size:40px;text-shadow:0 3px 0 rgba(59,15,58,.25)}
 </style><body>
 ${['10%,40%', '88%,30%', '6%,62%', '92%,58%', '50%,93%', '20%,88%', '80%,90%'].map((p) => `<span class="snow" style="left:${p.split(',')[0]};top:${p.split(',')[1]}">❄</span>`).join('')}
-<div class="head"><img src="data:image/svg+xml;base64,${logo}"><h1>Top 10 Deals<span>on Amazon right now</span></h1><br><span class="date">${dateLabel}</span></div>
+${XMAS ? `<svg class="lights" viewBox="0 0 1080 60"><path d="M0 8 Q270 50 540 10 T1080 8" fill="none" stroke="#173d2a" stroke-width="4"/>${[...Array(14)].map((_, i) => { const x = 20 + i * 79, y = 8 + Math.abs(Math.sin((x / 540) * Math.PI)) * 22; return `<ellipse cx="${x}" cy="${y + 14}" rx="9" ry="13" fill="${['#ffd45c', '#ff5a6e', '#3fe08f', '#3fb8ff', '#ff7ac0'][i % 5]}"/>`; }).join('')}</svg>` : ''}
+<div class="head"><img src="data:image/svg+xml;base64,${logo}"><h1>${TITLE}<span>${SUB}</span></h1><br><span class="date">${dateLabel}</span></div>
 ${layout === 'sides'
   ? deals.map((d, i) => card(d, i + 1, 'side').replace('class="card side"', `class="card side" style="left:${i < 5 ? 28 : 752}px;top:${470 + (i % 5) * 196}px"`)).join('')
   : deals.map((d, i) => card(d, i + 1, 'grid').replace('class="card grid"', `class="card grid" style="left:${i % 2 ? 562 : 48}px;top:${470 + Math.floor(i / 2) * 176}px"`)).join('')}
@@ -53,6 +59,6 @@ ${layout === 'sides'
 const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1080, height: 1920 } });
 for (const layout of ['sides', 'grid']) {
   await p.setContent(html(layout), { waitUntil: 'networkidle' }); await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(400);
-  await p.screenshot({ path: path.join(outDir, `live-top10-${layout}.png`) });
+  await p.screenshot({ path: path.join(outDir, `${NAME}-${layout}.png`) });
 }
 await b.close(); console.log(deals.map((d, i) => `${i + 1}. -${d.savingsPct}% ${d.price} ${short(d.title)}`).join('\n'));
