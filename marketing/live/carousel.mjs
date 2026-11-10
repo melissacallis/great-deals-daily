@@ -33,6 +33,7 @@ body{background:radial-gradient(circle at 20% 10%,#e8364f 0,transparent 50%),rad
 .off{position:absolute;top:-16px;right:-16px;width:100px;height:100px;font-size:31px;background:#ffd45c;color:#3b0f3a;font-weight:800;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:4px solid #fff;transform:rotate(10deg);box-shadow:0 4px 8px rgba(59,15,58,.25)}
 .off small{font-size:.45em;margin-top:-4px}
 .foot{position:absolute;bottom:34px;left:0;right:0;text-align:center;color:#fff;font-weight:800;font-size:34px;text-shadow:0 3px 0 rgba(59,15,58,.25)}
+.note{position:absolute;bottom:40px;left:0;right:0;text-align:center;color:#fff;font-weight:600;font-size:26px;opacity:.9}
 .pg{position:absolute;bottom:40px;right:44px;color:rgba(255,255,255,.8);font-weight:800;font-size:26px}
 .big{position:absolute;left:60px;right:60px;text-align:center;color:#fff}
 .pill{display:inline-block;background:#3b0f3a;color:#ffd45c;font-weight:800;font-size:36px;padding:10px 30px;border-radius:999px}
@@ -61,7 +62,7 @@ sets.forEach((s, k) => slides.push(page(`${snow([[4, 96], [50, 97]])}
 <div class="head"><img src="data:image/svg+xml;base64,${logo}"><h1>${esc(s.title)}<span>${esc(s.sub)}</span></h1></div>
 ${s.items.map((d, i) => `<div class="card" style="left:${i % 2 ? 562 : 48}px;top:${262 + Math.floor(i / 2) * 200}px"><span class="n">${i + 1}</span><div class="ph"><img src="${img(d.image)}"></div>
 <div class="tx"><div class="nm">${esc(short(d.title))}</div><div class="pr">${esc(d.price)}</div></div><div class="off">-${d.savingsPct}%<small>OFF</small></div></div>`).join('')}
-<div class="pg">${k + 2}/${N}</div>`)));
+<div class="note">${esc(C.note || 'Prices subject to change')}</div><div class="pg">${k + 2}/${N}</div>`)));
 slides.push(page(`${snow([[8, 20], [90, 30], [12, 85], [88, 88], [50, 96]])}
 <div class="big" style="top:210px"><img src="data:image/svg+xml;base64,${logo}" style="width:150px"></div>
 <div class="big" style="top:420px"><div style="font-size:84px;font-weight:800;line-height:1.02;margin-bottom:46px;text-shadow:0 6px 0 rgba(59,15,58,.25)">${esc(C.end.title)}</div>

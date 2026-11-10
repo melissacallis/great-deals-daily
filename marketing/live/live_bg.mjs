@@ -14,7 +14,7 @@ const all = JSON.parse(readFileSync(dealsFile, 'utf8')).items;
 const pick = (process.env.PICK || '').split(',').filter(Boolean).map(Number);
 const deals = pick.length ? pick.map((n) => all[n - 1]) : all.filter((_, i) => !skipSet.has(i + 1)).slice(0, 10);
 const TITLE = process.env.TITLE || 'Top 10 Deals', SUB = process.env.SUB || 'on Amazon right now', XMAS = process.env.THEME === 'xmas';
-const NAME = process.env.NAME || 'live-top10';
+const NAME = process.env.NAME || 'live-top10', NOTE = process.env.NOTE ?? 'Prices subject to change';
 const logo = readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '../../public/img/logo-badge.svg')).toString('base64');
 const font = (w) => readFileSync(path.join(fontDir, `Poppins-${w}.ttf`)).toString('base64');
 const short = (t) => { let s = t.replace(/\s+/g, ' ').trim(); const c = s.search(/,| - | – | \| |\(|\[| with /i); if (c > 14) s = s.slice(0, c); return s.length > 34 ? s.slice(0, 32).replace(/\s+\S*$/, '') + '…' : s; };
@@ -54,7 +54,7 @@ ${XMAS ? `<svg class="lights" viewBox="0 0 1080 60"><path d="M0 8 Q270 50 540 10
 ${layout === 'sides'
   ? deals.map((d, i) => card(d, i + 1, 'side').replace('class="card side"', `class="card side" style="left:${i < 5 ? 28 : 752}px;top:${470 + (i % 5) * 196}px"`)).join('')
   : deals.map((d, i) => card(d, i + 1, 'grid').replace('class="card grid"', `class="card grid" style="left:${i % 2 ? 562 : 48}px;top:${470 + Math.floor(i / 2) * 176}px"`)).join('')}
-<div class="foot" style="top:${layout === 'sides' ? 1462 : 1360}px">🔗 Links in my bio</div>
+<div class="foot" style="top:${layout === 'sides' ? 1462 : 1360}px">🔗 Links in my bio${NOTE ? `<div style="font-size:26px;font-weight:600;margin-top:4px;opacity:.9">${NOTE}</div>` : ''}</div>
 </body>`;
 const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1080, height: 1920 } });
 for (const layout of ['sides', 'grid']) {
