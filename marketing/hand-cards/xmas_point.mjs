@@ -3,6 +3,7 @@
 // Writes behind/ and front/ PNG sequences for talk_fx.py.
 // node xmas_point.mjs <config.json> <outDir> <fontDir>
 // config: {duration, fps, title:[line1,line2], title_y, title_front, card_w, end_text, end_at,
+//          note (small line under the end pill, e.g. 'Prices subject to change'), burst_side (true = % burst on the card's inner side, not its top corner),
 //          points:[{t, x, y, img, off, label, side, cx?, cy?}]}  (cx,cy = where the card settles; default beside the finger)
 //   x,y = fingertip (1080x1920); side = 'left'|'right' = which side of the finger the card sits
 import { createRequire } from 'node:module';
@@ -46,12 +47,12 @@ function cardAt(p,i,t){const tt=t-p.t; if(tt<0)return''; const k=back(tt/.45);
   let s='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+') rotate('+rot+') scale('+sc.toFixed(3)+')" filter="url(#sh)">';
   s+='<rect x="'+(-W/2-10)+'" y="'+(-H/2-60)+'" width="'+(W+20)+'" height="'+(H+70)+'" rx="26" fill="'+GREEN+'"/><text x="0" y="'+(-H/2-18)+'" text-anchor="middle" font-family="P" font-weight="800" font-size="34" fill="#fff">'+esc(p.label)+'</text>';
   s+='<image href="'+CARDS[i]+'" x="'+(-W/2)+'" y="'+(-H/2)+'" width="'+W+'" height="'+H+'"/>';
-  const kb=back((tt-.3)/.35,2.4); if(kb>0)s+='<g transform="translate('+(dir*W*.42)+' '+(-H*.42)+') rotate('+(dir*12)+') scale('+Math.max(.01,kb)+')">'+burst(p.off,78)+'</g>';
+  const kb=back((tt-.3)/.35,2.4); if(kb>0)s+='<g transform="translate('+(dir*W*(C.burst_side?.5:.42))+' '+(C.burst_side?-H*.08:-H*.42)+') rotate('+(dir*12)+') scale('+Math.max(.01,kb)+')">'+burst(p.off,78)+'</g>';
   // sparkle burst at the fingertip as the card leaves it
   if(tt<.5){const r=30+tt*200;s='<g opacity="'+(1-tt*2)+'"><circle cx="'+p.x+'" cy="'+p.y+'" r="'+r+'" fill="none" stroke="'+GOLD+'" stroke-width="8"/></g>'+s}
   return s+'</g>'}
 function ending(t){if(!C.end_text||t<C.end_at)return'';const k=back((t-C.end_at)/.35);const w=C.end_text.length*34+80;
-  return '<g transform="translate(540 '+(C.end_y||1500)+') scale('+Math.max(.01,Math.min(1.08,k))+')" filter="url(#sh)"><rect x="'+(-w/2)+'" y="-58" width="'+w+'" height="116" rx="58" fill="'+RED+'" stroke="#fff" stroke-width="7"/><text x="0" y="20" text-anchor="middle" font-family="P" font-weight="800" font-size="58" fill="#fff">'+esc(C.end_text)+'</text></g>'}
+  return '<g transform="translate(540 '+(C.end_y||1500)+') scale('+Math.max(.01,Math.min(1.08,k))+')" filter="url(#sh)"><rect x="'+(-w/2)+'" y="-58" width="'+w+'" height="116" rx="58" fill="'+RED+'" stroke="#fff" stroke-width="7"/><text x="0" y="20" text-anchor="middle" font-family="P" font-weight="800" font-size="58" fill="#fff">'+esc(C.end_text)+'</text>'+(C.note?'<text x="0" y="112" text-anchor="middle" font-family="P" font-weight="800" font-size="32" fill="#fff" stroke="'+INK+'" stroke-width="6" paint-order="stroke">'+esc(C.note)+'</text>':'')+'</g>'}
 window.frame=(t)=>{const behind=defs+snow(t,false)+lights(t)+(C.title_front?'':title(t)); let front=defs+(C.title_front?title(t):''); C.points.forEach((p,i)=>front+=cardAt(p,i,t)); front+=ending(t)+snow(t,true); return [behind,front]};
 window.draw=(s)=>{document.getElementById('s').innerHTML=s};
 </script>`;
