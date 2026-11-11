@@ -4,6 +4,7 @@
 // node xmas_point.mjs <config.json> <outDir> <fontDir>
 // config: {duration, fps, title:[line1,line2], title_y, title_front, card_w, end_text, end_at,
 //          deck:{t,x,y,w,h(=height/width),imgs:[...],fan_r,label,label_y} (cards gather, riffle-shuffle twice, then fan out),
+//          title_until (title shrinks away at this time), cards fly into the deck when it starts,
 //          note (small line under the end pill, e.g. 'Prices subject to change'), burst_side (true = % burst on the card's inner side, not its top corner),
 //          points:[{t, x, y, img, off, label, side, cx?, cy?}]}  (cx,cy = where the card settles; default beside the finger)
 //   x,y = fingertip (1080x1920); side = 'left'|'right' = which side of the finger the card sits
@@ -36,7 +37,7 @@ function lights(t){ // wire swagging across the top with twinkling bulbs
     const on=.55+.45*Math.sin(t*5+i*1.7); s+='<g filter="url(#gl)"><rect x="'+(x-6)+'" y="'+(y-4)+'" width="12" height="12" fill="#444"/><ellipse cx="'+x+'" cy="'+(y+20)+'" rx="12" ry="18" fill="'+cols[i%5]+'" opacity="'+on+'"/></g>'}
   return s}
 function snow(t,near){let s='';for(const f of flakes){if(f.near!==near)continue;const y=(f.y+f.v*t)%1960-20,x=f.x+Math.sin(t*1.3+f.s)*20;s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+f.r+'" fill="#fff" opacity="'+(near?.9:.6)+'"/>'}return s}
-function title(t){const k=back(t/.6);if(k<=0)return'';let s='<g transform="translate(540 '+(C.title_y||300)+') scale('+Math.max(.01,Math.min(1.05,k))+') rotate(-3)" filter="url(#sh)">';
+function title(t){const out=C.title_until?cl(1-(t-C.title_until)/.25):1;const k=back(t/.6)*out;if(k<=0||out<=0)return'';let s='<g transform="translate(540 '+(C.title_y||300)+') scale('+Math.max(.01,Math.min(1.05,k))+') rotate(-3)" filter="url(#sh)">';
   s+='<text x="0" y="0" text-anchor="middle" font-family="P" font-weight="800" font-size="62" fill="'+WHITE+'" stroke="'+INK+'" stroke-width="10" paint-order="stroke">'+esc(C.title[0])+'</text>';
   s+='<text x="0" y="112" text-anchor="middle" font-family="P" font-weight="800" font-size="118" fill="'+RED+'" stroke="'+WHITE+'" stroke-width="12" paint-order="stroke">'+esc(C.title[1])+'</text>';
   s+='<text x="'+(C.title[1].length*34+20)+'" y="40" font-size="80">🎄</text></g>';return s}
@@ -45,7 +46,8 @@ function burst(off,r){let p=[];for(let i=0;i<24;i++){const a=i*Math.PI/12,rr=i%2
 function cardAt(p,i,t){const tt=t-p.t; if(tt<0)return''; const k=back(tt/.45);
   const W=C.card_w||330,H=W*p.h/p.w, dir=p.side==='left'?-1:1; const cx=p.cx??(p.x+dir*(W*.35)), cy=p.cy??Math.max(H/2+430,p.y-H*.35);
   // fly out from the fingertip, overshoot, settle with a little tilt and bob
-  const x=p.x+(cx-p.x)*Math.min(1,k), y=p.y+(cy-p.y)*Math.min(1,k)+Math.sin(t*3+i)*6, sc=Math.max(.05,.2+.8*k), rot=dir*(6-6*Math.min(1,k))+dir*4;
+  let x=p.x+(cx-p.x)*Math.min(1,k), y=p.y+(cy-p.y)*Math.min(1,k)+Math.sin(t*3+i)*6, sc=Math.max(.05,.2+.8*k), rot=dir*(6-6*Math.min(1,k))+dir*4;
+  if(C.deck&&t>C.deck.t){const q=ease((t-C.deck.t-i*.06)/.4); if(q>=1)return''; x+=(C.deck.x-x)*q; y+=(C.deck.y-y)*q; sc*=1-.65*q}
   let s='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+') rotate('+rot+') scale('+sc.toFixed(3)+')" filter="url(#sh)">';
   s+='<rect x="'+(-W/2-10)+'" y="'+(-H/2-60)+'" width="'+(W+20)+'" height="'+(H+70)+'" rx="26" fill="'+GREEN+'"/><text x="0" y="'+(-H/2-18)+'" text-anchor="middle" font-family="P" font-weight="800" font-size="34" fill="#fff">'+esc(p.label)+'</text>';
   s+='<image href="'+CARDS[i]+'" x="'+(-W/2)+'" y="'+(-H/2)+'" width="'+W+'" height="'+H+'"/>';
