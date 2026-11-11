@@ -3,6 +3,7 @@
 // Writes behind/ and front/ PNG sequences for talk_fx.py.
 // node xmas_point.mjs <config.json> <outDir> <fontDir>
 // config: {duration, fps, title:[line1,line2], title_y, title_front, card_w, end_text, end_at,
+//          deck:{t,x,y,w,h(=height/width),imgs:[...],fan_r,label,label_y} (cards gather, riffle-shuffle twice, then fan out),
 //          note (small line under the end pill, e.g. 'Prices subject to change'), burst_side (true = % burst on the card's inner side, not its top corner),
 //          points:[{t, x, y, img, off, label, side, cx?, cy?}]}  (cx,cy = where the card settles; default beside the finger)
 //   x,y = fingertip (1080x1920); side = 'left'|'right' = which side of the finger the card sits
@@ -15,12 +16,13 @@ const C = JSON.parse(readFileSync(cfgFile, 'utf8'));
 const FPS = C.fps || 30;
 const font = (w) => readFileSync(path.join(fontDir, `Poppins-${w}.ttf`)).toString('base64');
 const cards = C.points.map((p) => 'data:image/png;base64,' + readFileSync(p.img).toString('base64'));
+const deckImgs = (C.deck?.imgs || []).map((f) => 'data:image/png;base64,' + readFileSync(f).toString('base64'));
 const html = `<style>
 @font-face{font-family:P;font-weight:800;src:url(data:font/ttf;base64,${font('ExtraBold')})}
 html,body{margin:0;width:1080px;height:1920px;background:transparent;overflow:hidden}</style>
 <svg id="s" width="1080" height="1920" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>
 <script>
-const C=${JSON.stringify(C)}, CARDS=${JSON.stringify(cards)};
+const C=${JSON.stringify(C)}, CARDS=${JSON.stringify(cards)}, DECK=${JSON.stringify(deckImgs)};
 const RED='#e8364f', GREEN='#1f9d6b', GOLD='#ffd45c', WHITE='#fff', INK='#3b0f3a';
 const cl=x=>Math.max(0,Math.min(1,x)); const back=(x,c=1.8)=>{x=cl(x);return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
@@ -53,7 +55,27 @@ function cardAt(p,i,t){const tt=t-p.t; if(tt<0)return''; const k=back(tt/.45);
   return s+'</g>'}
 function ending(t){if(!C.end_text||t<C.end_at)return'';const k=back((t-C.end_at)/.35);const w=C.end_text.length*34+80;
   return '<g transform="translate(540 '+(C.end_y||1500)+') scale('+Math.max(.01,Math.min(1.08,k))+')" filter="url(#sh)"><rect x="'+(-w/2)+'" y="-58" width="'+w+'" height="116" rx="58" fill="'+RED+'" stroke="#fff" stroke-width="7"/><text x="0" y="20" text-anchor="middle" font-family="P" font-weight="800" font-size="58" fill="#fff">'+esc(C.end_text)+'</text>'+(C.note?'<text x="0" y="112" text-anchor="middle" font-family="P" font-weight="800" font-size="32" fill="#fff" stroke="'+INK+'" stroke-width="6" paint-order="stroke">'+esc(C.note)+'</text>':'')+'</g>'}
-window.frame=(t)=>{const behind=defs+snow(t,false)+lights(t)+(C.title_front?'':title(t)); let front=defs+(C.title_front?title(t):''); C.points.forEach((p,i)=>front+=cardAt(p,i,t)); front+=ending(t)+snow(t,true); return [behind,front]};
+// deck shuffle: cards gather into a pile, split + riffle twice like a dealer, then fan out in an arc
+const ease=x=>{x=cl(x);return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2};
+function deck(t){const D=C.deck; if(!D||t<D.t)return''; const tt=t-D.t, N=DECK.length, W=D.w||230, H=W*(D.h||1.62), X=D.x, Y=D.y;
+  const pile=j=>({x:X+(j-N/2)*1.2,y:Y-j*1.6,r:(j%3-1)*1.5,s:1});
+  const split=(j,k)=>{const side=(j+k)%2?1:-1;return {x:X+side*(W*.62),y:Y-20-(j>>1)*2,r:side*13,s:.96}};
+  const lerp=(a,b,k)=>({x:a.x+(b.x-a.x)*k,y:a.y+(b.y-a.y)*k,r:a.r+(b.r-a.r)*k,s:a.s+(b.s-a.s)*k});
+  const fan=j=>{const a=(-48+96*j/(N-1))*Math.PI/180,R=D.fan_r||520,px=X,py=Y+R*.62;return {x:px+Math.sin(a)*R*.62,y:py-Math.cos(a)*R*.62-30,r:a*180/Math.PI,s:1}};
+  const riffle=(j,k,t0)=>{const land=t0+.06*j, sp=split(j,k), pl=pile(j); if(tt<land)return sp; const q=ease((tt-land)/.16); const p=lerp(sp,pl,q); p.y-=Math.sin(q*Math.PI)*40; return p};
+  let order=[...Array(N).keys()], out=[];
+  for(const j of order){let p; const enter=.035*j;
+    if(tt<.45){const q=back(cl((tt-enter)/.3),1.4); p=lerp({x:X+(j%2?1:-1)*80,y:Y+380,r:(j%2?1:-1)*30,s:.25},pile(j),q); if(tt<enter)continue}
+    else if(tt<.7)p=lerp(pile(j),split(j,0),ease((tt-.45)/.25));
+    else if(tt<1.55)p=riffle(j,0,.7);
+    else if(tt<1.8)p=lerp(pile(j),split(j,1),ease((tt-1.55)/.25));
+    else if(tt<2.65)p=riffle(j,1,1.8);
+    else {const q=back(cl((tt-2.65-.025*j)/.45),1.2); p=lerp(pile(j),fan(j),q); p.y+=Math.sin(t*2.4+j*.5)*4*cl(tt-3.1)}
+    out.push('<g transform="translate('+p.x.toFixed(1)+' '+p.y.toFixed(1)+') rotate('+p.r.toFixed(2)+') scale('+p.s.toFixed(3)+')" filter="url(#sh)"><rect x="'+(-W/2-5)+'" y="'+(-H/2-5)+'" width="'+(W+10)+'" height="'+(H+10)+'" rx="22" fill="#fff"/><image href="'+DECK[j]+'" x="'+(-W/2)+'" y="'+(-H/2)+'" width="'+W+'" height="'+H+'"/></g>')}
+  let s=out.join('');
+  if(D.label&&tt>2.9){const k=back((tt-2.9)/.4);s+='<g transform="translate('+X+' '+(D.label_y||Y-H*.95)+') scale('+Math.max(.01,Math.min(1.06,k))+') rotate(-3)" filter="url(#sh)"><text x="0" y="0" text-anchor="middle" font-family="P" font-weight="800" font-size="64" fill="'+GOLD+'" stroke="'+INK+'" stroke-width="12" paint-order="stroke">'+esc(D.label)+'</text></g>'}
+  return s}
+window.frame=(t)=>{const behind=defs+snow(t,false)+lights(t)+(C.title_front?'':title(t)); let front=defs+(C.title_front?title(t):''); C.points.forEach((p,i)=>front+=cardAt(p,i,t)); front+=deck(t)+ending(t)+snow(t,true); return [behind,front]};
 window.draw=(s)=>{document.getElementById('s').innerHTML=s};
 </script>`;
 const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1080, height: 1920 } });
