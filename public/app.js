@@ -114,14 +114,25 @@ const pageFor = (c) => (c.id === 'top' ? '/' : `/top/${c.id}`);
 
 function renderCategories() {
   const nav = $('#categories');
-  nav.replaceChildren(...state.categories.map((c) => {
+  const current = state.categories.find((c) => c.id === state.category);
+  const parentId = current?.parent ?? current?.id; // on /top/him-fishing the main row highlights For Him
+  const chip = (c, text, on) => {
     const a = document.createElement('a');
     a.className = 'chip';
     a.href = pageFor(c);
-    a.textContent = `${c.icon} ${c.label}`;
-    if (!state.query && c.id === state.category) a.setAttribute('aria-current', 'page');
+    a.textContent = text;
+    if (!state.query && on) a.setAttribute('aria-current', 'page');
     return a;
-  }));
+  };
+  nav.replaceChildren(...state.categories.filter((c) => !c.parent).map((c) => chip(c, `${c.icon} ${c.label}`, c.id === parentId)));
+  // Sub-lists (For Him: Sports, Fishing, FR Work Clothes) get their own smaller row under the main one.
+  const sub = $('#subcategories');
+  const kids = state.categories.filter((c) => c.parent && c.parent === parentId);
+  if (sub) {
+    sub.hidden = !kids.length;
+    const parent = state.categories.find((c) => c.id === parentId);
+    sub.replaceChildren(...(kids.length ? [chip(parent, `All ${parent.label}`, state.category === parentId), ...kids.map((c) => chip(c, `${c.icon} ${c.label}`, c.id === state.category))] : []));
+  }
   // Bring the current chip into view sideways only (scrollIntoView would also scroll the page down).
   const cur = nav.querySelector('[aria-current]');
   if (cur) nav.scrollLeft = cur.offsetLeft - nav.offsetLeft - (nav.clientWidth - cur.offsetWidth) / 2;

@@ -224,6 +224,11 @@ async function refreshDeals() {
         announce?.(); announce = null;
       }
     }
+    // a parent list (For Him) also gets its sub-lists' deals (Sports, Fishing, FR Work Clothes)
+    for (const cat of CATEGORIES.filter((c) => !c.parent && !c.maxPrice)) {
+      const kids = CATEGORIES.filter((c) => c.parent === cat.id).map((c) => byCategory[c.id] ?? []);
+      if (kids.length) byCategory[cat.id] = rankTop([byCategory[cat.id], ...kids], LIST_SIZE);
+    }
     for (const search of POOL_SEARCHES) pool.push(await trySearch(search));
     // the general deal pool can top up the price-cap lists too
     for (const cat of CATEGORIES.filter((c) => c.maxPrice)) byCategory[cat.id] = rankTop([byCategory[cat.id], underCap(cat, pool.flat())], LIST_SIZE);
@@ -310,7 +315,7 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, {
         siteName: SITE_NAME,
         demo: !api,
-        categories: [TOP, ...CATEGORIES].map(({ id, label, icon, title, intro }) => ({ id, label, icon, title: title ?? label, intro })),
+        categories: [TOP, ...CATEGORIES].map(({ id, parent, label, icon, title, intro }) => ({ id, parent, label, icon, title: title ?? label, intro })),
       });
     }
     if (url.pathname === '/api/deals') {
@@ -352,7 +357,7 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, {
         campaigns: campaigns.filter((c) => c.nav && c.id !== HOME_CAMPAIGN).map(({ id, title, emoji }) => ({ id, title, emoji })),
         topDeals: SHOW_TOP_DEALS,
-        topLists: SHOW_TOP_DEALS ? CATEGORIES.map(({ id, label, icon }) => ({ id, label, icon })) : [],
+        topLists: SHOW_TOP_DEALS ? CATEGORIES.filter((c) => !c.parent).map(({ id, label, icon }) => ({ id, label, icon })) : [],
       });
     }
     // The TikTok swipe page: Today's Picks first, then every campaign shown in the menu.

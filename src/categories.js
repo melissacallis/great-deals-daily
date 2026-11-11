@@ -18,6 +18,23 @@ export const CATEGORIES = [
     intro: 'Gifts for him (husband, dad, brother, boyfriend): tools, gadgets and clothes he will actually use, on sale today.',
     searches: [s('FashionMen', 'jacket'), s('ToolsAndHomeImprovement', 'tool set'), s('Electronics', 'gadgets for men'), s('SportsAndOutdoors', 'men'), s('All', 'gifts for men', 30)],
   },
+  // Sub-lists of For Him (parent: 'him'): each is its own page (/top/him-fishing …), shown as a second chip row on the
+  // For Him pages, and their deals also feed the main For Him list.
+  {
+    id: 'him-sports', parent: 'him', label: 'Sports', icon: '🏈', title: 'Top 50 Sports Deals for Him',
+    intro: 'Golf, football, basketball and game-day gear for the sports lover on your list, marked down from their usual price.',
+    searches: [s('SportsAndOutdoors', 'golf', 20), s('SportsAndOutdoors', 'football', 20), s('SportsAndOutdoors', 'basketball', 20), s('All', 'sports gifts for men', 25)],
+  },
+  {
+    id: 'him-fishing', parent: 'him', label: 'Fishing', icon: '🎣', title: 'Top 50 Fishing Deals for Him',
+    intro: 'Rods, reels, tackle boxes and lures for the fisherman in your life, all on sale today.',
+    searches: [s('SportsAndOutdoors', 'fishing rod and reel', 20), s('SportsAndOutdoors', 'fishing tackle box', 20), s('SportsAndOutdoors', 'fishing lures', 20)],
+  },
+  {
+    id: 'him-fr', parent: 'him', label: 'FR Work Clothes', icon: '🔥', title: 'Top 50 FR Work Clothes Deals',
+    intro: 'Flame-resistant (FR) shirts, pants, jackets and coveralls for work, marked down. Check the label for the rating your job requires (for example NFPA 2112 or the arc rating) before you buy.',
+    searches: [s('FashionMen', 'flame resistant shirt', 15), s('FashionMen', 'flame resistant pants', 15), s('All', 'FR work jacket', 15), s('All', 'flame resistant coveralls', 15)],
+  },
   {
     id: 'kids', label: 'For Kids', icon: '🧸', title: 'Top 50 Deals for Kids',
     intro: 'Toys, LEGO, games and gifts kids love, marked down from their usual price.',
