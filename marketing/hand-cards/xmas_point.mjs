@@ -5,7 +5,7 @@
 // config: {duration, fps, title:[line1,line2], title_y, title_front, card_w, end_text, end_at,
 //          deck:{t,x,y,w,h(=height/width),imgs:[...],fan_r,label,label_y} (cards gather, riffle-shuffle twice, then fan out),
 //          title_until (title shrinks away at this time), cards fly into the deck when it starts,
-//          slot:{t,pull,stops:[3],y,w,h,title,items:[{img,price,off,label}x3],fill:[{img,price,off}...]} (slot machine),
+//          slot:{t,pull,stops:[3],y,w,h,scale,title,items:[{img,price,off,label}x3],fill:[{img,price,off}...]} (slot machine),
 //          note (small line under the end pill, e.g. 'Prices subject to change'), burst_side (true = % burst on the card's inner side, not its top corner),
 //          points:[{t, x, y, img, off, label, side, cx?, cy?}]}  (cx,cy = where the card settles; default beside the finger)
 //   x,y = fingertip (1080x1920); side = 'left'|'right' = which side of the finger the card sits
@@ -83,7 +83,7 @@ function deck(t){const D=C.deck; if(!D||t<D.t)return''; const tt=t-D.t, N=DECK.l
 // slot machine: marquee with chasing bulbs, 3 reels that spin after the lever pull and land one by one on the deals,
 // then JACKPOT with a coin burst. slot:{t, pull, stops:[3], y, title, items:[{img,price,off,label}x3], fill:[{img,price,off}...]}
 function slot(t){const M=C.slot; if(!M||t<M.t)return''; const tin=t-M.t, X=540, W=M.w||940, H=M.h||600, Y=M.y||1000, k=back(tin/.45,1.6);
-  const top=Y-H/2, rw=262, rh=318, gap=22, wy=top+150, ch=rh; let s='<g transform="translate('+X+' '+Y+') scale('+Math.max(.01,Math.min(1.04,k)).toFixed(3)+') translate('+(-X)+' '+(-Y)+')" filter="url(#sh)">';
+  const top=Y-H/2, rw=262, rh=318, gap=22, wy=top+150, ch=rh; const SC=M.scale||1; let s='<g transform="translate('+X+' '+Y+') scale('+(SC*Math.max(.01,Math.min(1.04,k))).toFixed(3)+') translate('+(-X)+' '+(-Y)+')" filter="url(#sh)">';
   // body
   s+='<rect x="'+(X-W/2)+'" y="'+top+'" width="'+W+'" height="'+H+'" rx="46" fill="'+RED+'" stroke="'+GOLD+'" stroke-width="12"/>';
   s+='<rect x="'+(X-W/2+26)+'" y="'+(top+22)+'" width="'+(W-52)+'" height="104" rx="30" fill="'+INK+'"/>';
@@ -114,11 +114,11 @@ function slot(t){const M=C.slot; if(!M||t<M.t)return''; const tin=t-M.t, X=540, 
   s+='<g transform="translate('+(X+W/2+8)+' '+(Y-10)+')"><rect x="-6" y="-26" width="34" height="80" rx="12" fill="'+INK+'"/><g transform="rotate('+(-ang*0+0)+')"><line x1="14" y1="10" x2="'+(14+Math.sin(ang*Math.PI/180)*0)+'" y2="'+(10-200*Math.cos(ang*Math.PI/180)).toFixed(1)+'" stroke="#d9d9d9" stroke-width="16" stroke-linecap="round"/><circle cx="14" cy="'+(10-200*Math.cos(ang*Math.PI/180)).toFixed(1)+'" r="34" fill="'+RED+'" stroke="#fff" stroke-width="7"/></g></g>';
   s+='</g>';
   // jackpot: banner + coins
-  const J=M.stops[2]+.35; if(t>J){const tj=t-J, jk=back(tj/.4,2.2);
+  const J=M.stops[2]+.35; if(t>J){const top2=Y-H*SC/2;const tj=t-J, jk=back(tj/.4,2.2);
     let co=''; let sd=99; const r=()=>((sd=(sd*16807)%2147483647)/2147483647);
-    for(let c=0;c<46;c++){const vx=(r()-.5)*1300, vy=-900-r()*900, g=1900, x=X+vx*tj, y=top+120+vy*tj+g*tj*tj/2, sp=r()*10;
+    for(let c=0;c<46;c++){const vx=(r()-.5)*1300, vy=-900-r()*900, g=1900, x=X+vx*tj, y=top2+60+vy*tj+g*tj*tj/2, sp=r()*10;
       if(y>2000)continue; co+='<ellipse cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" rx="'+(22*Math.abs(Math.cos(tj*sp+c))+3).toFixed(1)+'" ry="22" fill="'+GOLD+'" stroke="#b8860b" stroke-width="4"/>'}
-    s+=co+'<g transform="translate('+X+' '+(top-70)+') scale('+Math.max(.01,Math.min(1.08,jk)).toFixed(3)+') rotate(-4)" filter="url(#sh)"><text x="0" y="0" text-anchor="middle" font-family="P" font-weight="800" font-size="150" fill="'+GOLD+'" stroke="'+INK+'" stroke-width="16" paint-order="stroke">JACKPOT!</text></g>'}
+    s+=co+'<g transform="translate('+X+' '+(top2-50)+') scale('+Math.max(.01,Math.min(1.08,jk)).toFixed(3)+') rotate(-4)" filter="url(#sh)"><text x="0" y="0" text-anchor="middle" font-family="P" font-weight="800" font-size="150" fill="'+GOLD+'" stroke="'+INK+'" stroke-width="16" paint-order="stroke">JACKPOT!</text></g>'}
   return s}
 window.frame=(t)=>{const behind=defs+snow(t,false)+lights(t)+(C.title_front?'':title(t)); let front=defs+(C.title_front?title(t):''); C.points.forEach((p,i)=>front+=cardAt(p,i,t)); front+=deck(t)+slot(t)+ending(t)+snow(t,true); return [behind,front]};
 window.draw=(s)=>{document.getElementById('s').innerHTML=s};
