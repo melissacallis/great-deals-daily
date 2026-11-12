@@ -5,6 +5,7 @@
 // config: {duration, fps, title:[line1,line2], title_y, title_front, card_w, end_text, end_at,
 //          deck:{t,x,y,w,h(=height/width),imgs:[...],fan_r,label,label_y} (cards gather, riffle-shuffle twice, then fan out),
 //          title_until (title shrinks away at this time), cards fly into the deck when it starts,
+//          slot:{t,pull,stops:[3],y,w,h,title,items:[{img,price,off,label}x3],fill:[{img,price,off}...]} (slot machine),
 //          note (small line under the end pill, e.g. 'Prices subject to change'), burst_side (true = % burst on the card's inner side, not its top corner),
 //          points:[{t, x, y, img, off, label, side, cx?, cy?}]}  (cx,cy = where the card settles; default beside the finger)
 //   x,y = fingertip (1080x1920); side = 'left'|'right' = which side of the finger the card sits
@@ -18,6 +19,8 @@ const FPS = C.fps || 30;
 const font = (w) => readFileSync(path.join(fontDir, `Poppins-${w}.ttf`)).toString('base64');
 const cards = C.points.map((p) => 'data:image/png;base64,' + readFileSync(p.img).toString('base64'));
 const deckImgs = (C.deck?.imgs || []).map((f) => 'data:image/png;base64,' + readFileSync(f).toString('base64'));
+const uri = (f) => `data:image/${f.endsWith('.png') ? 'png' : 'jpeg'};base64,` + readFileSync(f).toString('base64');
+if (C.slot) for (const it of [...C.slot.items, ...C.slot.fill]) it.src = uri(it.img);
 const html = `<style>
 @font-face{font-family:P;font-weight:800;src:url(data:font/ttf;base64,${font('ExtraBold')})}
 html,body{margin:0;width:1080px;height:1920px;background:transparent;overflow:hidden}</style>
@@ -29,7 +32,7 @@ const cl=x=>Math.max(0,Math.min(1,x)); const back=(x,c=1.8)=>{x=cl(x);return 1+(
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 let seed=7; const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
 const flakes=[...Array(90)].map(()=>({x:rnd()*1080,y:rnd()*1920,r:2+rnd()*7,v:60+rnd()*160,s:rnd()*6,near:rnd()<.3}));
-const defs='<defs><filter id="sh" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="10" stdDeviation="9" flood-color="#1a0510" flood-opacity=".45"/></filter><filter id="gl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
+const defs='<defs><filter id="sh" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="10" stdDeviation="9" flood-color="#1a0510" flood-opacity=".45"/></filter><filter id="mb" x="-5%" y="-30%" width="110%" height="160%"><feGaussianBlur stdDeviation="0 14"/></filter><filter id="gl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
 function lights(t){ // wire swagging across the top with twinkling bulbs
   let s='<path d="M-20 70 Q 270 170 540 80 T 1100 75" fill="none" stroke="#1b3d2a" stroke-width="5"/>';
   const cols=[RED,GOLD,GREEN,'#3fb8ff','#ff7ac0'];
@@ -77,7 +80,47 @@ function deck(t){const D=C.deck; if(!D||t<D.t)return''; const tt=t-D.t, N=DECK.l
   let s=out.join('');
   if(D.label&&tt>2.9){const k=back((tt-2.9)/.4);s+='<g transform="translate('+X+' '+(D.label_y||Y-H*.95)+') scale('+Math.max(.01,Math.min(1.06,k))+') rotate(-3)" filter="url(#sh)"><text x="0" y="0" text-anchor="middle" font-family="P" font-weight="800" font-size="64" fill="'+GOLD+'" stroke="'+INK+'" stroke-width="12" paint-order="stroke">'+esc(D.label)+'</text></g>'}
   return s}
-window.frame=(t)=>{const behind=defs+snow(t,false)+lights(t)+(C.title_front?'':title(t)); let front=defs+(C.title_front?title(t):''); C.points.forEach((p,i)=>front+=cardAt(p,i,t)); front+=deck(t)+ending(t)+snow(t,true); return [behind,front]};
+// slot machine: marquee with chasing bulbs, 3 reels that spin after the lever pull and land one by one on the deals,
+// then JACKPOT with a coin burst. slot:{t, pull, stops:[3], y, title, items:[{img,price,off,label}x3], fill:[{img,price,off}...]}
+function slot(t){const M=C.slot; if(!M||t<M.t)return''; const tin=t-M.t, X=540, W=M.w||940, H=M.h||600, Y=M.y||1000, k=back(tin/.45,1.6);
+  const top=Y-H/2, rw=262, rh=318, gap=22, wy=top+150, ch=rh; let s='<g transform="translate('+X+' '+Y+') scale('+Math.max(.01,Math.min(1.04,k)).toFixed(3)+') translate('+(-X)+' '+(-Y)+')" filter="url(#sh)">';
+  // body
+  s+='<rect x="'+(X-W/2)+'" y="'+top+'" width="'+W+'" height="'+H+'" rx="46" fill="'+RED+'" stroke="'+GOLD+'" stroke-width="12"/>';
+  s+='<rect x="'+(X-W/2+26)+'" y="'+(top+22)+'" width="'+(W-52)+'" height="104" rx="30" fill="'+INK+'"/>';
+  s+='<text x="'+X+'" y="'+(top+96)+'" text-anchor="middle" font-family="P" font-weight="800" font-size="62" fill="'+GOLD+'" stroke="#000" stroke-width="2">'+esc(M.title||'SPIN FOR HIS GIFT')+'</text>';
+  // chasing bulbs around the edge (faster while spinning)
+  const spinning=t>M.pull&&t<M.stops[2]+.2, per=2*(W+H)-120, nb=34, phase=Math.floor(t*(spinning?14:5));
+  for(let b=0;b<nb;b++){let d=b*per/nb,bx,by;const w=W-60,h=H-60;
+    if(d<w){bx=X-w/2+d;by=top+8}else if(d<w+h){bx=X+W/2-8;by=top+30+(d-w)}else if(d<2*w+h){bx=X+w/2-(d-w-h);by=top+H-8}else{bx=X-W/2+8;by=top+H-30-(d-2*w-h)}
+    const on=(b+phase)%3===0; s+='<circle cx="'+bx.toFixed(1)+'" cy="'+by.toFixed(1)+'" r="9" fill="'+(on?'#fff6b0':'#b8860b')+'"'+(on?' filter="url(#gl)"':'')+'/>'}
+  // reels
+  const fill=M.fill, n=fill.length+1;
+  for(let i=0;i<3;i++){const wx=X+(i-1)*(rw+gap)-rw/2, it=M.items[i];
+    const strip=[...fill.slice(i*3),...fill.slice(0,i*3)]; strip.splice(4,0,it); // target sits at index 4
+    const T0=M.pull, T1=M.stops[i], dur=T1-T0, F=(Math.round(13*dur/n)+1)*n+4; let p=0, fast=false;
+    if(t>T0){const q=cl((t-T0)/dur); p=F*(1-Math.pow(1-q,3.2)); fast=q<.82; if(t>T1)p=F-Math.sin((t-T1)*22)*.07*Math.exp(-(t-T1)*9)}
+    s+='<clipPath id="rc'+i+'"><rect x="'+wx+'" y="'+wy+'" width="'+rw+'" height="'+rh+'" rx="18"/></clipPath><rect x="'+wx+'" y="'+wy+'" width="'+rw+'" height="'+rh+'" rx="18" fill="#fff"/>';
+    s+='<g clip-path="url(#rc'+i+')"'+(fast?' filter="url(#mb)"':'')+'>';
+    for(let j=Math.floor(p)-1;j<=Math.floor(p)+1;j++){const c=strip[((j%n)+n)%n], cy=wy+(j-p)*ch;
+      s+='<image href="'+c.src+'" x="'+(wx+16)+'" y="'+(cy+14)+'" width="'+(rw-32)+'" height="'+(rh-104)+'" preserveAspectRatio="xMidYMid meet"/>';
+      s+='<text x="'+(wx+rw/2)+'" y="'+(cy+rh-30)+'" text-anchor="middle" font-family="P" font-weight="800" font-size="50" fill="'+RED+'">'+esc(c.price)+'</text>'}
+    s+='</g>';
+    const done=t>=T1, gk=done?back((t-T1)/.35,2):0;
+    s+='<rect x="'+wx+'" y="'+wy+'" width="'+rw+'" height="'+rh+'" rx="18" fill="none" stroke="'+(done?GOLD:INK)+'" stroke-width="'+(done?12:8)+'"'+(done?' filter="url(#gl)"':'')+'/>';
+    if(gk>0){s+='<g transform="translate('+(wx+rw-14)+' '+(wy+18)+') rotate(12) scale('+Math.max(.01,gk*.62).toFixed(3)+')">'+burst('-'+it.off+'%',78)+'</g>';
+      s+='<g transform="translate('+(wx+rw/2)+' '+(top+H-42)+') scale('+Math.max(.01,Math.min(1,gk)).toFixed(3)+')"><rect x="-128" y="-34" width="256" height="62" rx="31" fill="'+GREEN+'" stroke="#fff" stroke-width="5"/><text x="0" y="12" text-anchor="middle" font-family="P" font-weight="800" font-size="'+(it.label.length>12?27:32)+'" fill="#fff">'+esc(it.label)+'</text></g>'}}
+  // lever on the right side: knob comes down at the pull and springs back
+  const lq=t<M.pull-.25?0:t<M.pull?ease((t-M.pull+.25)/.25):1-ease((t-M.pull)/.5), ang=lq*150;
+  s+='<g transform="translate('+(X+W/2+8)+' '+(Y-10)+')"><rect x="-6" y="-26" width="34" height="80" rx="12" fill="'+INK+'"/><g transform="rotate('+(-ang*0+0)+')"><line x1="14" y1="10" x2="'+(14+Math.sin(ang*Math.PI/180)*0)+'" y2="'+(10-200*Math.cos(ang*Math.PI/180)).toFixed(1)+'" stroke="#d9d9d9" stroke-width="16" stroke-linecap="round"/><circle cx="14" cy="'+(10-200*Math.cos(ang*Math.PI/180)).toFixed(1)+'" r="34" fill="'+RED+'" stroke="#fff" stroke-width="7"/></g></g>';
+  s+='</g>';
+  // jackpot: banner + coins
+  const J=M.stops[2]+.35; if(t>J){const tj=t-J, jk=back(tj/.4,2.2);
+    let co=''; let sd=99; const r=()=>((sd=(sd*16807)%2147483647)/2147483647);
+    for(let c=0;c<46;c++){const vx=(r()-.5)*1300, vy=-900-r()*900, g=1900, x=X+vx*tj, y=top+120+vy*tj+g*tj*tj/2, sp=r()*10;
+      if(y>2000)continue; co+='<ellipse cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" rx="'+(22*Math.abs(Math.cos(tj*sp+c))+3).toFixed(1)+'" ry="22" fill="'+GOLD+'" stroke="#b8860b" stroke-width="4"/>'}
+    s+=co+'<g transform="translate('+X+' '+(top-70)+') scale('+Math.max(.01,Math.min(1.08,jk)).toFixed(3)+') rotate(-4)" filter="url(#sh)"><text x="0" y="0" text-anchor="middle" font-family="P" font-weight="800" font-size="150" fill="'+GOLD+'" stroke="'+INK+'" stroke-width="16" paint-order="stroke">JACKPOT!</text></g>'}
+  return s}
+window.frame=(t)=>{const behind=defs+snow(t,false)+lights(t)+(C.title_front?'':title(t)); let front=defs+(C.title_front?title(t):''); C.points.forEach((p,i)=>front+=cardAt(p,i,t)); front+=deck(t)+slot(t)+ending(t)+snow(t,true); return [behind,front]};
 window.draw=(s)=>{document.getElementById('s').innerHTML=s};
 </script>`;
 const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1080, height: 1920 } });
