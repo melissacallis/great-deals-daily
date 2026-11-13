@@ -304,6 +304,46 @@ async function serveStatic(res, urlPath) {
   }
 }
 
+
+// ---- Search engines: per-page titles/descriptions in the HTML itself, a sitemap and robots.txt ----
+const BASE_URL = `https://${CANONICAL_HOST || 'www.ubottega.com'}`;
+const escHtml = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function pageMeta(pathname) {
+  if (pathname === '/') return { title: 'Top 50 Amazon Deals Today, Checked | UBottega', desc: 'The 50 biggest real Amazon markdowns right now, checked against their usual price and refreshed every hour. Gift ideas for her, him and kids, under $10, $25 and $50.' };
+  const id = pathname.match(/^\/top\/([\w-]+)\/?$/)?.[1];
+  const cat = id && CATEGORIES.find((c) => c.id === id);
+  if (cat) {
+    const parent = cat.parent && CATEGORIES.find((c) => c.id === cat.parent);
+    return { title: `${cat.title} (Updated Daily) | UBottega`, desc: `${cat.intro} Refreshed every hour${parent ? `, part of our ${parent.label} gift lists` : ''}.`, h1: cat.title, lede: cat.intro };
+  }
+  return null;
+}
+async function servePage(res, file, pathname) {
+  let html = await readFile(path.join(ROOT, file), 'utf8');
+  const m = pageMeta(pathname);
+  if (m) {
+    const t = escHtml(m.title), d = escHtml(m.desc);
+    html = html.replace(/<title>[^<]*<\/title>/, `<title>${t}</title>`)
+      .replace(/(<meta property="og:title" content=")[^"]*/, `$1${t}`)
+      .replace(/(<meta property="og:description" content=")[^"]*/, `$1${d}`)
+      .replace(/(<meta name="description" content=")[^"]*/, `$1${d}`);
+    if (m.h1) html = html.replace(/<h1>[\s\S]*?<\/h1>/, `<h1>${escHtml(m.h1)}</h1>`).replace(/(<p class="lede">)[^<]*/, `$1${escHtml(m.lede)}`);
+  }
+  const canonical = `<link rel="canonical" href="${BASE_URL}${pathname === '/' ? '/' : pathname.replace(/\/$/, '')}">`;
+  const verify = process.env.GOOGLE_SITE_VERIFICATION ? `\n  <meta name="google-site-verification" content="${escHtml(process.env.GOOGLE_SITE_VERIFICATION)}">` : '';
+  html = html.replace('</head>', `  ${canonical}${verify}\n</head>`);
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end(html);
+}
+async function sitemap() {
+  const day = new Date().toISOString().slice(0, 10);
+  const { campaigns } = await getContent();
+  const urls = [['/', 'hourly', '1.0'], ...CATEGORIES.map((c) => [`/top/${c.id}`, 'hourly', c.parent ? '0.7' : '0.9']), ['/black-friday', 'daily', '0.6'],
+    ...campaigns.filter((c) => c.nav && c.id !== HOME_CAMPAIGN).map((c) => [`/c/${c.id}`, 'weekly', '0.5']), ['/privacy', 'yearly', '0.1']];
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(([u, f, p]) => `  <url><loc>${BASE_URL}${u}</loc><lastmod>${day}</lastmod><changefreq>${f}</changefreq><priority>${p}</priority></url>`).join('\n')}\n</urlset>\n`;
+}
+const ROBOTS = `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nDisallow: /go/\n\nSitemap: ${BASE_URL}/sitemap.xml\n`;
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   // Once the custom domain is live (CANONICAL_HOST=www.ubottega.com in Railway), old railway.app links forward to it.
@@ -379,14 +419,16 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/privacy') return serveStatic(res, '/privacy.html');
     // Front page: the Top 50 deals (when they're on). The Black Friday page (featured campaign + front-page
     // campaigns) lives at /black-friday. /deals is kept for old links.
-    if (url.pathname === '/') return serveStatic(res, SHOW_TOP_DEALS ? '/deals.html' : '/index.html');
+    if (url.pathname === '/sitemap.xml') { res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8' }); return res.end(await sitemap()); }
+    if (url.pathname === '/robots.txt') { res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end(ROBOTS); }
+    if (url.pathname === '/') return SHOW_TOP_DEALS ? servePage(res, 'deals.html', '/') : serveStatic(res, '/index.html');
     if (url.pathname === '/black-friday') return serveStatic(res, '/index.html');
     if (url.pathname === '/pin') return serveStatic(res, '/pin.html'); // daily Top 10 pin maker (unlisted)
     // One Top 50 page per list: /top/her, /top/him, /top/kids, /top/tech …
     const topPage = url.pathname.match(/^\/top\/([\w-]+)\/?$/);
     if (topPage) {
       if (!SHOW_TOP_DEALS || !CATEGORIES.some((c) => c.id === topPage[1])) { res.writeHead(302, { Location: '/' }); return res.end(); }
-      return serveStatic(res, '/deals.html');
+      return servePage(res, 'deals.html', url.pathname);
     }
     if (url.pathname === '/deals') {
       res.writeHead(301, { Location: `/${url.search}` }); return res.end();
