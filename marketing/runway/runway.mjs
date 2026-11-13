@@ -2,7 +2,8 @@
 // % burst, shoe tap), then walk off to the left as the next card walks in. Each card wears different shoes.
 // Writes 1080x1920 PNG frames + events.json (footsteps/taps/pops with times) for the sound mix.
 // node runway.mjs <deals.json> <outDir> <fontDir> <logo.svg> "<date label>" "<title line 1>" "<title line 2>"
-// deals.json: [{rank, shoe: flats|heels|slippers|sneakers|boots, name, brand, price, list, off, img}]
+// deals.json: [{rank, shoe, name, brand, price, list, off, img, color?}]  shoes: flats|heels|slippers|sneakers|boots|cleats|hightops|dress|workboots|skate
+// OUTRO="All 50 deals for him 🤘" (last screen). THEME=punk: night football field with neon spray paint (default: pink fashion runway)
 import { createRequire } from 'node:module';
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -22,7 +23,7 @@ html,body{margin:0;width:1080px;height:1920px;overflow:hidden;background:#2a0a2e
 <svg id="s" width="1080" height="1920" xmlns="http://www.w3.org/2000/svg"></svg>
 <script>
 const D=${JSON.stringify(deals)}, T=${JSON.stringify({ START, ENTER, HOLD, EXIT, NEXT, CYCLE, END_AT })};
-const LOGO='data:image/svg+xml;base64,${logo}', DATE=${JSON.stringify(dateLabel)}, T1=${JSON.stringify(t1)}, T2=${JSON.stringify(t2)};
+const THEME=${JSON.stringify(process.env.THEME || 'runway')}, OUTRO=${JSON.stringify(process.env.OUTRO || 'All 50 deals for her 💝')}, LOGO='data:image/svg+xml;base64,${logo}', DATE=${JSON.stringify(dateLabel)}, T1=${JSON.stringify(t1)}, T2=${JSON.stringify(t2)};
 const INK='#3b0f3a', PINK='#ff3d7f', GOLD='#ffd45c', RED='#e8364f';
 const cl=x=>Math.max(0,Math.min(1,x)), back=(x,c=1.7)=>{x=cl(x);return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
 const eOut=x=>1-Math.pow(1-cl(x),2.2), eIn=x=>Math.pow(cl(x),1.8);
@@ -43,6 +44,34 @@ function stage(t){let s='<rect width="1080" height="1920" fill="url(#bg)"/>';
   for(let k=0;k<7;k++){const y=1330+Math.pow(k/6,1.6)*590, w=210+(y-1330)*.92; s+='<line x1="'+(540-w)+'" y1="'+y+'" x2="'+(540+w)+'" y2="'+y+'" stroke="#fff" stroke-opacity=".35" stroke-width="3"/>'}
   for(let k=0;k<9;k++){const u=k/8, y=1345+Math.pow(u,1.4)*560, x=540-(220+(y-1330)*.92)+6, on=Math.sin(t*6-k)>0; s+='<circle cx="'+x+'" cy="'+y+'" r="7" fill="'+(on?GOLD:'#fff')+'"/><circle cx="'+(1080-x)+'" cy="'+y+'" r="7" fill="'+(on?GOLD:'#fff')+'"/>'}
   return s}
+
+function punkField(t){let s='<rect width="1080" height="1920" fill="#0d0716"/>';
+  // stadium light towers that flicker
+  for(const [x,ph] of [[120,0],[960,1.7]]){const fl=.55+.45*(Math.sin(t*23+ph)>-.85?1:.2);
+    s+='<path d="M'+x+' 520 L'+(x-8)+' 860 L'+(x+8)+' 860 Z" fill="#2a2338"/><rect x="'+(x-70)+'" y="470" width="140" height="56" rx="8" fill="#2a2338"/>';
+    for(let k=0;k<8;k++)s+='<circle cx="'+(x-55+k*16)+'" cy="498" r="7" fill="#fffbe0" opacity="'+fl.toFixed(2)+'"/>';
+    s+='<path d="M'+x+' 500 L'+(540+(x-540)*.1-420)+' 1920 L'+(540+(x-540)*.1+420)+' 1920 Z" fill="#fffbe0" opacity="'+(.07*fl).toFixed(3)+'"/>'}
+  // the field in perspective (vanishing point above the middle)
+  const top=820, vx=540; s+='<path d="M'+(vx-430)+' '+top+' L'+(vx+430)+' '+top+' L1500 1920 L-420 1920 Z" fill="#1c6b2f"/>';
+  for(let k=-6;k<=6;k++){const xt=vx+k*72, xb=vx+k*330; if(k%2===0)s+='<path d="M'+xt+' '+top+' L'+(xt+72)+' '+top+' L'+(xb+330)+' 1920 L'+xb+' 1920 Z" fill="#17592a"/>';
+    s+='<line x1="'+xt+'" y1="'+top+'" x2="'+xb+'" y2="1920" stroke="#e9ffe9" stroke-opacity=".75" stroke-width="'+(k===0?9:5)+'" stroke-dasharray="'+(k===0?'':'60 14')+'"/>'}
+  // spray-painted yard numbers + scribbles
+  const nums=[['30',-2],['40',-1],['50',0],['40',1],['30',2]];
+  for(const [n,k] of nums){const y=1100, x=vx+k*72*2.55+36; s+='<text x="'+x+'" y="'+y+'" text-anchor="middle" font-family="P" font-weight="800" font-size="70" fill="none" stroke="#ff2e88" stroke-width="6" transform="rotate('+(k*4)+' '+x+' '+y+')" opacity=".9">'+n+'</text>'}
+  let sd=5; const r=()=>((sd=(sd*16807)%2147483647)/2147483647);
+  for(let c=0;c<14;c++){const x=r()*1080, y=840+r()*1050, col=['#39ff14','#ff2e88','#2ec5ff','#ffe600'][c%4];
+    for(let j=0;j<9;j++)s+='<circle cx="'+(x+(r()-.5)*90).toFixed(0)+'" cy="'+(y+(r()-.5)*60).toFixed(0)+'" r="'+(2+r()*9).toFixed(1)+'" fill="'+col+'" opacity=".75"/>'}
+  s+='<path d="M60 1450 L170 1560 M170 1450 L60 1560" stroke="#39ff14" stroke-width="12" stroke-linecap="round" opacity=".8"/><path d="M900 1700 L1010 1810 M1010 1700 L900 1810" stroke="#ff2e88" stroke-width="12" stroke-linecap="round" opacity=".8"/>';
+  // neon stars in the sky
+  for(let k=0;k<10;k++){const x=60+r()*960, y=60+r()*360, o=.4+.6*Math.abs(Math.sin(t*3+k)); s+='<path d="M'+x+' '+(y-14)+' L'+(x+4)+' '+(y-4)+' L'+(x+14)+' '+y+' L'+(x+4)+' '+(y+4)+' L'+x+' '+(y+14)+' L'+(x-4)+' '+(y+4)+' L'+(x-14)+' '+y+' L'+(x-4)+' '+(y-4)+' Z" fill="none" stroke="'+(k%2?'#39ff14':'#ff2e88')+'" stroke-width="3" opacity="'+o.toFixed(2)+'"/>'}
+  return s}
+function punkTitle(t){const k=back((t-.1)/.55); if(k<=0)return''; const sc=Math.max(.01,Math.min(1.05,k)), j=Math.sin(t*30)>.92?4:0;
+  const tape=(w,h,c)=>{let p='M'+(-w/2)+' '+(-h/2);for(let x=-w/2;x<=w/2;x+=24)p+=' L'+x+' '+(-h/2+(x/24%2?6:-4));for(let x=w/2;x>=-w/2;x-=24)p+=' L'+x+' '+(h/2+(x/24%2?-5:5));return '<path d="'+p+'Z" fill="'+c+'"/>'};
+  return '<g transform="translate(540 285) rotate(-3) scale('+sc+')">'+tape(900,150,'#111')+
+   '<text x="'+(6+j)+'" y="46" text-anchor="middle" font-family="P" font-weight="800" font-size="118" fill="#ff2e88">'+esc(T1)+'</text>'+
+   '<text x="'+j+'" y="40" text-anchor="middle" font-family="P" font-weight="800" font-size="118" fill="#39ff14">'+esc(T1)+'</text></g>'+
+   '<g transform="translate(540 405) rotate(2) scale('+sc+')">'+tape(420,84,'#ff2e88')+'<text y="22" text-anchor="middle" font-family="P" font-weight="800" font-size="60" fill="#111">'+esc(T2)+'</text></g>'+
+   '<g transform="translate(540 125) rotate(-2) scale('+sc+')">'+tape(330,58,'#ffe600')+'<text y="11" text-anchor="middle" font-family="P" font-weight="800" font-size="30" fill="#111">'+esc(DATE)+'</text></g>'}
 function title(t){const k=back((t-.1)/.55); if(k<=0)return''; const sc=Math.max(.01,Math.min(1.05,k));
   return '<g transform="translate(540 300) scale('+sc+')">'+
    '<text x="0" y="0" text-anchor="middle" font-family="P" font-weight="800" font-size="108" fill="#fff" stroke="'+INK+'" stroke-width="12" paint-order="stroke">'+esc(T1)+'</text>'+
@@ -59,12 +88,20 @@ function shoe(kind,lift){switch(kind){
     return '<path d="M30 0 Q40 20 30 40 L-80 44 Q-100 38 -96 20 Q-90 2 -60 0 Z" fill="#f5e6c8" stroke="#d8c39a" stroke-width="3"/>'+f+'<circle cx="-86" cy="6" r="15" fill="'+PINK+'"/><rect x="-94" y="38" width="128" height="10" rx="5" fill="#d8c39a"/>'}
   case 'sneakers': return '<path d="M26 -4 Q38 0 36 26 L36 34 L-78 34 Q-96 32 -92 18 Q-86 6 -56 2 Q-30 -2 -10 -12 Q8 -16 26 -4 Z" fill="#fff" stroke="#bbb" stroke-width="3"/><rect x="-96" y="32" width="134" height="14" rx="7" fill="'+PINK+'"/><path d="M-40 4 L-20 -6 M-30 8 L-10 -2 M-20 12 L0 2" stroke="'+INK+'" stroke-width="4"/><path d="M-60 22 Q-20 10 20 22" stroke="'+PINK+'" stroke-width="6" fill="none"/>';
   case 'boots': return '<path d="M-22 -70 L26 -70 L30 24 L26 30 Q0 34 -30 40 Q-70 50 -96 44 Q-104 36 -92 30 Q-60 24 -34 10 Z" fill="#8b5a2b" stroke="#4e2f12" stroke-width="4"/><path d="M-14 -60 Q2 -40 -10 -20 M10 -60 Q-4 -40 10 -20" stroke="#e8c38f" stroke-width="3" fill="none"/><rect x="12" y="24" width="20" height="24" fill="#4e2f12"/><path d="M-96 46 L14 34" stroke="#4e2f12" stroke-width="6"/>';
+
+  case 'cleats': {let st='';for(let k=0;k<5;k++)st+='<path d="M'+(-80+k*24)+' 40 l6 12 l6 -12 Z" fill="#ddd"/>';
+    return '<path d="M26 -6 Q38 0 36 26 L36 38 L-84 38 Q-98 34 -92 20 Q-84 6 -54 2 Q-26 -4 -6 -14 Q12 -18 26 -6 Z" fill="#141414" stroke="#39ff14" stroke-width="3"/>'+st+'<path d="M-52 18 L-30 4 L-34 16 L-10 2" stroke="#39ff14" stroke-width="6" fill="none" stroke-linejoin="round"/>'}
+  case 'hightops': return '<path d="M-24 -66 L26 -66 L34 24 L36 34 L-82 34 Q-98 30 -92 16 Q-84 4 -54 0 L-30 -6 Z" fill="#e8364f" stroke="#7a0a1c" stroke-width="3"/><path d="M-96 32 L40 32 L40 44 L-96 44 Q-100 38 -96 32 Z" fill="#fff"/><path d="M-90 30 Q-80 6 -56 4 L-60 30 Z" fill="#fff"/><path d="M-20 -56 L8 -56 M-20 -40 L8 -40 M-20 -24 L8 -24 M-20 -8 L8 -8" stroke="#fff" stroke-width="5"/><circle cx="18" cy="-30" r="10" fill="#fff"/><text x="18" y="-25" text-anchor="middle" font-size="14" font-family="P" font-weight="800" fill="#e8364f">★</text>';
+  case 'dress': return '<path d="M22 -2 Q34 2 32 24 L30 34 L-80 36 Q-100 34 -96 22 Q-88 10 -58 6 Q-28 2 -6 -8 Z" fill="#0b0b0b"/><path d="M-76 14 Q-60 8 -40 10" stroke="#fff" stroke-opacity=".7" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M-30 0 L-12 -8 M-26 6 L-8 -2" stroke="#444" stroke-width="3"/><rect x="14" y="30" width="20" height="10" fill="#3a2a1a"/><path d="M-96 38 L14 38" stroke="#3a2a1a" stroke-width="5"/>';
+  case 'workboots': return '<path d="M-22 -72 L26 -72 L30 22 L32 34 L-84 36 Q-102 34 -96 20 Q-88 6 -56 4 L-28 -2 Z" fill="#c99a4b" stroke="#6b4a1c" stroke-width="4"/><path d="M-98 36 L36 36 L36 48 L-98 48 Z" fill="#3a2a1a"/><path d="M-18 -60 L8 -60 M-18 -44 L8 -44 M-18 -28 L8 -28 M-18 -12 L8 -12" stroke="#6b4a1c" stroke-width="4"/><path d="M-22 -72 L26 -72 L26 -62 L-22 -62 Z" fill="#8b5a2b"/>';
+  case 'skate': {let ch='';for(let x=-80;x<26;x+=13)for(let y=-6;y<28;y+=13)if(((x+80)/13+(y+6)/13)%2<1)ch+='<rect x="'+x+'" y="'+y+'" width="13" height="13" fill="#111"/>';
+    return '<clipPath id="skc"><path d="M24 -8 Q34 0 32 28 L-84 30 Q-98 26 -92 14 Q-84 2 -50 -2 Q-20 -6 0 -12 Z"/></clipPath><path d="M24 -8 Q34 0 32 28 L-84 30 Q-98 26 -92 14 Q-84 2 -50 -2 Q-20 -6 0 -12 Z" fill="#fff"/><g clip-path="url(#skc)">'+ch+'</g><path d="M24 -8 Q34 0 32 28 L-84 30 Q-98 26 -92 14 Q-84 2 -50 -2 Q-20 -6 0 -12 Z" fill="none" stroke="#111" stroke-width="3"/><rect x="-96" y="28" width="132" height="14" rx="6" fill="#f2f2f2" stroke="#999" stroke-width="2"/>'}
  } return ''}
 // one leg: thigh angle a (deg, + = forward/left), knee bend b (deg, foot goes back)
 function leg(hx,hy,a,b,kind,color){const r=Math.PI/180, kx=hx-Math.sin(a*r)*LEG, ky=hy+Math.cos(a*r)*LEG, sa=a-b, ax=kx-Math.sin(sa*r)*LEG, ay=ky+Math.cos(sa*r)*LEG;
   return {svg:'<path d="M'+hx.toFixed(1)+' '+hy.toFixed(1)+' L'+kx.toFixed(1)+' '+ky.toFixed(1)+' L'+ax.toFixed(1)+' '+ay.toFixed(1)+'" stroke="'+color+'" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" fill="none"/>'+
     '<g transform="translate('+ax.toFixed(1)+' '+ay.toFixed(1)+') rotate('+(sa*.35).toFixed(1)+')">'+shoe(kind)+'</g>', ay}}
-const LEGCOL={heels:'#2a0a2e',flats:'#ffcfa8',slippers:'#f2b38c',sneakers:'#3a5bd9',boots:'#1f3a7a'};
+const LEGCOL={heels:'#2a0a2e',flats:'#ffcfa8',slippers:'#f2b38c',sneakers:'#3a5bd9',boots:'#1f3a7a',cleats:'#f2f2f2',hightops:'#1b1b1b',dress:'#1d2a4a',workboots:'#2f4f86',skate:'#b8a27a'};
 // where card i is and how it moves at time t
 function stateOf(i,t){const t0=T.START+i*T.CYCLE, tH=t0+T.ENTER, tX=tH+T.HOLD, tE=tX+T.EXIT; const off=540+CW/2+90;
   if(t<t0||t>tE)return null;
@@ -80,10 +117,10 @@ function card(i,st,t){const d=D[i]; const ph=Math.PI*st.dist/STRIDE; let amp=st.
   const L1=leg(cx-95,hipY,a1+tap*.0,b1+tap,d.shoe,LEGCOL[d.shoe]), L2=leg(cx+95,hipY,-a1,b2,d.shoe,LEGCOL[d.shoe]);
   let s='<g filter="url(#sh)">'+L2.svg+L1.svg+'</g>';
   s+='<g transform="translate('+cx.toFixed(1)+' '+(CY+bob).toFixed(1)+') rotate('+tilt.toFixed(2)+' 0 '+(CH/2)+')" filter="url(#sh)">';
-  s+='<rect x="'+(-CW/2)+'" y="0" width="'+CW+'" height="'+CH+'" rx="44" fill="#fff" stroke="'+GOLD+'" stroke-width="12"/>';
-  s+='<rect x="'+(-CW/2+30)+'" y="30" width="'+(CW-60)+'" height="430" rx="28" fill="#fff4f8"/>';
+  const CC=d.color||GOLD; s+='<rect x="'+(-CW/2)+'" y="0" width="'+CW+'" height="'+CH+'" rx="44" fill="#fff" stroke="'+CC+'" stroke-width="16"/>';
+  s+='<rect x="'+(-CW/2+30)+'" y="30" width="'+(CW-60)+'" height="430" rx="28" fill="'+(d.color?d.color+'22':'#fff4f8')+'"/>';
   s+='<image href="'+d.src+'" x="'+(-CW/2+50)+'" y="44" width="'+(CW-100)+'" height="402" preserveAspectRatio="xMidYMid meet"/>';
-  s+='<g transform="translate('+(-CW/2+40)+' 40)"><circle r="52" fill="'+INK+'" stroke="#fff" stroke-width="7"/><text y="20" text-anchor="middle" font-family="P" font-weight="800" font-size="56" fill="#fff">#'+d.rank+'</text></g>';
+  s+='<g transform="translate('+(-CW/2+40)+' 40)"><circle r="52" fill="'+(d.color?'#111':INK)+'" stroke="'+(d.color||'#fff')+'" stroke-width="7"/><text y="20" text-anchor="middle" font-family="P" font-weight="800" font-size="56" fill="#fff">#'+d.rank+'</text></g>';
   s+='<text x="0" y="530" text-anchor="middle" font-family="P" font-weight="800" font-size="'+Math.min(52,Math.floor(660/(.6*d.name.length)))+'" fill="'+INK+'">'+esc(d.name)+'</text>';
   s+='<text x="0" y="578" text-anchor="middle" font-family="P" font-weight="600" font-size="32" fill="#9a6b8f">'+esc(d.brand)+'</text>';
   s+='<text x="-20" y="700" text-anchor="end" font-family="P" font-weight="800" font-size="104" fill="'+PINK+'">'+esc(d.price)+'</text>';
@@ -94,12 +131,12 @@ function card(i,st,t){const d=D[i]; const ph=Math.PI*st.dist/STRIDE; let amp=st.
   const kb=st.walk?0:back(st.hold/.4,2.2); if(kb>0||st.dist>540+CW/2+90)s+='<g transform="translate('+(CW/2-40)+' 40) rotate(12) scale('+Math.max(.01,st.walk?1:kb).toFixed(3)+')">'+burst('-'+d.off+'%',96)+'</g>';
   return s+'</g>'}
 function outro(t){const k=back((t-T.END_AT)/.45); if(k<=0)return''; const sc=Math.max(.01,Math.min(1.06,k));
-  return '<g transform="translate(540 980) scale('+sc+')" filter="url(#sh)"><rect x="-430" y="-250" width="860" height="500" rx="50" fill="#fff" stroke="'+GOLD+'" stroke-width="12"/>'+
-   '<text y="-120" text-anchor="middle" font-family="P" font-weight="800" font-size="64" fill="'+INK+'">All 50 deals for her 💝</text>'+
+  return '<g transform="translate(540 980) scale('+sc+')" filter="url(#sh)"><rect x="-430" y="-250" width="860" height="500" rx="50" fill="#fff" stroke="'+(THEME==='punk'?'#39ff14':GOLD)+'" stroke-width="'+(THEME==='punk'?18:12)+'"/>'+
+   '<text y="-120" text-anchor="middle" font-family="P" font-weight="800" font-size="64" fill="'+INK+'">'+esc(OUTRO)+'</text>'+
    '<text y="-40" text-anchor="middle" font-family="P" font-weight="600" font-size="40" fill="#9a6b8f">updated every hour</text>'+
    '<rect x="-270" y="20" width="540" height="120" rx="60" fill="'+PINK+'"/><text y="102" text-anchor="middle" font-family="P" font-weight="800" font-size="66" fill="#fff">LINK IN BIO</text>'+
    '<text y="205" text-anchor="middle" font-family="P" font-weight="600" font-size="30" fill="#9a8a96">Prices subject to change</text></g>'}
-window.frame=(t)=>{let s=defs+stage(t)+title(t); const live=[]; for(let i=0;i<D.length;i++){const st=stateOf(i,t); if(st)live.push([i,st])}
+window.frame=(t)=>{let s=defs+(THEME==='punk'?punkField(t)+punkTitle(t):stage(t)+title(t)); const live=[]; for(let i=0;i<D.length;i++){const st=stateOf(i,t); if(st)live.push([i,st])}
   live.sort((a,b)=>a[1].x-b[1].x); for(const [i,st] of live)s+=card(i,st,t); s+=outro(t); document.getElementById('s').innerHTML=s;
   return live.map(([i,st])=>({i,dist:st.dist,walk:st.walk,hold:st.hold??null}))};
 </script>`;

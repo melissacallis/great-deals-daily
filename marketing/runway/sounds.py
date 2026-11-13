@@ -49,6 +49,28 @@ def boots():
     return norm(x, .7)
 
 
+def cleats():
+    t = T(.1); x = band(rng.standard_normal(len(t)), 600, 4000) * np.exp(-40 * t) + .5 * np.sin(2 * np.pi * 140 * t) * np.exp(-40 * t)
+    return norm(x, .4)
+
+
+def hightops():
+    squeak_n[0] += 1  # squeakier than plain sneakers
+    t = T(.12); x = np.sin(2 * np.pi * 120 * t) * np.exp(-35 * t)
+    if squeak_n[0] % 2 == 0:
+        ts = T(.1); f = 2600 + 1500 * ts / .1; x[:len(ts)] += .6 * np.sin(2 * np.pi * np.cumsum(f) / SR) * np.sin(np.pi * ts / .1)
+    return norm(x, .45)
+
+
+def dress():
+    t = T(.07); x = band(rng.standard_normal(len(t)), 1200, 5000) * np.exp(-70 * t) + .4 * np.sin(2 * np.pi * 900 * t) * np.exp(-90 * t)
+    return norm(x, .5)
+
+
+def skate():
+    t = T(.09); return norm(band(rng.standard_normal(len(t)), 150, 1400) * np.exp(-45 * t), .4)
+
+
 def pop():
     t = T(.12); return norm(np.sin(2 * np.pi * 600 * t * (1 + 4 * t)) * np.exp(-28 * t), .45)
 
@@ -66,7 +88,7 @@ def load(path):
 
 
 WH = load(whoosh_file)
-GEN = {'step_heels': heels, 'step_flats': flats, 'step_slippers': slippers, 'step_sneakers': sneakers, 'step_boots': boots,
+GEN = {'step_heels': heels, 'step_flats': flats, 'step_slippers': slippers, 'step_sneakers': sneakers, 'step_boots': boots, 'step_workboots': boots, 'step_cleats': cleats, 'step_hightops': hightops, 'step_dress': dress, 'step_skate': skate,
        'pop': pop, 'ding': ding, 'whoosh': lambda: WH}
 mix = np.zeros(int((E['duration'] + 1) * SR))
 for e in E['events']:
