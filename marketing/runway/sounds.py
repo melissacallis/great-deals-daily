@@ -71,6 +71,43 @@ def skate():
     t = T(.09); return norm(band(rng.standard_normal(len(t)), 150, 1400) * np.exp(-45 * t), .4)
 
 
+def bark():  # cartoon "woof": a buzzy voiced burst with falling pitch and a breathy start
+    t = T(.22); f = 560 - 260 * (t / .22); ph = 2 * np.pi * np.cumsum(f) / SR
+    voiced = sum(np.sin(k * ph) / k for k in range(1, 9))
+    env = np.minimum(1, t / .012) * np.exp(-11 * t)
+    x = band(voiced, 250, 3200) * env + .35 * band(rng.standard_normal(len(t)), 600, 3000) * np.exp(-40 * t)
+    return norm(x, .8)
+
+
+def boing():
+    t = T(.38); f = 180 + 700 * (t / .38) ** .6 + 30 * np.sin(2 * np.pi * 18 * t)
+    return norm(np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-5 * t), .45)
+
+
+def lightup():
+    return sneakers()
+
+
+def rainboots():  # rubbery squelch
+    t = T(.14); x = band(rng.standard_normal(len(t)), 120, 900) * np.exp(-22 * t) + .5 * np.sin(2 * np.pi * (220 - 300 * t) * t) * np.exp(-25 * t)
+    return norm(x, .5)
+
+
+def dino():  # soft shuffle with a tiny squeak-toy chirp now and then
+    x = slippers(); squeak_n[0] += 1
+    if squeak_n[0] % 4 == 0:
+        ts = T(.09); x = x.copy(); x[:len(ts)] += .25 * np.sin(2 * np.pi * (1800 + 1200 * ts / .09) * ts) * np.sin(np.pi * ts / .09)
+    return x
+
+
+def velcro():
+    return flats()
+
+
+def snowboots():  # crunchy snow-boot step
+    t = T(.13); return norm(band(rng.standard_normal(len(t)), 400, 5000) * (np.abs(rng.standard_normal(len(t))) ** 2) * np.exp(-25 * t), .45)
+
+
 def pop():
     t = T(.12); return norm(np.sin(2 * np.pi * 600 * t * (1 + 4 * t)) * np.exp(-28 * t), .45)
 
@@ -88,7 +125,7 @@ def load(path):
 
 
 WH = load(whoosh_file)
-GEN = {'step_heels': heels, 'step_flats': flats, 'step_slippers': slippers, 'step_sneakers': sneakers, 'step_boots': boots, 'step_workboots': boots, 'step_cleats': cleats, 'step_hightops': hightops, 'step_dress': dress, 'step_skate': skate,
+GEN = {'step_heels': heels, 'step_flats': flats, 'step_slippers': slippers, 'step_sneakers': sneakers, 'step_boots': boots, 'step_workboots': boots, 'step_cleats': cleats, 'step_hightops': hightops, 'step_dress': dress, 'step_skate': skate, 'step_lightup': lightup, 'step_rainboots': rainboots, 'step_dino': dino, 'step_velcro': velcro, 'step_snowboots': snowboots, 'bark': bark, 'boing': boing,
        'pop': pop, 'ding': ding, 'whoosh': lambda: WH}
 mix = np.zeros(int((E['duration'] + 1) * SR))
 for e in E['events']:
