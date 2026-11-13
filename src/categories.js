@@ -18,6 +18,22 @@ export const CATEGORIES = [
     intro: 'Gifts for him (husband, dad, brother, boyfriend): tools, gadgets and clothes he will actually use, on sale today.',
     searches: [s('FashionMen', 'jacket'), s('ToolsAndHomeImprovement', 'tool set'), s('Electronics', 'gadgets for men'), s('SportsAndOutdoors', 'men'), s('All', 'gifts for men', 30)],
   },
+  // Sub-lists of For Her (parent: 'her'): their own pages (/top/her-selfcare …), a second chip row on the For Her pages.
+  {
+    id: 'her-selfcare', parent: 'her', label: 'Self-Care', icon: '🛁', title: 'Top 50 Self-Care Deals for Her',
+    intro: 'Spa sets, bath bombs, heated eye masks and massagers so she can finally relax, all marked down from their usual price.',
+    searches: [s('Beauty', 'spa gift set', 20), s('Beauty', 'bath bombs', 20), s('HealthPersonalCare', 'massager', 20), s('All', 'self care gifts for women', 25)],
+  },
+  {
+    id: 'her-cozy', parent: 'her', label: 'Cozy & Comfy', icon: '🧦', title: 'Top 50 Cozy Deals for Her',
+    intro: 'Fuzzy slippers, throw blankets, robes and loungewear for the coziest Christmas morning, on sale today.',
+    searches: [s('FashionWomen', 'slippers', 25), s('HomeAndKitchen', 'throw blanket', 25), s('FashionWomen', 'robe', 25), s('FashionWomen', 'lounge set', 25)],
+  },
+  {
+    id: 'her-jewelry', parent: 'her', label: 'Jewelry', icon: '💍', title: 'Top 50 Jewelry Deals for Her',
+    intro: 'Necklaces, earrings, bracelets and jewelry boxes she will love, with real discounts.',
+    searches: [s('Jewelry', 'necklace for women', 25), s('Jewelry', 'earrings', 25), s('Jewelry', 'bracelet', 25), s('HomeAndKitchen', 'jewelry box', 25)],
+  },
   // Sub-lists of For Him (parent: 'him'): each is its own page (/top/him-fishing …), shown as a second chip row on the
   // For Him pages, and their deals also feed the main For Him list.
   {
