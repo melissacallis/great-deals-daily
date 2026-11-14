@@ -108,6 +108,39 @@ def snowboots():  # crunchy snow-boot step
     t = T(.13); return norm(band(rng.standard_normal(len(t)), 400, 5000) * (np.abs(rng.standard_normal(len(t))) ** 2) * np.exp(-25 * t), .45)
 
 
+def whir(d=1.0):  # claw motor sliding along the rail
+    t = T(d); saw = 2 * ((90 * t) % 1) - 1
+    x = band(saw + .3 * rng.standard_normal(len(t)), 80, 1800) * (1 + .3 * np.sin(2 * np.pi * 9 * t))
+    env = np.minimum(1, t / .05) * np.minimum(1, (d - t) / .08)
+    return norm(x * env, .22)
+
+
+def lower(d=1.0):  # the cable winch going down or up
+    t = T(d); f = 140 + 40 * np.sin(2 * np.pi * 1.5 * t); x = np.sin(2 * np.pi * np.cumsum(f) / SR) + .4 * np.sin(4 * np.pi * np.cumsum(f) / SR)
+    env = np.minimum(1, t / .05) * np.minimum(1, (d - t) / .08)
+    return norm(x * env, .18)
+
+
+def click():
+    t = T(.04); return norm(band(rng.standard_normal(len(t)), 1500, 6000) * np.exp(-120 * t), .4)
+
+
+def clank():  # metal prongs closing on the capsule
+    t = T(.35); x = sum(np.sin(2 * np.pi * f * t) * np.exp(-k * t) for f, k in [(523, 12), (1187, 16), (1743, 22), (2817, 30)])
+    return norm(x + .5 * band(rng.standard_normal(len(t)), 2000, 7000) * np.exp(-60 * t), .45)
+
+
+def thud():
+    t = T(.25); return norm(np.sin(2 * np.pi * (110 - 60 * t) * t) * np.exp(-14 * t) + .3 * band(rng.standard_normal(len(t)), 60, 600) * np.exp(-25 * t), .6)
+
+
+def prize():  # arcade win jingle: a quick rising arpeggio
+    out = np.zeros(int(.75 * SR))
+    for i, f in enumerate([784, 988, 1175, 1568]):
+        t = T(.3); s = (np.sign(np.sin(2 * np.pi * f * t)) * .5 + np.sin(2 * np.pi * f * t)) * np.exp(-9 * t); j = int(i * .11 * SR); out[j:j + len(s)] += s[:len(out) - j]
+    return norm(out, .35)
+
+
 def pop():
     t = T(.12); return norm(np.sin(2 * np.pi * 600 * t * (1 + 4 * t)) * np.exp(-28 * t), .45)
 
@@ -125,11 +158,11 @@ def load(path):
 
 
 WH = load(whoosh_file)
-GEN = {'step_heels': heels, 'step_flats': flats, 'step_slippers': slippers, 'step_sneakers': sneakers, 'step_boots': boots, 'step_workboots': boots, 'step_cleats': cleats, 'step_hightops': hightops, 'step_dress': dress, 'step_skate': skate, 'step_lightup': lightup, 'step_rainboots': rainboots, 'step_dino': dino, 'step_velcro': velcro, 'step_snowboots': snowboots, 'bark': bark, 'boing': boing,
+GEN = {'step_heels': heels, 'step_flats': flats, 'step_slippers': slippers, 'step_sneakers': sneakers, 'step_boots': boots, 'step_workboots': boots, 'step_cleats': cleats, 'step_hightops': hightops, 'step_dress': dress, 'step_skate': skate, 'step_lightup': lightup, 'step_rainboots': rainboots, 'step_dino': dino, 'step_velcro': velcro, 'step_snowboots': snowboots, 'bark': bark, 'boing': boing, 'whir': whir, 'lower': lower, 'click': click, 'clank': clank, 'thud': thud, 'prize': prize,
        'pop': pop, 'ding': ding, 'whoosh': lambda: WH}
 mix = np.zeros(int((E['duration'] + 1) * SR))
 for e in E['events']:
-    s = GEN[e['k']](); i = int(e['t'] * SR); mix[i:i + len(s)] += s[:len(mix) - i]
+    s = GEN[e['k']](e['d']) if 'd' in e else GEN[e['k']](); i = int(e['t'] * SR); mix[i:i + len(s)] += s[:len(mix) - i]
 mix = mix[:int(E['duration'] * SR)]
 mix = norm(mix, .89)
 st = np.repeat((mix * 32767).astype(np.int16)[:, None], 2, axis=1)
