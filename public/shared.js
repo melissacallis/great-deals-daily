@@ -1,4 +1,4 @@
-// Product links go through /go/p so the site can count taps (which deal, on which page) before forwarding to Amazon.
+// The site counts product taps (which deal, on which page) without slowing the trip to Amazon.
 // Only with cookie consent does it also remember and report which app/site the visitor came from (e.g. a Pinterest pin).
 import { hasConsent } from '/consent.js';
 let landingSource = '';
@@ -13,12 +13,25 @@ function rememberSource() {
 }
 rememberSource();
 document.addEventListener('consentchange', rememberSource);
+// Product links point straight at Amazon, so a tap opens the product itself (on iPhone an extra redirect hop
+// can make the Amazon app open on its home page). The tap is counted in the background with a beacon to /go/t.
+const tapInfo = new Map();
 export function goLink(url, { asin = '', title = '' } = {}) {
   if (!url || !/^https:\/\/((www\.)?amazon\.com|amzn\.to|a\.co)\//.test(url)) return url;
-  const q = new URLSearchParams({ u: url, a: asin, t: String(title).slice(0, 80), from: location.pathname });
-  if (hasConsent()) { q.set('s', landingSource.slice(0, 200)); q.set('c', '1'); }
-  return `/go/p?${q}`;
+  tapInfo.set(url, { asin, title });
+  return url;
 }
+function recordTap(e) {
+  const a = e.target.closest?.('a[href]');
+  if (!a || !tapInfo.has(a.href) && !tapInfo.has(a.getAttribute('href'))) return;
+  const href = a.getAttribute('href'), { asin, title } = tapInfo.get(href) ?? tapInfo.get(a.href);
+  const q = new URLSearchParams({ u: href, a: asin, t: String(title).slice(0, 80), from: location.pathname });
+  if (hasConsent()) { q.set('s', landingSource.slice(0, 200)); q.set('c', '1'); }
+  try { if (navigator.sendBeacon?.(`/go/t?${q}`)) return; } catch {}
+  fetch(`/go/t?${q}`, { method: 'POST', keepalive: true }).catch(() => {});
+}
+document.addEventListener('click', recordTap, true);
+document.addEventListener('auxclick', (e) => { if (e.button === 1) recordTap(e); }, true);
 
 // Hand-picked product cards (Today's Picks and campaign pages), added in /admin.
 // They carry no price; the photo is the owner's own or an Amazon-hosted image.

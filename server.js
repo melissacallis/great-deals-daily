@@ -450,12 +450,17 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/deals') {
       res.writeHead(301, { Location: `/${url.search}` }); return res.end();
     }
-    // Product taps: record the tap, then forward to Amazon (Amazon links only).
+    // Product taps from older links: record the tap, then forward to Amazon (Amazon links only).
     if (url.pathname === '/go/p') {
       const target = amazonTarget(url.searchParams.get('u') ?? '');
       if (!target) { res.writeHead(302, { Location: '/' }); return res.end(); }
       recordClick(req, url.searchParams); // don't make the shopper wait for the write
       res.writeHead(302, { Location: target, 'Cache-Control': 'no-store', 'Referrer-Policy': 'unsafe-url' }); return res.end();
+    }
+    // Tap beacon from product links that go straight to Amazon: record it, nothing to send back.
+    if (url.pathname === '/go/t') {
+      if (amazonTarget(url.searchParams.get('u') ?? '')) recordClick(req, url.searchParams);
+      res.writeHead(204, { 'Cache-Control': 'no-store' }); return res.end();
     }
     if (url.pathname === '/api/clicks') {
       const auth = checkAdmin(req);
