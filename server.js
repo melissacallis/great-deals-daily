@@ -194,6 +194,49 @@ async function trySearch(search) {
   }
 }
 
+// Amazon's search results shift from hour to hour, so a great deal can vanish from a list even though the price
+// hasn't changed. Before letting a big deal (50%+ off) drop, look that exact product up again and keep it if it's
+// still on sale (in stock, same discount or better, price not up more than 5%).
+const HOT_PCT = 50, HOT_MAX = 20;
+// Products to always look up, even when Amazon's searches miss them (shown while they're 50%+ off).
+const WATCH_ASINS = { B0HLGC93P1: ['him', 'under-10'] }; // asin: lists it belongs on. $1.99 men's tracksuit, Nov 2026
+async function keepHotDeals(byCategory, pool) {
+  const now = new Set([...Object.values(byCategory), ...pool].flat().map((it) => it.asin));
+  const was = new Map(); // asin -> { item, lists it was on }
+  for (const [id, items] of Object.entries(store.byCategory)) {
+    if (!byCategory[id]) continue;
+    for (const it of items) {
+      if (now.has(it.asin) || it.savingsPct < HOT_PCT) continue;
+      const w = was.get(it.asin) ?? { item: it, lists: [] }; w.lists.push(id); was.set(it.asin, w);
+    }
+  }
+  // deals that were only in the Top 50 (from the general deal searches), plus products the owner asked to always check
+  for (const it of store.top) if (!now.has(it.asin) && !was.has(it.asin) && it.savingsPct >= HOT_PCT) was.set(it.asin, { item: it, lists: [] });
+  for (const [asin, lists] of Object.entries(WATCH_ASINS)) if (!now.has(asin) && !was.has(asin)) was.set(asin, { item: null, lists: lists.filter((id) => byCategory[id]) });
+  const asins = [...was.keys()].sort((a, b) => (was.get(b).item?.savingsPct ?? 100) - (was.get(a).item?.savingsPct ?? 100)).slice(0, HOT_MAX);
+  let kept = 0;
+  for (let i = 0; i < asins.length; i += 10) {
+    let fresh = [];
+    try { fresh = await api.getItems(asins.slice(i, i + 10)); } catch (err) {
+      console.error(`Amazon API: re-checking dropped deals failed: ${err.message.slice(0, 200)}`); break;
+    }
+    await sleep(1500);
+    for (const it of fresh) {
+      const w = was.get(it.asin), old = w?.item;
+      if (!w || /unavailable|out of stock/i.test(it.availability ?? '')) continue;
+      if (it.savingsPct < (old ? Math.max(HOT_PCT, old.savingsPct - 5) : HOT_PCT) || (old && it.priceAmount > old.priceAmount * 1.05)) continue;
+      pool.push([it]);
+      for (const id of was.get(it.asin).lists) {
+        const cat = CATEGORIES.find((c) => c.id === id);
+        if (cat?.maxPrice && !underCap(cat, [it]).length) continue;
+        byCategory[id] = rankTop([byCategory[id], [it]], LIST_SIZE);
+      }
+      kept++;
+    }
+  }
+  if (asins.length) console.log(`Re-checked ${asins.length} big deals that dropped out of the searches; kept ${kept} still on sale.`);
+}
+
 async function refreshDeals() {
   if (!api) {
     for (const cat of CATEGORIES) store.byCategory[cat.id] = demoDeals(cat.id).slice(0, LIST_SIZE);
@@ -232,6 +275,7 @@ async function refreshDeals() {
     for (const search of POOL_SEARCHES) pool.push(await trySearch(search));
     // the general deal pool can top up the price-cap lists too
     for (const cat of CATEGORIES.filter((c) => c.maxPrice)) byCategory[cat.id] = rankTop([byCategory[cat.id], underCap(cat, pool.flat())], LIST_SIZE);
+    await keepHotDeals(byCategory, pool);
     const top = rankTop([...Object.values(byCategory), ...pool]);
     if (!top.length) throw new Error('Amazon returned no deals for any search.');
     Object.assign(store, { byCategory, top, at: Date.now(), notEligible: false, error: null });
