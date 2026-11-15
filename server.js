@@ -215,6 +215,7 @@ async function keepHotDeals(byCategory, pool) {
   for (const [asin, lists] of Object.entries(WATCH_ASINS)) if (!now.has(asin) && !was.has(asin)) was.set(asin, { item: null, lists: lists.filter((id) => byCategory[id]) });
   const asins = [...was.keys()].sort((a, b) => (was.get(b).item?.savingsPct ?? 100) - (was.get(a).item?.savingsPct ?? 100)).slice(0, HOT_MAX);
   let kept = 0;
+  const pinned = [], seenWatched = new Set();
   for (let i = 0; i < asins.length; i += 10) {
     let fresh = [];
     try { fresh = await api.getItems(asins.slice(i, i + 10)); } catch (err) {
@@ -223,6 +224,13 @@ async function keepHotDeals(byCategory, pool) {
     await sleep(1500);
     for (const it of fresh) {
       const w = was.get(it.asin), old = w?.item;
+      if (WATCH_ASINS[it.asin]) {
+        seenWatched.add(it.asin);
+        console.log(`Watched ${it.asin}: ${it.price}, ${it.savingsPct}% off, ${it.availability ?? 'no stock info'}`);
+        if (/unavailable|out of stock/i.test(it.availability ?? '')) continue;
+        pinned.push(it); pool.push([it]); kept++; // the owner asked for it, so it shows whatever the discount
+        continue;
+      }
       if (!w || /unavailable|out of stock/i.test(it.availability ?? '')) continue;
       if (it.savingsPct < (old ? Math.max(HOT_PCT, old.savingsPct - 5) : HOT_PCT) || (old && it.priceAmount > old.priceAmount * 1.05)) continue;
       pool.push([it]);
@@ -235,6 +243,15 @@ async function keepHotDeals(byCategory, pool) {
     }
   }
   if (asins.length) console.log(`Re-checked ${asins.length} big deals that dropped out of the searches; kept ${kept} still on sale.`);
+  for (const asin of asins) if (WATCH_ASINS[asin] && !seenWatched.has(asin)) console.log(`Watched ${asin}: Amazon returned no offer for it.`);
+  return pinned;
+}
+
+// Watched products go first on their lists and on the Top 50.
+function pinFirst(list, pinned, size) {
+  if (!pinned.length) return list;
+  const ids = new Set(pinned.map((it) => it.asin));
+  return [...pinned, ...list.filter((it) => !ids.has(it.asin))].slice(0, size);
 }
 
 async function refreshDeals() {
@@ -275,8 +292,11 @@ async function refreshDeals() {
     for (const search of POOL_SEARCHES) pool.push(await trySearch(search));
     // the general deal pool can top up the price-cap lists too
     for (const cat of CATEGORIES.filter((c) => c.maxPrice)) byCategory[cat.id] = rankTop([byCategory[cat.id], underCap(cat, pool.flat())], LIST_SIZE);
-    await keepHotDeals(byCategory, pool);
-    const top = rankTop([...Object.values(byCategory), ...pool]);
+    const pinned = await keepHotDeals(byCategory, pool);
+    for (const it of pinned) for (const id of WATCH_ASINS[it.asin]) {
+      if (byCategory[id]) byCategory[id] = pinFirst(byCategory[id], [it], LIST_SIZE);
+    }
+    const top = pinFirst(rankTop([...Object.values(byCategory), ...pool]), pinned, TOP.size);
     if (!top.length) throw new Error('Amazon returned no deals for any search.');
     Object.assign(store, { byCategory, top, at: Date.now(), notEligible: false, error: null });
     markFirstSeen([top, ...Object.values(byCategory)]);
