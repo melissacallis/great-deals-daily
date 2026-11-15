@@ -325,7 +325,13 @@ function markFirstSeen(lists) {
   for (const [asin, at] of Object.entries(firstSeen)) if (!current.has(asin) && now - at > 30 * DAY) delete firstSeen[asin];
   writeFile(FIRST_SEEN_FILE, JSON.stringify(firstSeen)).catch((err) => console.error('Could not save first-seen dates:', err.message));
 }
-const withNew = (items) => { const now = Date.now(); return items.map((it) => (firstSeen[it.asin] && now - firstSeen[it.asin] < DAY ? { ...it, newToday: true } : it)); };
+const withNew = (items) => {
+  const now = Date.now();
+  return items.map((it) => {
+    const out = firstSeen[it.asin] && now - firstSeen[it.asin] < DAY ? { ...it, newToday: true } : it;
+    return WATCH_ASINS[it.asin] ? { ...out, featured: true } : out; // the owner's featured deals (bubbles around her photo)
+  });
+};
 const dealCacheReady = api ? Promise.all([loadDealCache(), loadFirstSeen()]) : Promise.resolve();
 
 async function ensureFresh() {

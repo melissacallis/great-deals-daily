@@ -198,9 +198,37 @@ async function loadPicks() {
   $('#picks-section').hidden = false;
 }
 
+// Deal bubbles around the portrait: the owner's featured deals first (e.g. the $1.99 tracksuit), then the biggest discounts.
+const BUBBLE_SPOTS = [[-62, .4], [-14, .42], [34, .4], [146, .41], [196, .42], [244, .4]]; // [angle from top in degrees, distance from center]
+async function loadBubbles() {
+  const orbit = $('#orbit');
+  if (!orbit) return;
+  let items = [];
+  try { items = (await fetch('/api/deals?category=top').then((r) => r.json())).items ?? []; } catch { return; }
+  const withImg = items.filter((it) => it.image && it.url && it.url !== '#demo');
+  const chosen = [...withImg.filter((it) => it.featured), ...withImg.filter((it) => !it.featured)].slice(0, BUBBLE_SPOTS.length);
+  chosen.forEach((it, i) => {
+    const [deg, r] = BUBBLE_SPOTS[i], rad = (deg * Math.PI) / 180;
+    const a = document.createElement('a');
+    a.className = 'bubble' + (it.featured ? ' hot' : '');
+    a.href = goLink(it.url, { asin: it.asin, title: it.title });
+    a.target = '_blank'; a.rel = 'nofollow sponsored noopener';
+    a.title = it.title; a.setAttribute('aria-label', `${it.title}, ${it.price}`);
+    a.style.left = `${50 + Math.sin(rad) * r * 100}%`;
+    a.style.top = `${50 - Math.cos(rad) * r * 100}%`;
+    a.style.animationDelay = `${0.9 + i * 0.12}s, ${i * 0.7}s`;
+    const img = document.createElement('img'); img.src = it.image; img.alt = ''; img.loading = 'lazy';
+    const tag = document.createElement('span'); tag.className = 'bubble-tag'; tag.textContent = (it.featured ? '🔥 ' : '') + it.price;
+    a.append(img, tag);
+    if (it.savingsPct) { const off = document.createElement('span'); off.className = 'bubble-off'; off.textContent = `-${it.savingsPct}%`; a.append(off); }
+    orbit.append(a);
+  });
+}
+
 async function init() {
   startCountdown();
   renderNav();
+  loadBubbles();
   const config = await fetch('/api/config').then((r) => r.json());
   state.categories = config.categories;
   $('#site-name').textContent = config.siteName;
