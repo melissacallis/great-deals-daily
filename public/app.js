@@ -11,6 +11,7 @@ const SORTERS = {
   'price-asc': (a, b) => a.priceAmount - b.priceAmount,
   'price-desc': (a, b) => b.priceAmount - a.priceAmount,
   rating: (a, b) => (b.rating ?? 0) - (a.rating ?? 0) || (b.reviewCount ?? 0) - (a.reviewCount ?? 0),
+  new: (a, b) => (b.newToday ? 1 : 0) - (a.newToday ? 1 : 0) || b.savingsPct - a.savingsPct,
 };
 
 function stars(value) {
@@ -42,6 +43,7 @@ function renderCard(item) {
   if (item.savingsPct > 0) off.textContent = `-${item.savingsPct}%`; else off.remove();
 
   if (item.dealBadge) { const b = node.querySelector('.deal-badge'); b.textContent = item.dealBadge; b.hidden = false; }
+  if (item.newToday) node.querySelector('.card-img').append(Object.assign(document.createElement('span'), { className: 'new-badge', textContent: '🆕 New today' }));
   node.querySelector('.title').textContent = item.title;
 
   if (item.rating) {
@@ -103,7 +105,8 @@ async function load() {
     if (data.notEligible) return renderFallback(data.fallbackUrl);
     state.items = data.items.map((it, i) => (data.ranked ? { ...it, rank: i + 1 } : it));
     render();
-    $('#updated').textContent = `Prices last updated ${new Date(data.updatedAt).toLocaleString()}.`;
+    const fresh = (data.items || []).filter((x) => x.newToday).length;
+    $('#updated').textContent = `Prices last updated ${new Date(data.updatedAt).toLocaleString()}.${fresh ? ` 🆕 ${fresh} new today.` : ''}`;
   } catch (err) {
     grid.innerHTML = `<p class="empty">${err.message || 'Something went wrong loading deals.'}</p>`;
   }

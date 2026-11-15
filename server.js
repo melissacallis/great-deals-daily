@@ -235,6 +235,7 @@ async function refreshDeals() {
     const top = rankTop([...Object.values(byCategory), ...pool]);
     if (!top.length) throw new Error('Amazon returned no deals for any search.');
     Object.assign(store, { byCategory, top, at: Date.now(), notEligible: false, error: null });
+    markFirstSeen([top, ...Object.values(byCategory)]);
     saveDealCache();
     console.log(`Refreshed deals: ${store.top.length} in Top 50; ${CATEGORIES.map((c) => `${c.id} ${byCategory[c.id].length}`).join(', ')}`);
   } catch (err) {
@@ -265,7 +266,23 @@ async function loadDealCache() {
     }
   } catch {}
 }
-const dealCacheReady = api ? loadDealCache() : Promise.resolve();
+// When each product first showed up on any list, so deals that are new in the last 24 hours get a "New today" badge.
+const FIRST_SEEN_FILE = path.join(path.dirname(UPLOADS_DIR), 'first-seen.json');
+const DAY = 86_400_000;
+let firstSeen = {};
+async function loadFirstSeen() { try { firstSeen = JSON.parse(await readFile(FIRST_SEEN_FILE, 'utf8')); } catch {} }
+function markFirstSeen(lists) {
+  const now = Date.now(), seeded = Object.keys(firstSeen).length > 0, current = new Set();
+  for (const it of lists.flat()) {
+    current.add(it.asin);
+    // the very first run has no history yet, so nothing is called new
+    if (!firstSeen[it.asin]) firstSeen[it.asin] = seeded ? now : now - 2 * DAY;
+  }
+  for (const [asin, at] of Object.entries(firstSeen)) if (!current.has(asin) && now - at > 30 * DAY) delete firstSeen[asin];
+  writeFile(FIRST_SEEN_FILE, JSON.stringify(firstSeen)).catch((err) => console.error('Could not save first-seen dates:', err.message));
+}
+const withNew = (items) => { const now = Date.now(); return items.map((it) => (firstSeen[it.asin] && now - firstSeen[it.asin] < DAY ? { ...it, newToday: true } : it)); };
+const dealCacheReady = api ? Promise.all([loadDealCache(), loadFirstSeen()]) : Promise.resolve();
 
 async function ensureFresh() {
   await dealCacheReady;
@@ -366,7 +383,7 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, { category: cat.id, notEligible: true, fallbackUrl: fallbackFor(cat), items: [] });
       }
       if (!items.length && store.error) throw new Error(store.error);
-      return sendJson(res, 200, { category: cat.id, ranked: true, updatedAt: store.at || Date.now(), demo: !api, items });
+      return sendJson(res, 200, { category: cat.id, ranked: true, updatedAt: store.at || Date.now(), demo: !api, items: withNew(items) });
     }
     // Product photos for the daily pin (/pin), served from our own address so the browser may save the drawn image.
     // Only Amazon's image servers are allowed, and results are cached in memory for a day.
