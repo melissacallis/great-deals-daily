@@ -199,7 +199,9 @@ async function trySearch(search) {
 // still on sale (in stock, same discount or better, price not up more than 5%).
 const HOT_PCT = 50, HOT_MAX = 20;
 // Products to always look up, even when Amazon's searches miss them (shown while they're 50%+ off).
-const WATCH_ASINS = { B0HLGC93P1: ['him', 'under-10'] }; // asin: lists it belongs on. $1.99 men's tracksuit, Nov 2026
+// asin: lists it belongs on, and the most it may cost to still be shown. $1.99 men's tracksuit, Nov 2026
+const WATCH_ASINS = { B0HLGC93P1: { lists: ['him', 'under-10'], maxPrice: 5 } };
+const watchedTooPricey = (it) => WATCH_ASINS[it.asin] && it.priceAmount > WATCH_ASINS[it.asin].maxPrice;
 async function keepHotDeals(byCategory, pool) {
   const now = new Set([...Object.values(byCategory), ...pool].flat().map((it) => it.asin));
   const was = new Map(); // asin -> { item, lists it was on }
@@ -212,7 +214,7 @@ async function keepHotDeals(byCategory, pool) {
   }
   // deals that were only in the Top 50 (from the general deal searches), plus products the owner asked to always check
   for (const it of store.top) if (!now.has(it.asin) && !was.has(it.asin) && it.savingsPct >= HOT_PCT) was.set(it.asin, { item: it, lists: [] });
-  for (const [asin, lists] of Object.entries(WATCH_ASINS)) if (!now.has(asin) && !was.has(asin)) was.set(asin, { item: null, lists: lists.filter((id) => byCategory[id]) });
+  for (const [asin, { lists }] of Object.entries(WATCH_ASINS)) if (!now.has(asin) && !was.has(asin)) was.set(asin, { item: null, lists: lists.filter((id) => byCategory[id]) });
   const asins = [...was.keys()].sort((a, b) => (was.get(b).item?.savingsPct ?? 100) - (was.get(a).item?.savingsPct ?? 100)).slice(0, HOT_MAX);
   let kept = 0;
   const pinned = [], seenWatched = new Set();
@@ -227,7 +229,7 @@ async function keepHotDeals(byCategory, pool) {
       if (WATCH_ASINS[it.asin]) {
         seenWatched.add(it.asin);
         console.log(`Watched ${it.asin}: ${it.price}, ${it.savingsPct}% off, ${it.availability ?? 'no stock info'}`);
-        if (/unavailable|out of stock/i.test(it.availability ?? '')) continue;
+        if (/unavailable|out of stock/i.test(it.availability ?? '') || watchedTooPricey(it)) continue; // the deal is over
         pinned.push(it); pool.push([it]); kept++; // the owner asked for it, so it shows whatever the discount
         continue;
       }
@@ -293,7 +295,7 @@ async function refreshDeals() {
     // the general deal pool can top up the price-cap lists too
     for (const cat of CATEGORIES.filter((c) => c.maxPrice)) byCategory[cat.id] = rankTop([byCategory[cat.id], underCap(cat, pool.flat())], LIST_SIZE);
     const pinned = await keepHotDeals(byCategory, pool);
-    for (const it of pinned) for (const id of WATCH_ASINS[it.asin]) {
+    for (const it of pinned) for (const id of WATCH_ASINS[it.asin].lists) {
       if (byCategory[id]) byCategory[id] = pinFirst(byCategory[id], [it], LIST_SIZE);
     }
     const top = pinFirst(rankTop([...Object.values(byCategory), ...pool]), pinned, TOP.size);
@@ -347,7 +349,7 @@ function markFirstSeen(lists) {
 }
 const withNew = (items) => {
   const now = Date.now();
-  return items.map((it) => {
+  return items.filter((it) => !watchedTooPricey(it)).map((it) => {
     const out = firstSeen[it.asin] && now - firstSeen[it.asin] < DAY ? { ...it, newToday: true } : it;
     return WATCH_ASINS[it.asin] ? { ...out, featured: true } : out; // the owner's featured deals (bubbles around her photo)
   });
