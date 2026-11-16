@@ -96,6 +96,11 @@ export const CATEGORIES = [
     intro: 'Fitness, camping and cycling gear on sale.',
     searches: [s('SportsAndOutdoors', 'fitness'), s('SportsAndOutdoors', 'camping'), s('SportsAndOutdoors', 'cycling')],
   },
+  {
+    id: 'automotive', label: 'Automotive', icon: '🚗', title: 'Top 50 Automotive Deals',
+    intro: 'Car accessories, dash cams, tire inflators, jump starters and cleaning gear, all marked down.',
+    searches: [s('Automotive', 'car accessories'), s('Automotive', 'dash cam', 20), s('Automotive', 'tire inflator jump starter', 20), s('Automotive', 'car cleaning')],
+  },
 ];
 
 // Extra searches that only feed the main Top 50 pool, to widen it beyond the lists above.
