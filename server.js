@@ -180,7 +180,9 @@ async function runSearch(search) {
     }
     await sleep(1500);
   }
-  return search.maxPrice ? items.filter((it) => it.priceAmount <= search.maxPrice / 100) : items;
+  // Some departments (Automotive, Sports) ignore minSavingPercent and send full-price items too: drop those here.
+  const onSale = search.minSavingPercent ? items.filter((it) => it.savingsPct >= search.minSavingPercent - 1) : items;
+  return search.maxPrice ? onSale.filter((it) => it.priceAmount <= search.maxPrice / 100) : onSale;
 }
 const underCap = (cat, items) => items.filter((it) => it.priceAmount > 0 && it.priceAmount <= cat.maxPrice);
 

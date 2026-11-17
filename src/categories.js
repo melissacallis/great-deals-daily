@@ -99,7 +99,7 @@ export const CATEGORIES = [
   {
     id: 'automotive', label: 'Automotive', icon: '🚗', title: 'Top 50 Automotive Deals',
     intro: 'Car accessories, dash cams, tire inflators, jump starters and cleaning gear, all marked down.',
-    searches: [s('Automotive', 'car accessories'), s('Automotive', 'dash cam', 20), s('Automotive', 'tire inflator jump starter', 20), s('Automotive', 'car cleaning')],
+    searches: [s('Automotive', 'car accessories'), s('Automotive', 'dash cam', 20), s('Automotive', 'tire inflator jump starter', 20), s('Automotive', 'car cleaning'), s('Automotive', 'car organizer', 20), s('Automotive', 'car phone mount charger', 20)],
   },
 ];
 
