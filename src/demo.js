@@ -11,6 +11,7 @@ const SAMPLES = {
   toys: [['🧸', 'Plush Teddy Bear, 18 inch', 16.99, 29.99], ['🧩', '1000-Piece Jigsaw Puzzle', 12.99, 22.99], ['🚁', 'Mini Drone for Kids with Camera', 39.99, 79.99], ['🎲', 'Family Board Game Night Bundle', 24.99, 44.99], ['🧱', 'Building Bricks Classic Set (500 pc)', 22.99, 39.99], ['🚂', 'Wooden Train Set', 29.99, 54.99]],
   outdoors: [['⛺', '4-Person Instant Camping Tent', 69.99, 139.99], ['🚲', 'Bike Repair Tool Kit', 19.99, 34.99], ['🧘', 'Non-Slip Yoga Mat with Strap', 18.99, 35.99], ['🏋️', 'Adjustable Dumbbell Set', 89.99, 179.99], ['🥾', 'Waterproof Hiking Boots', 59.99, 109.99], ['🔦', 'Rechargeable LED Headlamp', 13.99, 24.99]],
   automotive: [['📹', '4K Front and Rear Dash Cam', 59.99, 119.99], ['🛞', 'Portable Tire Inflator Air Compressor', 29.99, 59.99], ['🔋', 'Car Jump Starter Power Bank', 49.99, 99.99], ['🧽', 'Car Detailing Cleaning Kit', 24.99, 44.99], ['📱', 'Magnetic Car Phone Mount', 12.99, 25.99], ['🪑', 'Car Seat Gap Filler Organizer', 14.99, 29.99]],
+  'him-hunting': [['📷', 'Trail Camera 4K with Night Vision', 39.99, 79.99], ['🧥', 'Camo Hunting Jacket, Waterproof', 59.99, 119.99], ['🥾', 'Insulated Hunting Boots', 89.99, 159.99], ['⛺', 'Pop-Up Ground Blind', 79.99, 149.99], ['🦆', 'Duck Call Set', 14.99, 29.99], ['🔦', 'Rechargeable Hunting Headlamp', 17.99, 34.99]],
 };
 
 function placeholderImage(emoji, color) {

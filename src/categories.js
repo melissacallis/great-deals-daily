@@ -47,6 +47,11 @@ export const CATEGORIES = [
     searches: [s('SportsAndOutdoors', 'fishing rod and reel', 20), s('SportsAndOutdoors', 'fishing tackle box', 20), s('SportsAndOutdoors', 'fishing lures', 20)],
   },
   {
+    id: 'him-hunting', parent: 'him', label: 'Hunting', icon: '🦌', title: 'Top 50 Hunting Deals for Him',
+    intro: 'Trail cameras, camo, hunting boots, blinds, game calls and gear for the hunter in your life, all marked down today.',
+    searches: [s('SportsAndOutdoors', 'hunting gear', 20), s('SportsAndOutdoors', 'trail camera', 20), s('SportsAndOutdoors', 'camo hunting clothes', 20), s('SportsAndOutdoors', 'hunting blind', 20), s('SportsAndOutdoors', 'game call', 20)],
+  },
+  {
     id: 'him-fr', parent: 'him', label: 'FR Work Clothes', icon: '🔥', title: 'Top 50 FR Work Clothes Deals',
     intro: 'Flame-resistant (FR) shirts, pants, jackets and coveralls for work, marked down. Check the label for the rating your job requires (for example NFPA 2112 or the arc rating) before you buy.',
     searches: [s('FashionMen', 'flame resistant shirt', 15), s('FashionMen', 'flame resistant pants', 15), s('All', 'FR work jacket', 15), s('All', 'flame resistant coveralls', 15)],
