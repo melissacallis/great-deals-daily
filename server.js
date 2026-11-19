@@ -34,7 +34,7 @@ const api = hasCredentials
   : null;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-// The Top 50 / category deals pages need the Amazon API. Off until SHOW_TOP_DEALS=1 is set in Railway.
+// The Top 100 / category deals pages need the Amazon API. Off until SHOW_TOP_DEALS=1 is set in Railway.
 const SHOW_TOP_DEALS = process.env.SHOW_TOP_DEALS === '1';
 
 // Tagged links to Amazon's own pages, shown when the API refuses access
@@ -224,7 +224,7 @@ async function keepHotDeals(byCategory, pool) {
       const w = was.get(it.asin) ?? { item: it, lists: [] }; w.lists.push(id); was.set(it.asin, w);
     }
   }
-  // deals that were only in the Top 50 (from the general deal searches), plus products the owner asked to always check
+  // deals that were only in the Top 100 (from the general deal searches), plus products the owner asked to always check
   for (const it of store.top) if (!now.has(it.asin) && !was.has(it.asin) && it.savingsPct >= HOT_PCT) was.set(it.asin, { item: it, lists: [] });
   for (const [asin, { lists }] of Object.entries(WATCH_ASINS)) if (!now.has(asin) && !was.has(asin)) was.set(asin, { item: null, lists: lists.filter((id) => byCategory[id]) });
   const asins = [...was.keys()].sort((a, b) => (was.get(b).item?.savingsPct ?? 100) - (was.get(a).item?.savingsPct ?? 100)).slice(0, HOT_MAX);
@@ -261,7 +261,7 @@ async function keepHotDeals(byCategory, pool) {
   return pinned;
 }
 
-// Watched products go first on their lists and on the Top 50.
+// Watched products go first on their lists and on the Top 100.
 function pinFirst(list, pinned, size) {
   if (!pinned.length) return list;
   const ids = new Set(pinned.map((it) => it.asin));
@@ -292,7 +292,7 @@ async function refreshDeals() {
       everything.push(...found.flat());
       byCategory[cat.id] = cat.maxPrice ? rankTop([underCap(cat, everything)], LIST_SIZE) : rankTop(found, LIST_SIZE);
       if (cold && byCategory[cat.id].length) {
-        // Publish what we have so far; the full Top 50 fills in as the pass continues.
+        // Publish what we have so far; the full Top 100 fills in as the pass continues.
         Object.assign(store.byCategory, { [cat.id]: byCategory[cat.id] });
         store.top = rankTop(Object.values(store.byCategory));
         announce?.(); announce = null;
@@ -315,7 +315,7 @@ async function refreshDeals() {
     Object.assign(store, { byCategory, top, at: Date.now(), notEligible: false, error: null });
     markFirstSeen([top, ...Object.values(byCategory)]);
     saveDealCache();
-    console.log(`Refreshed deals: ${store.top.length} in Top 50; ${CATEGORIES.map((c) => `${c.id} ${byCategory[c.id].length}`).join(', ')}`);
+    console.log(`Refreshed deals: ${store.top.length} in Top 100; ${CATEGORIES.map((c) => `${c.id} ${byCategory[c.id].length}`).join(', ')}`);
   } catch (err) {
     store.notEligible = err.reason === 'AssociateNotEligible';
     store.error = err.message;
@@ -414,7 +414,7 @@ async function serveStatic(res, urlPath) {
 const BASE_URL = `https://${CANONICAL_HOST || 'www.ubottega.com'}`;
 const escHtml = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 function pageMeta(pathname) {
-  if (pathname === '/') return { title: 'Top 50 Amazon Deals Today, Checked | UBottega', desc: 'The 50 biggest real Amazon markdowns right now, checked against their usual price and refreshed every hour. Gift ideas for her, him and kids, under $10, $25 and $50.' };
+  if (pathname === '/') return { title: 'Top 100 Amazon Deals Today, Checked | UBottega', desc: 'The 100 biggest real Amazon markdowns right now, checked against their usual price and refreshed every hour. Gift ideas for her, him and kids, under $10, $25 and $50.' };
   const id = pathname.match(/^\/top\/([\w-]+)\/?$/)?.[1];
   const cat = id && CATEGORIES.find((c) => c.id === id);
   if (cat) {
@@ -522,14 +522,14 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/gift-guide' || /^\/c\/[\w-]+\/?$/.test(url.pathname)) return serveStatic(res, '/campaign.html');
     if (url.pathname === '/admin') return serveStatic(res, '/admin.html');
     if (url.pathname === '/privacy') return serveStatic(res, '/privacy.html');
-    // Front page: the Top 50 deals (when they're on). The Black Friday page (featured campaign + front-page
+    // Front page: the Top 100 deals (when they're on). The Black Friday page (featured campaign + front-page
     // campaigns) lives at /black-friday. /deals is kept for old links.
     if (url.pathname === '/sitemap.xml') { res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8' }); return res.end(await sitemap()); }
     if (url.pathname === '/robots.txt') { res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end(ROBOTS); }
     if (url.pathname === '/') return SHOW_TOP_DEALS ? servePage(res, 'deals.html', '/') : serveStatic(res, '/index.html');
     if (url.pathname === '/black-friday') return serveStatic(res, '/index.html');
     if (url.pathname === '/pin') return serveStatic(res, '/pin.html'); // daily Top 10 pin maker (unlisted)
-    // One Top 50 page per list: /top/her, /top/him, /top/kids, /top/tech …
+    // One Top 100 page per list: /top/her, /top/him, /top/kids, /top/tech …
     const topPage = url.pathname.match(/^\/top\/([\w-]+)\/?$/);
     if (topPage) {
       if (!SHOW_TOP_DEALS || !CATEGORIES.some((c) => c.id === topPage[1])) { res.writeHead(302, { Location: '/' }); return res.end(); }
@@ -548,6 +548,12 @@ const server = http.createServer(async (req, res) => {
     // Tap beacon from product links that go straight to Amazon: record it, nothing to send back.
     if (url.pathname === '/go/t') {
       if (amazonTarget(url.searchParams.get('u') ?? '')) recordClick(req, url.searchParams);
+      res.writeHead(204, { 'Cache-Control': 'no-store' }); return res.end();
+    }
+    // Share button beacon: just a log line, so we can see which deals people share.
+    if (url.pathname === '/go/share') {
+      const ua = req.headers['user-agent'] ?? '';
+      if (!/bot|crawl|spider|headless|python|curl/i.test(ua)) console.log(`Share: ${String(url.searchParams.get('t') ?? '').slice(0, 80)} (${String(url.searchParams.get('a') ?? '').slice(0, 12)})`);
       res.writeHead(204, { 'Cache-Control': 'no-store' }); return res.end();
     }
     if (url.pathname === '/api/clicks') {

@@ -61,7 +61,30 @@ function renderCard(item) {
 
   const left = item.dealEndsAt && timeLeft(item.dealEndsAt);
   if (left) { const e = node.querySelector('.ends'); e.textContent = left; e.hidden = false; }
+  const share = node.querySelector('.share-btn');
+  if (item.url === '#demo') share.remove(); else share.addEventListener('click', () => shareDeal(item, share));
   return node;
+}
+
+// Share button: the phone's share sheet (Messages, Facebook, Pinterest…) where it exists, otherwise copy the link.
+// The shared link is the Amazon product link with the affiliate tag, so a friend's purchase still counts.
+async function shareDeal(item, btn) {
+  const short = item.title.split(/[|,(]/)[0].trim().slice(0, 80);
+  const text = `${short}${item.savingsPct > 0 ? ` — ${item.savingsPct}% off right now` : ''} 🛍️ Found on UBottega (more deals: ubottega.com)`;
+  const url = item.url;
+  try { navigator.sendBeacon?.(`/go/share?a=${encodeURIComponent(item.asin)}&t=${encodeURIComponent(short)}`); } catch {}
+  if (navigator.share) {
+    try { await navigator.share({ title: short, text, url }); } catch { /* closed the share sheet */ }
+    return;
+  }
+  try { await navigator.clipboard.writeText(`${text}\n${url}`); flash(btn, '✓ Link copied'); }
+  catch { window.prompt('Copy this link:', url); }
+}
+
+function flash(btn, msg) {
+  const label = btn.querySelector('span'); const old = label.textContent;
+  label.textContent = msg; btn.classList.add('done');
+  setTimeout(() => { label.textContent = old; btn.classList.remove('done'); }, 1800);
 }
 
 function render() {
@@ -112,7 +135,7 @@ async function load() {
   }
 }
 
-// Each list is its own page: / for the Top 50, /top/<id> for the others (For Her, For Him, Kids …).
+// Each list is its own page: / for the Top 100, /top/<id> for the others (For Her, For Him, Kids …).
 const pageFor = (c) => (c.id === 'top' ? '/' : `/top/${c.id}`);
 
 function renderCategories() {
@@ -141,13 +164,13 @@ function renderCategories() {
   if (cur) nav.scrollLeft = cur.offsetLeft - nav.offsetLeft - (nav.clientWidth - cur.offsetWidth) / 2;
 }
 
-// On a list page, the hero says which Top 50 this is.
+// On a list page, the hero says which Top 100 this is.
 function setPageHeader(cat) {
   if (cat.id === 'top') return;
   document.title = `${cat.title} | UBottega`;
   document.querySelector('meta[name="description"]')?.setAttribute('content', cat.intro ?? cat.title);
   const h1 = $('.hero h1');
-  // "Top 50 Deals for Her" -> "Top 50 " + highlighted "Deals for Her"; "Top 50 Gifts Under $10" -> "Top 50 " + "Gifts Under $10"
+  // "Top 100 Deals for Her" -> "Top 100 " + highlighted "Deals for Her"; "Top 100 Gifts Under $10" -> "Top 100 " + "Gifts Under $10"
   const [, plain, hl] = cat.title.match(/^(.*?)((?:Deals|Gifts)\b.*)$/) ?? [null, cat.title, ''];
   h1.replaceChildren(`${cat.icon} ${plain}`, Object.assign(document.createElement('span'), { className: 'hl', textContent: hl }));
   if (cat.intro) $('.hero .lede').textContent = cat.intro;
@@ -177,7 +200,7 @@ $('#search-form').addEventListener('submit', (e) => {
 
 $('#sort').addEventListener('change', (e) => { state.sort = e.target.value; render(); });
 
-// Today's Picks: the top 3 deals of the Top 50 (live from Amazon, updates hourly) first, then the hand-picked products.
+// Today's Picks: the top 3 deals of the Top 100 (live from Amazon, updates hourly) first, then the hand-picked products.
 const PICK_BADGES = ['🔥 Best deal today', '🥈 #2 today', '🥉 #3 today'];
 async function loadPicks() {
   const cards = [];
@@ -237,7 +260,7 @@ async function init() {
   const param = location.pathname.match(/^\/top\/([\w-]+)/)?.[1] ?? new URLSearchParams(location.search).get('category');
   const initial = state.categories.find((c) => c.id === param) ?? state.categories[0];
   state.category = initial.id;
-  $('#results-title').textContent = initial.id === 'top' ? 'Top 50 Deals' : `${initial.icon} ${initial.label}`;
+  $('#results-title').textContent = initial.id === 'top' ? 'Top 100 Deals' : `${initial.icon} ${initial.label}`;
   setPageHeader(initial);
   if (initial.id === 'top') loadPicks(); // Today's Picks only on the front page
   const q = new URLSearchParams(location.search).get('q');

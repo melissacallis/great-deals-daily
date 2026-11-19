@@ -142,7 +142,7 @@ code { background: rgba(59, 15, 58, .08); padding: 1px 5px; border-radius: 4px; 
 
 /* Deal grid + cards */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: transform .18s, box-shadow .18s; }
+.card { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: transform .18s, box-shadow .18s; }
 .card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
 .card-link { display: flex; flex-direction: column; height: 100%; color: inherit; text-decoration: none; }
 .card-img { position: relative; aspect-ratio: 1; background: radial-gradient(circle at 50% 40%, #fff 55%, #fff0f5 100%); overflow: hidden; }
@@ -277,3 +277,8 @@ code { background: rgba(59, 15, 58, .08); padding: 1px 5px; border-radius: 4px; 
   .bubble-tag { font-size: 11px; padding: 4px 7px; bottom: -8px; }
   .bubble-off { font-size: 10px; padding: 4px 5px; right: -6px; }
 }
+
+/* Share button on each deal card: sits on the photo's bottom-right corner, outside the Amazon link */
+.share-btn { position: absolute; z-index: 2; top: 52px; right: 10px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); background: rgba(255,255,255,.95); color: var(--plum, #3b0f3a); font: inherit; font-weight: 800; font-size: 12px; padding: 6px 11px; border-radius: 999px; box-shadow: 0 4px 12px -6px rgba(59,15,58,.45); cursor: pointer; }
+.share-btn:hover { filter: brightness(.97); }
+.share-btn.done { background: #11804f; color: #fff; border-color: #11804f; }

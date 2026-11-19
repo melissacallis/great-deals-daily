@@ -57,7 +57,7 @@ export function pickCard(pick) {
   return a;
 }
 
-// Header menu: a ☰ button that drops down the site's pages: Top 50 (the front page), Black Friday,
+// Header menu: a ☰ button that drops down the site's pages: Top 100 (the front page), Black Friday,
 // then every campaign marked "Show in menu" in /admin.
 export async function renderNav() {
   const nav = document.querySelector('#nav');
@@ -66,8 +66,8 @@ export async function renderNav() {
     const { campaigns, topDeals, topLists = [] } = await fetch('/api/campaigns').then((r) => r.json());
     const bf = campaigns.find((c) => c.id === 'black-friday');
     const links = [
-      ...(topDeals ? [{ href: '/', text: '🔥 Top 50 Deals' }] : []),
-      ...topLists.map((t) => ({ href: `/top/${t.id}`, text: `${t.icon} Top 50 ${t.label}`, sub: true })),
+      ...(topDeals ? [{ href: '/', text: '🔥 Top 100 Deals' }] : []),
+      ...topLists.map((t) => ({ href: `/top/${t.id}`, text: `${t.icon} Top 100 ${t.label}`, sub: true })),
       { href: topDeals ? '/black-friday' : '/', text: `${bf?.emoji || '🛍️'} ${bf?.title || 'Black Friday'}` },
       ...campaigns.filter((c) => c.id !== 'black-friday')
         .map((c) => ({ href: c.id === 'gift-guide' ? '/gift-guide' : `/c/${c.id}`, text: `${c.emoji} ${c.title}`.trim() })),

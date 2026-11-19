@@ -1,4 +1,4 @@
-// Daily Top 10 pin (1000x1500) for Pinterest, drawn from the live Top 50 with today's date.
+// Daily Top 10 pin (1000x1500) for Pinterest, drawn from the live Top 100 with today's date.
 // Product photos come through /api/img (our own address), so the finished canvas can be saved.
 const W = 1000, H = 1500;
 const C = { pink: '#ff3d7f', coral: '#ff8a3d', sun: '#ffd23f', plum: '#3b0f3a', white: '#fff', blush: '#fff5f8' };
@@ -144,7 +144,7 @@ async function run() {
   $('#pin').src = url;
   const a = $('#download'); a.href = url; a.download = `ubottega-top10-${now.toISOString().slice(0, 10)}.png`;
   const t = texts(items, longDate); $('#title').value = t.title; $('#desc').value = t.desc;
-  $('#status').textContent = `Built from the live Top 50 · ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+  $('#status').textContent = `Built from the live Top 100 · ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
 }
 
 $('#redo').addEventListener('click', run);
