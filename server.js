@@ -12,6 +12,10 @@ import { getContent, saveContent, storageInfo, HOME_CAMPAIGN, UPLOADS_DIR } from
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public');
 const PORT = Number(process.env.PORT ?? 3000);
 const CACHE_MINUTES = Number(process.env.CACHE_MINUTES ?? 60);
+// Each search reads this many pages of 10 results (Amazon allows up to 10 pages). More pages find more deals,
+// but cost more API calls, so refreshes are spaced out to stay under DAILY_CALL_BUDGET.
+const SEARCH_PAGES = Math.min(10, Math.max(1, Number(process.env.SEARCH_PAGES ?? 5)));
+const DAILY_CALL_BUDGET = Number(process.env.DAILY_CALL_BUDGET ?? 8000);
 const SITE_NAME = process.env.SITE_NAME ?? 'UBottega';
 const CANONICAL_HOST = process.env.CANONICAL_HOST ?? '';
 
@@ -169,16 +173,21 @@ function rankTop(lists, size = TOP.size) {
 
 async function runSearch(search) {
   const items = [];
-  for (const itemPage of [1, 2]) {
+  for (let itemPage = 1; itemPage <= SEARCH_PAGES; itemPage++) {
+    let page;
     try {
-      items.push(...await api.searchItems({ ...search, itemPage, itemCount: 10 }));
+      page = await api.searchItems({ ...search, itemPage, itemCount: 10 });
     } catch (err) {
+      // Past the last page of results Amazon answers with an error: keep what we have.
+      if (itemPage > 1 && err.status === 400 && !search.maxPrice) break;
       // If Amazon doesn't accept the price cap, search without it; the cap is applied to the results below anyway.
       if (!search.maxPrice || err.status !== 400) throw err;
       const { maxPrice, ...rest } = search;
-      items.push(...await api.searchItems({ ...rest, itemPage, itemCount: 10 }));
+      try { page = await api.searchItems({ ...rest, itemPage, itemCount: 10 }); } catch (e) { if (itemPage > 1 && e.status === 400) break; throw e; }
     }
+    items.push(...page);
     await sleep(1500);
+    if (page.length < 10) break; // no more results
   }
   // Some departments (Automotive, Sports) ignore minSavingPercent and send full-price items too: drop those here.
   const onSale = search.minSavingPercent ? items.filter((it) => it.savingsPct >= search.minSavingPercent - 1) : items;
@@ -358,9 +367,13 @@ const withNew = (items) => {
 };
 const dealCacheReady = api ? Promise.all([loadDealCache(), loadFirstSeen()]) : Promise.resolve();
 
+// Space refreshes so a day of them stays under the API call budget (searches x pages, plus up to 2 re-check calls).
+const CALLS_PER_REFRESH = (CATEGORIES.reduce((n, c) => n + c.searches.length, 0) + POOL_SEARCHES.length) * SEARCH_PAGES + 2;
+const REFRESH_MINUTES = Math.max(CACHE_MINUTES, Math.ceil(CALLS_PER_REFRESH * 1440 / DAILY_CALL_BUDGET));
+
 async function ensureFresh() {
   await dealCacheReady;
-  const stale = Date.now() - store.at > CACHE_MINUTES * 60_000
+  const stale = Date.now() - store.at > REFRESH_MINUTES * 60_000
     && Date.now() - store.failedAt > 10 * 60_000; // after a failure, wait 10 minutes before retrying
   if (stale && !refreshing) refreshing = refreshDeals().finally(() => { refreshing = null; });
   // Only make the visitor wait if there is nothing at all to show yet.
@@ -613,6 +626,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`${SITE_NAME} running at http://localhost:${PORT}`);
   console.log(api ? `Using Amazon Creators API (${MARKETPLACE})` : 'No Amazon credentials found: showing DEMO data. See README.md.');
+  if (api) console.log(`Reading ${SEARCH_PAGES} pages (up to ${SEARCH_PAGES * 10} results) per search; refreshing every ${REFRESH_MINUTES} minutes (about ${CALLS_PER_REFRESH} API calls each).`);
   if (SHOW_TOP_DEALS) {
     ensureFresh();
     // Keep checking even when nobody visits, so live deals appear as soon as Amazon allows.
