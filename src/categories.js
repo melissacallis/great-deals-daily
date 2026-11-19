@@ -112,6 +112,13 @@ export const CATEGORIES = [
 export const POOL_SEARCHES = [
   s('All', 'deal', 40),
   s('All', 'clearance', 40),
+  // "Steals": 70%+ off in the big departments, where the $1.99-style markdowns hide (they rarely rank for gift keywords).
+  s('FashionWomen', 'women', 70),
+  s('FashionMen', 'men', 70),
+  s('HomeAndKitchen', 'home', 70),
+  s('Beauty', 'beauty', 70),
+  s('Electronics', 'electronics', 70),
+  s('ToysAndGames', 'toys', 70),
 ];
 
 // The front page: the biggest savings across every search above.
