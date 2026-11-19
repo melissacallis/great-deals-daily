@@ -282,3 +282,12 @@ code { background: rgba(59, 15, 58, .08); padding: 1px 5px; border-radius: 4px; 
 .share-btn { position: absolute; z-index: 2; top: 52px; right: 10px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); background: rgba(255,255,255,.95); color: var(--plum, #3b0f3a); font: inherit; font-weight: 800; font-size: 12px; padding: 6px 11px; border-radius: 999px; box-shadow: 0 4px 12px -6px rgba(59,15,58,.45); cursor: pointer; }
 .share-btn:hover { filter: brightness(.97); }
 .share-btn.done { background: #11804f; color: #fff; border-color: #11804f; }
+
+/* Filter row under the results toolbar */
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: -4px 0 16px; }
+.filters select { font: inherit; font-size: 13px; font-weight: 700; color: var(--ink); padding: 7px 10px; border-radius: 999px; border: 2px solid var(--line); background: var(--card); max-width: 100%; }
+.f-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--ink); padding: 6px 12px; border-radius: 999px; border: 2px solid var(--line); background: var(--card); cursor: pointer; }
+.f-check input { accent-color: #ff3d7f; }
+.f-count { font-size: 13px; color: var(--muted); margin-left: 2px; }
+.f-clear { font: inherit; font-size: 13px; font-weight: 800; color: #ff3d7f; background: none; border: 0; cursor: pointer; text-decoration: underline; }
+@media (max-width: 600px) { .filters select { flex: 1 1 calc(50% - 8px); } }

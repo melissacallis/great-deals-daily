@@ -11,100 +11,100 @@ export const CATEGORIES = [
   {
     id: 'her', label: 'For Her', icon: '💝', title: 'Top 100 Deals for Her',
     intro: 'Gifts and treats for her (wife, mom, sister, best friend), all marked down from their usual price.',
-    searches: [s('FashionWomen', 'sweater'), s('Jewelry', 'women'), s('Beauty', 'gift set'), s('HomeAndKitchen', 'cozy blanket'), s('All', 'gifts for women', 30)],
+    searches: [s('FashionWomen', 'sweater'), s('Jewelry', 'women'), s('Beauty', 'gift set'), s('HomeAndKitchen', 'cozy blanket'), s('All', 'gifts for women', 30), s('FashionWomen', 'boots'), s('Beauty', 'perfume', 20)],
   },
   {
     id: 'him', label: 'For Him', icon: '🧔', title: 'Top 100 Deals for Him',
     intro: 'Gifts for him (husband, dad, brother, boyfriend): tools, gadgets and clothes he will actually use, on sale today.',
-    searches: [s('FashionMen', 'jacket'), s('ToolsAndHomeImprovement', 'tool set'), s('Electronics', 'gadgets for men'), s('SportsAndOutdoors', 'men'), s('All', 'gifts for men', 30)],
+    searches: [s('FashionMen', 'jacket'), s('ToolsAndHomeImprovement', 'tool set'), s('Electronics', 'gadgets for men'), s('SportsAndOutdoors', 'men'), s('All', 'gifts for men', 30), s('FashionMen', 'hoodie'), s('Electronics', 'wireless earbuds', 20)],
   },
   // Sub-lists of For Her (parent: 'her'): their own pages (/top/her-selfcare …), a second chip row on the For Her pages.
   {
     id: 'her-selfcare', parent: 'her', label: 'Self-Care', icon: '🛁', title: 'Top 100 Self-Care Deals for Her',
     intro: 'Spa sets, bath bombs, heated eye masks and massagers so she can finally relax, all marked down from their usual price.',
-    searches: [s('Beauty', 'spa gift set', 20), s('Beauty', 'bath bombs', 20), s('HealthPersonalCare', 'massager', 20), s('All', 'self care gifts for women', 25)],
+    searches: [s('Beauty', 'spa gift set', 20), s('Beauty', 'bath bombs', 20), s('HealthPersonalCare', 'massager', 20), s('All', 'self care gifts for women', 25), s('Beauty', 'candle gift set', 20), s('HealthPersonalCare', 'heated eye mask', 20)],
   },
   {
     id: 'her-cozy', parent: 'her', label: 'Cozy & Comfy', icon: '🧦', title: 'Top 100 Cozy Deals for Her',
     intro: 'Fuzzy slippers, throw blankets, robes and loungewear for the coziest Christmas morning, on sale today.',
-    searches: [s('FashionWomen', 'slippers', 25), s('HomeAndKitchen', 'throw blanket', 25), s('FashionWomen', 'robe', 25), s('FashionWomen', 'lounge set', 25)],
+    searches: [s('FashionWomen', 'slippers', 25), s('HomeAndKitchen', 'throw blanket', 25), s('FashionWomen', 'robe', 25), s('FashionWomen', 'lounge set', 25), s('FashionWomen', 'pajama set', 25), s('HomeAndKitchen', 'electric blanket', 20)],
   },
   {
     id: 'her-jewelry', parent: 'her', label: 'Jewelry', icon: '💍', title: 'Top 100 Jewelry Deals for Her',
     intro: 'Necklaces, earrings, bracelets and jewelry boxes she will love, with real discounts.',
-    searches: [s('Jewelry', 'necklace for women', 25), s('Jewelry', 'earrings', 25), s('Jewelry', 'bracelet', 25), s('HomeAndKitchen', 'jewelry box', 25)],
+    searches: [s('Jewelry', 'necklace for women', 25), s('Jewelry', 'earrings', 25), s('Jewelry', 'bracelet', 25), s('HomeAndKitchen', 'jewelry box', 25), s('Jewelry', 'ring', 25), s('Jewelry', 'jewelry set', 25)],
   },
   // Sub-lists of For Him (parent: 'him'): each is its own page (/top/him-fishing …), shown as a second chip row on the
   // For Him pages, and their deals also feed the main For Him list.
   {
     id: 'him-sports', parent: 'him', label: 'Sports', icon: '🏈', title: 'Top 100 Sports Deals for Him',
     intro: 'Golf, football, basketball and game-day gear for the sports lover on your list, marked down from their usual price.',
-    searches: [s('SportsAndOutdoors', 'golf', 20), s('SportsAndOutdoors', 'football', 20), s('SportsAndOutdoors', 'basketball', 20), s('All', 'sports gifts for men', 25)],
+    searches: [s('SportsAndOutdoors', 'golf', 20), s('SportsAndOutdoors', 'football', 20), s('SportsAndOutdoors', 'basketball', 20), s('All', 'sports gifts for men', 25), s('SportsAndOutdoors', 'baseball', 20), s('SportsAndOutdoors', 'pickleball', 20)],
   },
   {
     id: 'him-fishing', parent: 'him', label: 'Fishing', icon: '🎣', title: 'Top 100 Fishing Deals for Him',
     intro: 'Rods, reels, tackle boxes and lures for the fisherman in your life, all on sale today.',
-    searches: [s('SportsAndOutdoors', 'fishing rod and reel', 20), s('SportsAndOutdoors', 'fishing tackle box', 20), s('SportsAndOutdoors', 'fishing lures', 20)],
+    searches: [s('SportsAndOutdoors', 'fishing rod and reel', 20), s('SportsAndOutdoors', 'fishing tackle box', 20), s('SportsAndOutdoors', 'fishing lures', 20), s('SportsAndOutdoors', 'fishing line', 20), s('SportsAndOutdoors', 'fishing gear', 20), s('SportsAndOutdoors', 'fishing waders', 15)],
   },
   {
     id: 'him-hunting', parent: 'him', label: 'Hunting', icon: '🦌', title: 'Top 100 Hunting Deals for Him',
     intro: 'Trail cameras, camo, hunting boots, blinds, game calls and gear for the hunter in your life, all marked down today.',
-    searches: [s('SportsAndOutdoors', 'hunting gear', 20), s('SportsAndOutdoors', 'trail camera', 20), s('SportsAndOutdoors', 'camo hunting clothes', 20), s('SportsAndOutdoors', 'hunting blind', 20), s('SportsAndOutdoors', 'game call', 20)],
+    searches: [s('SportsAndOutdoors', 'hunting gear', 20), s('SportsAndOutdoors', 'trail camera', 20), s('SportsAndOutdoors', 'camo hunting clothes', 20), s('SportsAndOutdoors', 'hunting blind', 20), s('SportsAndOutdoors', 'game call', 20), s('SportsAndOutdoors', 'hunting boots', 20), s('SportsAndOutdoors', 'binoculars', 20)],
   },
   {
     id: 'him-fr', parent: 'him', label: 'FR Work Clothes', icon: '🔥', title: 'Top 100 FR Work Clothes Deals',
     intro: 'Flame-resistant (FR) shirts, pants, jackets and coveralls for work, marked down. Check the label for the rating your job requires (for example NFPA 2112 or the arc rating) before you buy.',
-    searches: [s('FashionMen', 'flame resistant shirt', 15), s('FashionMen', 'flame resistant pants', 15), s('All', 'FR work jacket', 15), s('All', 'flame resistant coveralls', 15)],
+    searches: [s('FashionMen', 'flame resistant shirt', 15), s('FashionMen', 'flame resistant pants', 15), s('All', 'FR work jacket', 15), s('All', 'flame resistant coveralls', 15), s('FashionMen', 'FR hoodie', 15), s('All', 'flame resistant jeans', 15), s('All', 'FR vest', 15)],
   },
   {
     id: 'kids', label: 'For Kids', icon: '🧸', title: 'Top 100 Deals for Kids',
     intro: 'Toys, LEGO, games and gifts kids love, marked down from their usual price.',
-    searches: [s('ToysAndGames', 'toys'), s('ToysAndGames', 'lego'), s('VideoGames', 'kids'), s('All', 'gifts for kids', 30)],
+    searches: [s('ToysAndGames', 'toys'), s('ToysAndGames', 'lego'), s('VideoGames', 'kids'), s('All', 'gifts for kids', 30), s('ToysAndGames', 'board games'), s('ToysAndGames', 'stuffed animals')],
   },
   {
     id: 'under-10', label: 'Under $10', icon: '💸', title: 'Top 100 Gifts Under $10', maxPrice: 10,
     intro: 'Stocking stuffers and small gifts, all $10 or less and marked down from their usual price. Set your cap and stick to it.',
-    searches: [capped('stocking stuffers', 10), capped('gifts under 10 dollars', 10)],
+    searches: [capped('stocking stuffers', 10), capped('gifts under 10 dollars', 10), capped('cute gifts', 10), capped('gadgets', 10)],
   },
   {
     id: 'under-25', label: 'Under $25', icon: '🎁', title: 'Top 100 Gifts Under $25', maxPrice: 25,
     intro: 'Gifts that look like more, all $25 or less and marked down. Great for coworkers, teachers and white elephant swaps.',
-    searches: [capped('gifts under 25 dollars', 25), capped('white elephant gifts', 25)],
+    searches: [capped('gifts under 25 dollars', 25), capped('white elephant gifts', 25), capped('gifts for her', 25), capped('gifts for him', 25)],
   },
   {
     id: 'under-50', label: 'Under $50', icon: '🛍️', title: 'Top 100 Gifts Under $50', maxPrice: 50,
     intro: 'Bigger gifts for the people at the top of your list, all $50 or less and marked down from their usual price.',
-    searches: [capped('gifts under 50 dollars', 50)],
+    searches: [capped('gifts under 50 dollars', 50), capped('gifts for women', 50), capped('gifts for men', 50)],
   },
   {
     id: 'tech', label: 'Electronics', icon: '🎧', title: 'Top 100 Electronics Deals',
     intro: 'Headphones, speakers, tablets, smart home and more, with real discounts.',
-    searches: [s('Electronics', 'headphones', 20), s('Electronics', 'bluetooth speaker', 20), s('Electronics', 'tablet', 20), s('Electronics', 'smart home', 20), s('Computers', 'laptop', 15)],
+    searches: [s('Electronics', 'headphones', 20), s('Electronics', 'bluetooth speaker', 20), s('Electronics', 'tablet', 20), s('Electronics', 'smart home', 20), s('Computers', 'laptop', 15), s('Electronics', 'smart watch', 20), s('Electronics', 'security camera', 20)],
   },
   {
     id: 'home', label: 'Home & Kitchen', icon: '🍳', title: 'Top 100 Home & Kitchen Deals',
     intro: 'Kitchen gadgets, cookware, bedding and organizing, all marked down.',
-    searches: [s('HomeAndKitchen', 'kitchen'), s('HomeAndKitchen', 'air fryer', 20), s('HomeAndKitchen', 'bedding'), s('HomeAndKitchen', 'storage')],
+    searches: [s('HomeAndKitchen', 'kitchen'), s('HomeAndKitchen', 'air fryer', 20), s('HomeAndKitchen', 'bedding'), s('HomeAndKitchen', 'storage'), s('HomeAndKitchen', 'coffee maker', 20), s('HomeAndKitchen', 'vacuum', 20)],
   },
   {
     id: 'beauty', label: 'Beauty', icon: '💄', title: 'Top 100 Beauty Deals',
     intro: 'Skincare, makeup and hair tools on sale today.',
-    searches: [s('Beauty', 'skincare'), s('Beauty', 'makeup'), s('Beauty', 'hair tools')],
+    searches: [s('Beauty', 'skincare'), s('Beauty', 'makeup'), s('Beauty', 'hair tools'), s('Beauty', 'perfume'), s('Beauty', 'nail'), s('Beauty', 'hair care')],
   },
   {
     id: 'fashion', label: 'Fashion', icon: '👟', title: 'Top 100 Fashion Deals',
     intro: 'Shoes, bags and jackets marked down from their usual price.',
-    searches: [s('Fashion', 'shoes', 30), s('Fashion', 'handbag', 30), s('Fashion', 'jacket', 30)],
+    searches: [s('Fashion', 'shoes', 30), s('Fashion', 'handbag', 30), s('Fashion', 'jacket', 30), s('Fashion', 'sneakers', 30), s('Fashion', 'sweater', 30), s('Fashion', 'boots', 30)],
   },
   {
     id: 'outdoors', label: 'Sports & Outdoors', icon: '⛺', title: 'Top 100 Sports & Outdoors Deals',
     intro: 'Fitness, camping and cycling gear on sale.',
-    searches: [s('SportsAndOutdoors', 'fitness'), s('SportsAndOutdoors', 'camping'), s('SportsAndOutdoors', 'cycling')],
+    searches: [s('SportsAndOutdoors', 'fitness'), s('SportsAndOutdoors', 'camping'), s('SportsAndOutdoors', 'cycling'), s('SportsAndOutdoors', 'hiking'), s('SportsAndOutdoors', 'yoga')],
   },
   {
     id: 'automotive', label: 'Automotive', icon: '🚗', title: 'Top 100 Automotive Deals',
     intro: 'Car accessories, dash cams, tire inflators, jump starters and cleaning gear, all marked down.',
-    searches: [s('Automotive', 'car accessories'), s('Automotive', 'dash cam', 20), s('Automotive', 'tire inflator jump starter', 20), s('Automotive', 'car cleaning'), s('Automotive', 'car organizer', 20), s('Automotive', 'car phone mount charger', 20)],
+    searches: [s('Automotive', 'car accessories'), s('Automotive', 'dash cam', 20), s('Automotive', 'tire inflator jump starter', 20), s('Automotive', 'car cleaning'), s('Automotive', 'car organizer', 20), s('Automotive', 'car phone mount charger', 20), s('Automotive', 'car seat covers', 20), s('Automotive', 'car vacuum', 20)],
   },
 ];
 

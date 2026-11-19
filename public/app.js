@@ -87,12 +87,32 @@ function flash(btn, msg) {
   setTimeout(() => { label.textContent = old; btn.classList.remove('done'); }, 1800);
 }
 
+// Filters under the toolbar: price range, minimum discount, new today. (Amazon's feed has no star ratings for us.)
+const filters = { price: '', off: 0, fresh: false };
+const filtering = () => filters.price || filters.off || filters.fresh;
+function passes(it) {
+  if (filters.price) {
+    const [lo, hi] = filters.price.split('-').map((v) => (v === '' ? null : Number(v)));
+    if (lo != null && it.priceAmount < lo) return false;
+    if (hi != null && it.priceAmount > hi) return false;
+  }
+  if (filters.off && it.savingsPct < filters.off) return false;
+  if (filters.fresh && !it.newToday) return false;
+  return true;
+}
+
 function render() {
   $('.sort').hidden = false;
+  $('#filters').hidden = false;
   grid.replaceChildren();
-  const items = [...state.items].sort(SORTERS[state.sort]);
+  const all = [...state.items].sort(SORTERS[state.sort]);
+  const items = all.filter(passes);
+  $('#f-count').textContent = filtering() ? `${items.length} of ${all.length} deals` : `${all.length} deals`;
+  $('#f-clear').hidden = !filtering();
   if (!items.length) {
-    grid.innerHTML = '<p class="empty">No deals found right now. Try another category or search.</p>';
+    grid.innerHTML = filtering() && all.length
+      ? '<p class="empty">No deals match these filters. Try a wider price range or a smaller discount.</p>'
+      : '<p class="empty">No deals found right now. Try another category or search.</p>';
     return;
   }
   items.forEach((it) => grid.appendChild(renderCard(it)));
@@ -102,6 +122,7 @@ function render() {
 // visitors to Amazon's own deals pages with the affiliate tag instead.
 function renderFallback(url) {
   $('.sort').hidden = true;
+  $('#filters').hidden = true;
   grid.innerHTML = `
     <div class="fallback">
       <h3>Today's deals are live on Amazon</h3>
@@ -199,6 +220,14 @@ $('#search-form').addEventListener('submit', (e) => {
 });
 
 $('#sort').addEventListener('change', (e) => { state.sort = e.target.value; render(); });
+$('#f-price').addEventListener('change', (e) => { filters.price = e.target.value; render(); });
+$('#f-off').addEventListener('change', (e) => { filters.off = Number(e.target.value) || 0; render(); });
+$('#f-new').addEventListener('change', (e) => { filters.fresh = e.target.checked; render(); });
+$('#f-clear').addEventListener('click', () => {
+  Object.assign(filters, { price: '', off: 0, fresh: false });
+  $('#f-price').value = ''; $('#f-off').value = ''; $('#f-new').checked = false;
+  render();
+});
 
 // Today's Picks: the top 3 deals of the Top 100 (live from Amazon, updates hourly) first, then the hand-picked products.
 const PICK_BADGES = ['🔥 Best deal today', '🥈 #2 today', '🥉 #3 today'];

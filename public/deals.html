@@ -66,10 +66,29 @@
           <option value="discount">Biggest discount</option>
           <option value="price-asc">Price: low to high</option>
           <option value="price-desc">Price: high to low</option>
-          <option value="rating">Top rated</option>
           <option value="new">🆕 New today first</option>
         </select>
       </label>
+    </div>
+
+    <div class="filters" id="filters" role="group" aria-label="Filter deals">
+      <select id="f-price" aria-label="Price">
+        <option value="">💲 Any price</option>
+        <option value="0-10">Under $10</option>
+        <option value="0-25">Under $25</option>
+        <option value="0-50">Under $50</option>
+        <option value="0-100">Under $100</option>
+        <option value="100-">$100 &amp; up</option>
+      </select>
+      <select id="f-off" aria-label="Discount">
+        <option value="">🏷️ Any discount</option>
+        <option value="30">30% off or more</option>
+        <option value="50">50% off or more</option>
+        <option value="70">70% off or more</option>
+      </select>
+      <label class="f-check"><input type="checkbox" id="f-new"> 🆕 New today</label>
+      <span class="f-count" id="f-count"></span>
+      <button type="button" class="f-clear" id="f-clear" hidden>Clear</button>
     </div>
 
     <div class="grid" id="grid" aria-live="polite"></div>
