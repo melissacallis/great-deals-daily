@@ -166,6 +166,7 @@ let firstData = null; // resolves once the first list has items after a cold sta
 function rankTop(lists, size = TOP.size) {
   const seen = new Set();
   return lists.flat()
+    .filter((it) => it.priceAmount > 0) // $0.00 items (free Kindle editions, missing prices) aren't deals and read as "100% off"
     .filter((it) => !seen.has(it.asin) && seen.add(it.asin))
     .sort((a, b) => b.savingsPct - a.savingsPct || b.savingsAmount - a.savingsAmount)
     .slice(0, size);
