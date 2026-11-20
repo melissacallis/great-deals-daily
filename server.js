@@ -212,7 +212,13 @@ async function trySearch(search) {
 const HOT_PCT = 50, HOT_MAX = 20;
 // Products to always look up, even when Amazon's searches miss them (shown while they're 50%+ off).
 // asin: lists it belongs on, and the most it may cost to still be shown. $1.99 men's tracksuit, Nov 2026
-const WATCH_ASINS = { B0HLGC93P1: { lists: ['him', 'under-10'], maxPrice: 5 } };
+// Each refresh looks these up and logs "Watched <asin>: <price>". At or under maxPrice they go first on their
+// lists and become a 🔥 bubble around the owner's photo; above it they only show if they're on sale anyway.
+const WATCH_ASINS = {
+  B0HLGC93P1: { lists: ['him', 'under-10'], maxPrice: 5 }, // $1.99 men's tracksuit, Nov 2026
+  B0GTMHDFVN: { lists: ['tech'], maxPrice: 2399 }, // STORMCRAFT Phantom RTX 5070 Ti desktop ($2,599.99 on Nov 20)
+  B0HJGNNF9K: { lists: ['tech'], maxPrice: 2599 }, // Skytech 9800X3D RTX 5070 Ti desktop ($2,899.99 on Nov 20)
+};
 const watchedTooPricey = (it) => WATCH_ASINS[it.asin] && it.priceAmount > WATCH_ASINS[it.asin].maxPrice;
 async function keepHotDeals(byCategory, pool) {
   const now = new Set([...Object.values(byCategory), ...pool].flat().map((it) => it.asin));
@@ -226,7 +232,8 @@ async function keepHotDeals(byCategory, pool) {
   }
   // deals that were only in the Top 100 (from the general deal searches), plus products the owner asked to always check
   for (const it of store.top) if (!now.has(it.asin) && !was.has(it.asin) && it.savingsPct >= HOT_PCT) was.set(it.asin, { item: it, lists: [] });
-  for (const [asin, { lists }] of Object.entries(WATCH_ASINS)) if (!now.has(asin) && !was.has(asin)) was.set(asin, { item: null, lists: lists.filter((id) => byCategory[id]) });
+  // watched products are looked up every refresh (even when a search found them) so their price is always logged
+  for (const [asin, { lists }] of Object.entries(WATCH_ASINS)) if (!was.has(asin)) was.set(asin, { item: null, lists: lists.filter((id) => byCategory[id]) });
   const asins = [...was.keys()].sort((a, b) => (was.get(b).item?.savingsPct ?? 100) - (was.get(a).item?.savingsPct ?? 100)).slice(0, HOT_MAX);
   let kept = 0;
   const pinned = [], seenWatched = new Set();
@@ -361,9 +368,10 @@ function markFirstSeen(lists) {
 }
 const withNew = (items) => {
   const now = Date.now();
-  return items.filter((it) => !watchedTooPricey(it)).map((it) => {
+  // a watched product above its target price stays only if it's a real sale; at or under target it's featured
+  return items.filter((it) => !watchedTooPricey(it) || it.savingsPct >= 15).map((it) => {
     const out = firstSeen[it.asin] && now - firstSeen[it.asin] < DAY ? { ...it, newToday: true } : it;
-    return WATCH_ASINS[it.asin] ? { ...out, featured: true } : out; // the owner's featured deals (bubbles around her photo)
+    return WATCH_ASINS[it.asin] && !watchedTooPricey(it) ? { ...out, featured: true } : out; // the owner's featured deals (bubbles around her photo)
   });
 };
 const dealCacheReady = api ? Promise.all([loadDealCache(), loadFirstSeen()]) : Promise.resolve();
