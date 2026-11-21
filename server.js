@@ -14,7 +14,21 @@ const PORT = Number(process.env.PORT ?? 3000);
 const CACHE_MINUTES = Number(process.env.CACHE_MINUTES ?? 60);
 // Each search reads this many pages of 10 results (Amazon allows up to 10 pages). More pages find more deals,
 // but cost more API calls, so refreshes are spaced out to stay under DAILY_CALL_BUDGET.
-const SEARCH_PAGES = Math.min(10, Math.max(1, Number(process.env.SEARCH_PAGES ?? 5)));
+const SEARCH_PAGES = Math.min(10, Math.max(1, Number(process.env.SEARCH_PAGES ?? 4)));
+// Each refresh also runs this many of a list's extra "explore" searches, taking turns, and rotates the sort order
+// of the regular searches, so every refresh turns up products the last one didn't.
+const EXPLORE_PER_REFRESH = Number(process.env.EXPLORE_PER_REFRESH ?? 2);
+const SORTS = [null, 'NewestArrivals', 'Featured'];
+let turn = 0;
+function searchesFor(cat) {
+  const base = cat.searches.map((x, i) => {
+    const sortBy = SORTS[(turn + i) % SORTS.length];
+    return sortBy ? { ...x, sortBy } : x;
+  });
+  const ex = cat.explore ?? [];
+  const extra = Array.from({ length: Math.min(EXPLORE_PER_REFRESH, ex.length) }, (_, k) => ex[(turn * EXPLORE_PER_REFRESH + k) % ex.length]);
+  return [...base, ...extra];
+}
 const DAILY_CALL_BUDGET = Number(process.env.DAILY_CALL_BUDGET ?? 8000);
 const SITE_NAME = process.env.SITE_NAME ?? 'UBottega';
 const CANONICAL_HOST = process.env.CANONICAL_HOST ?? '';
@@ -179,6 +193,8 @@ async function runSearch(search) {
     try {
       page = await api.searchItems({ ...search, itemPage, itemCount: 10 });
     } catch (err) {
+      // If Amazon rejects this sort order, run the same search with its default order instead.
+      if (search.sortBy && err.status === 400) { const { sortBy, ...plain } = search; return runSearch(plain); }
       // Past the last page of results Amazon answers with an error: keep what we have.
       if (itemPage > 1 && err.status === 400 && !search.maxPrice) break;
       // If Amazon doesn't accept the price cap, search without it; the cap is applied to the results below anyway.
@@ -284,6 +300,7 @@ async function refreshDeals() {
     store.at = Date.now();
     return;
   }
+  turn = Math.floor(Date.now() / (REFRESH_MINUTES * 60_000)); // changes every refresh
   const byCategory = {};
   const pool = [];
   const cold = !store.at;
@@ -295,7 +312,7 @@ async function refreshDeals() {
     const ordered = [...CATEGORIES.filter((c) => !c.maxPrice), ...CATEGORIES.filter((c) => c.maxPrice)];
     for (const cat of ordered) {
       const found = [];
-      for (const search of cat.searches) found.push(await trySearch(search));
+      for (const search of searchesFor(cat)) found.push(await trySearch(search));
       everything.push(...found.flat());
       byCategory[cat.id] = cat.maxPrice ? rankTop([underCap(cat, everything)], LIST_SIZE) : rankTop(found, LIST_SIZE);
       if (cold && byCategory[cat.id].length) {
@@ -377,7 +394,7 @@ const withNew = (items) => {
 const dealCacheReady = api ? Promise.all([loadDealCache(), loadFirstSeen()]) : Promise.resolve();
 
 // Space refreshes so a day of them stays under the API call budget (searches x pages, plus up to 2 re-check calls).
-const CALLS_PER_REFRESH = (CATEGORIES.reduce((n, c) => n + c.searches.length, 0) + POOL_SEARCHES.length) * SEARCH_PAGES + 2;
+const CALLS_PER_REFRESH = (CATEGORIES.reduce((n, c) => n + c.searches.length + Math.min(EXPLORE_PER_REFRESH, (c.explore ?? []).length), 0) + POOL_SEARCHES.length) * SEARCH_PAGES + 2;
 const REFRESH_MINUTES = Math.max(CACHE_MINUTES, Math.ceil(CALLS_PER_REFRESH * 1440 / DAILY_CALL_BUDGET));
 
 async function ensureFresh() {
