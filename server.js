@@ -173,7 +173,18 @@ const fallbackFor = (cat) => cat.id === TOP.id
 // All deals are fetched in one background pass, then served from memory.
 // The API allows about 1 request/second for new accounts, so calls are spaced out.
 // Lists are published as they finish, so the first visitors after a restart don't wait for the whole pass.
-const store = { at: 0, failedAt: 0, byCategory: {}, top: [], notEligible: false, error: null };
+const store = { at: 0, failedAt: 0, byCategory: {}, top: [], homePicks: [], notEligible: false, error: null };
+
+// The owner's spotlight: shown as the 3rd card of Today's Picks on the home page with its live price, whatever the discount.
+const HOME_PICKS = ['B0FC5W77MB']; // Peter Thomas Roth Instant FIRMx Eye (Easy-Wear), Nov 2026
+async function refreshHomePicks() {
+  if (!api || !HOME_PICKS.length) return;
+  try {
+    const items = await api.getItems(HOME_PICKS);
+    for (const it of items) console.log(`Home pick ${it.asin}: ${it.price}, ${it.savingsPct}% off, ${it.availability ?? 'no stock info'}`);
+    store.homePicks = items.filter((it) => it.priceAmount > 0 && !/unavailable|out of stock/i.test(it.availability ?? ''));
+  } catch (err) { console.error(`Amazon API: home picks lookup failed: ${err.message.slice(0, 200)}`); }
+}
 let refreshing = null;
 let firstData = null; // resolves once the first list has items after a cold start
 
@@ -335,6 +346,7 @@ async function refreshDeals() {
       if (byCategory[id]) byCategory[id] = pinFirst(byCategory[id], [it], LIST_SIZE);
     }
     const top = pinFirst(rankTop([...Object.values(byCategory), ...pool]), pinned, TOP.size);
+    await refreshHomePicks();
     if (!top.length) throw new Error('Amazon returned no deals for any search.');
     Object.assign(store, { byCategory, top, at: Date.now(), notEligible: false, error: null });
     markFirstSeen([top, ...Object.values(byCategory)]);
@@ -391,7 +403,7 @@ const withNew = (items) => {
     return WATCH_ASINS[it.asin] && !watchedTooPricey(it) ? { ...out, featured: true } : out; // the owner's featured deals (bubbles around her photo)
   });
 };
-const dealCacheReady = api ? Promise.all([loadDealCache(), loadFirstSeen()]) : Promise.resolve();
+const dealCacheReady = api ? Promise.all([loadDealCache(), loadFirstSeen(), refreshHomePicks()]) : Promise.resolve();
 
 // Space refreshes so a day of them stays under the API call budget (searches x pages, plus up to 2 re-check calls).
 const CALLS_PER_REFRESH = (CATEGORIES.reduce((n, c) => n + c.searches.length + Math.min(EXPLORE_PER_REFRESH, (c.explore ?? []).length), 0) + POOL_SEARCHES.length) * SEARCH_PAGES + 2;
@@ -502,7 +514,8 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, { category: cat.id, notEligible: true, fallbackUrl: fallbackFor(cat), items: [] });
       }
       if (!items.length && store.error) throw new Error(store.error);
-      return sendJson(res, 200, { category: cat.id, ranked: true, updatedAt: store.at || Date.now(), demo: !api, items: withNew(items) });
+      const homePicks = cat.id === TOP.id ? store.homePicks : undefined;
+      return sendJson(res, 200, { category: cat.id, ranked: true, updatedAt: store.at || Date.now(), demo: !api, items: withNew(items), homePicks });
     }
     // Product photos for the daily pin (/pin), served from our own address so the browser may save the drawn image.
     // Only Amazon's image servers are allowed, and results are cached in memory for a day.

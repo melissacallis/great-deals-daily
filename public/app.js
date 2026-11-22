@@ -235,11 +235,15 @@ async function loadPicks() {
   const cards = [];
   try {
     const top = await fetch('/api/deals?category=top').then((r) => r.json());
-    (top.items || []).slice(0, 3).forEach((item, i) => {
+    // the owner's spotlighted products take the last slot(s) of the three
+    const spot = (top.homePicks || []).slice(0, 2);
+    const ids = new Set(spot.map((it) => it.asin));
+    (top.items || []).filter((it) => !ids.has(it.asin)).slice(0, 3 - spot.length).forEach((item, i) => {
       const node = renderCard({ ...item, rank: null, dealBadge: PICK_BADGES[i] });
       if (i === 0) node.querySelector('.card').classList.add('best-deal');
       cards.push(node);
     });
+    spot.forEach((item) => cards.push(renderCard({ ...item, rank: null, dealBadge: "💖 Data Darling's pick" })));
   } catch {}
   try {
     const { picks } = await fetch('/api/picks').then((r) => r.json());
