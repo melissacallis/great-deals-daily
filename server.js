@@ -421,11 +421,18 @@ function sendJson(res, status, body) {
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.png': 'image/png', '.ico': 'image/x-icon', '.txt': 'text/plain', '.woff2': 'font/woff2' };
 
+// Site-ownership tags (Google Search Console, Meta/Facebook domain verification), set as Railway variables.
+function verifyTags() {
+  const tag = (name, v) => (v ? `\n  <meta name="${name}" content="${String(v).replace(/[^\w.-]/g, '')}">` : '');
+  return tag('google-site-verification', process.env.GOOGLE_SITE_VERIFICATION) + tag('facebook-domain-verification', process.env.FACEBOOK_DOMAIN_VERIFICATION);
+}
+
 async function serveStatic(res, urlPath) {
   const file = path.normalize(path.join(ROOT, urlPath === '/' ? 'index.html' : urlPath));
   if (!file.startsWith(ROOT)) return sendJson(res, 403, { error: 'Forbidden' });
   try {
-    const data = await readFile(file);
+    let data = await readFile(file);
+    if (path.extname(file) === '.html') data = data.toString('utf8').replace('</head>', `${verifyTags()}\n</head>`);
     res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] ?? 'application/octet-stream' });
     res.end(data);
   } catch {
@@ -460,8 +467,7 @@ async function servePage(res, file, pathname) {
     if (m.h1) html = html.replace(/<h1>[\s\S]*?<\/h1>/, `<h1>${escHtml(m.h1)}</h1>`).replace(/(<p class="lede">)[^<]*/, `$1${escHtml(m.lede)}`);
   }
   const canonical = `<link rel="canonical" href="${BASE_URL}${pathname === '/' ? '/' : pathname.replace(/\/$/, '')}">`;
-  const verify = process.env.GOOGLE_SITE_VERIFICATION ? `\n  <meta name="google-site-verification" content="${escHtml(process.env.GOOGLE_SITE_VERIFICATION)}">` : '';
-  html = html.replace('</head>', `  ${canonical}${verify}\n</head>`);
+  html = html.replace('</head>', `  ${canonical}${verifyTags()}\n</head>`);
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
   res.end(html);
 }
