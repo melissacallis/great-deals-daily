@@ -492,8 +492,35 @@ async function sitemap() {
 }
 const ROBOTS = `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nDisallow: /go/\n\nSitemap: ${BASE_URL}/sitemap.xml\n`;
 
+// Where a visitor came from: the ?utm_source= tag on shared links, a click id the app adds (fbclid, ttclid...),
+// or the app/site in the Referer header. Logged as "Visit from <source>: <page>" for page loads only; no IPs.
+const REF_SOURCES = [[/facebook\.com|fb\.me|\bfb\b/, 'facebook'], [/instagram\.com/, 'instagram'], [/tiktok\.com/, 'tiktok'],
+  [/pinterest\.|pin\.it/, 'pinterest'], [/google\./, 'google'], [/bing\.com/, 'bing'], [/(^|\.)t\.co$|twitter\.com|x\.com/, 'x'], [/youtube\.com/, 'youtube']];
+function visitSource(req, url) {
+  const tag = url.searchParams.get('utm_source');
+  if (tag) return tag.toLowerCase().replace(/[^\w.-]/g, '').slice(0, 30) + ' (tagged link)';
+  if (url.searchParams.has('fbclid')) return 'facebook/instagram (app click)';
+  if (url.searchParams.has('ttclid')) return 'tiktok (app click)';
+  if (url.searchParams.has('epik')) return 'pinterest (app click)';
+  let host = ''; try { host = new URL(req.headers.referer ?? '').hostname; } catch {}
+  if (!host || /ubottega\.com$|railway\.app$/.test(host)) return null;
+  const known = REF_SOURCES.find(([re]) => re.test(host));
+  return `${known ? known[1] : host.replace(/^www\./, '').slice(0, 40)} (referrer)`;
+}
+const isPageLoad = (req, url) => req.method === 'GET' && !/^\/(api|go|img|fonts)\//.test(url.pathname) && !/\.\w{2,5}$/.test(url.pathname);
+const BOT_UA = /bot|crawl|spider|facebookexternalhit|preview|curl|python|wget|headless|Muse-PersonalAgent|iPhone OS 13_2_3/i;
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
+  if (isPageLoad(req, url)) {
+    const src = visitSource(req, url);
+    if (src) {
+      const ua = req.headers['user-agent'] ?? '';
+      const device = BOT_UA.test(ua) ? 'bot' : /iPhone|iPad/.test(ua) ? 'iPhone' : /Android/.test(ua) ? 'Android' : /Windows|Macintosh|Linux/.test(ua) ? 'computer' : 'other';
+      const app = /FBAN|FBAV|FB_IAB/.test(ua) ? ', in Facebook app' : /Instagram/.test(ua) ? ', in Instagram app' : /musical_ly|BytedanceWebview|TikTok/i.test(ua) ? ', in TikTok app' : /Pinterest/.test(ua) ? ', in Pinterest app' : '';
+      console.log(`Visit from ${src}: ${url.pathname} (${device}${app})`);
+    }
+  }
   // Once the custom domain is live (CANONICAL_HOST=www.ubottega.com in Railway), old railway.app links forward to it.
   if (CANONICAL_HOST && req.headers.host?.endsWith('.up.railway.app')) {
     res.writeHead(301, { Location: `https://${CANONICAL_HOST}${req.url}` }); return res.end();
