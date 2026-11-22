@@ -188,13 +188,34 @@ async function refreshHomePicks() {
 let refreshing = null;
 let firstData = null; // resolves once the first list has items after a cold start
 
+// Ranking: the % off, minus 4 points for every day a deal has already been on the site (up to 32), plus 5 for
+// brand-new finds. Big markdowns still lead, but a deal that has sat on top for a week makes room for fresh ones.
+function rankScore(it, now = Date.now()) {
+  const seenAt = firstSeen[it.asin];
+  const days = seenAt ? Math.max(0, (now - seenAt) / DAY) : 0;
+  return it.savingsPct - Math.min(32, 4 * Math.floor(days)) + (days < 1 ? 5 : 0);
+}
 function rankTop(lists, size = TOP.size) {
-  const seen = new Set();
+  const seen = new Set(), now = Date.now();
   return lists.flat()
     .filter((it) => it.priceAmount > 0) // $0.00 items (free Kindle editions, missing prices) aren't deals and read as "100% off"
     .filter((it) => !seen.has(it.asin) && seen.add(it.asin))
-    .sort((a, b) => b.savingsPct - a.savingsPct || b.savingsAmount - a.savingsAmount)
+    .map((it) => [rankScore(it, now), it])
+    .sort(([sa, a], [sb, b]) => sb - sa || b.savingsPct - a.savingsPct || b.savingsAmount - a.savingsAmount)
+    .map(([, it]) => it)
     .slice(0, size);
+}
+
+// Keep the For Him lists (and their sub-lists) free of women's and kids' products, and For Her free of men's.
+const WOMEN_WORDS = /\b(women|womens|women's|woman|woman's|ladies|lady|girls?|girl's|maternity|bras?)\b/i;
+const KIDS_WORDS = /\b(kids?|kid's|children|children's|child|toddlers?|youth|baby|babies|infants?|boys?|boy's|teens?)\b/i;
+const MEN_WORDS = /\b(men|mens|men's|man|man's|male|husband|dad|father|boyfriend|him|unisex|adults?)\b/i;
+function fitsAudience(cat, it) {
+  const who = cat.id === 'him' || cat.parent === 'him' ? 'him' : cat.id === 'her' || cat.parent === 'her' ? 'her' : null;
+  const t = (it.title ?? '').replace(/\b(wo)?men'?s?'? (size|sizes|us) ?\d+/gi, ''); // "fits up to men's size 12" is a size, not who it's for
+  if (who === 'him') return !(WOMEN_WORDS.test(t) || KIDS_WORDS.test(t)) || MEN_WORDS.test(t);
+  if (who === 'her') return !(/\b(men|mens|men's|man's|male|husband|dad|father|boyfriend)\b/i.test(t) || KIDS_WORDS.test(t)) || WOMEN_WORDS.test(t) || /\b(mom|moms|mom's|mother|mothers|wife|girlfriend|her)\b/i.test(t);
+  return true;
 }
 
 async function runSearch(search) {
@@ -345,6 +366,7 @@ async function refreshDeals() {
     for (const it of pinned) for (const id of WATCH_ASINS[it.asin].lists) {
       if (byCategory[id]) byCategory[id] = pinFirst(byCategory[id], [it], LIST_SIZE);
     }
+    for (const cat of CATEGORIES) if (byCategory[cat.id]) byCategory[cat.id] = byCategory[cat.id].filter((it) => fitsAudience(cat, it));
     const top = pinFirst(rankTop([...Object.values(byCategory), ...pool]), pinned, TOP.size);
     await refreshHomePicks();
     if (!top.length) throw new Error('Amazon returned no deals for any search.');
