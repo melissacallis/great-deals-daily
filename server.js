@@ -266,6 +266,8 @@ const WATCH_ASINS = {
   B0HLGC93P1: { lists: ['him', 'under-10'], maxPrice: 5 }, // $1.99 men's tracksuit, Nov 2026
   B0GTMHDFVN: { lists: ['tech'], maxPrice: 2399 }, // STORMCRAFT Phantom RTX 5070 Ti desktop ($2,599.99 on Nov 20)
   B0HJGNNF9K: { lists: ['tech'], maxPrice: 2599 }, // Skytech 9800X3D RTX 5070 Ti desktop ($2,899.99 on Nov 20)
+  // Sol de Janeiro Cheirosa 76 mist 3 oz, $12.35 (53% off $26) on Nov 25; pinned on the For Her lists only, not the Top 100
+  B0D6ZVJ3K2: { lists: ['her', 'her-selfcare', 'beauty'], maxPrice: 14, top: false },
 };
 const watchedTooPricey = (it) => WATCH_ASINS[it.asin] && it.priceAmount > WATCH_ASINS[it.asin].maxPrice;
 async function keepHotDeals(byCategory, pool) {
@@ -367,7 +369,7 @@ async function refreshDeals() {
       if (byCategory[id]) byCategory[id] = pinFirst(byCategory[id], [it], LIST_SIZE);
     }
     for (const cat of CATEGORIES) if (byCategory[cat.id]) byCategory[cat.id] = byCategory[cat.id].filter((it) => fitsAudience(cat, it));
-    const top = pinFirst(rankTop([...Object.values(byCategory), ...pool]), pinned, TOP.size);
+    const top = pinFirst(rankTop([...Object.values(byCategory), ...pool]), pinned.filter((it) => WATCH_ASINS[it.asin].top !== false), TOP.size);
     await refreshHomePicks();
     if (!top.length) throw new Error('Amazon returned no deals for any search.');
     Object.assign(store, { byCategory, top, at: Date.now(), notEligible: false, error: null });
