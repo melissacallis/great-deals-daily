@@ -176,7 +176,7 @@ const fallbackFor = (cat) => cat.id === TOP.id
 const store = { at: 0, failedAt: 0, byCategory: {}, top: [], homePicks: [], notEligible: false, error: null };
 
 // The owner's spotlight: shown as the 3rd card of Today's Picks on the home page with its live price, whatever the discount.
-const HOME_PICKS = ['B0FC5W77MB']; // Peter Thomas Roth Instant FIRMx Eye (Easy-Wear), Nov 2026
+const HOME_PICKS = ['B0D6ZVJ3K2']; // Sol de Janeiro Cheirosa 76 mist 3 oz ($12.35, 53% off on Nov 25); was Peter Thomas Roth FIRMx Eye
 async function refreshHomePicks() {
   if (!api || !HOME_PICKS.length) return;
   try {
